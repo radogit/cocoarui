@@ -1,9 +1,7 @@
 // ========= parameters =========
 export const collisionMargin = 10; // Extra space between nodes
 
-
 // ========= INPUT DATA - NODES ================================
-
 
 export const nodes = [
     {
@@ -15,13 +13,13 @@ export const nodes = [
     },
     {
         id: "B", x: 300, y: 300, color: 'blue', radius: 40, areaRadius: 150, isFixed: false, significance: 1, hotspots: [
-            { x: 200, y: -100, intensityFactor: 1.2, width: 180, height: 80, forceType: "attract"  },
+            { x: 200, y: -100, intensityFactor: 1.0, width: 180, height: 80, forceType: "attract"  },
             { x: 250, y: 350, intensityFactor: 1.0, width: 180, height: 80, forceType: "attract"  }
         ]
     },
     {
         id: "C", x: 400, y: 400, color: 'orange', radius: 50, areaRadius: 150, isFixed: false, significance: 100, hotspots: [
-            { x: 210, y: -90, intensityFactor: 1.2, width: 180, height: 80, forceType: "attract"  },
+            { x: 210, y: -90, intensityFactor: 2.0, width: 180, height: 80, forceType: "attract"  },
             { x: 260, y: 360, intensityFactor: 1.0, width: 180, height: 80, forceType: "attract"  }
         ]
     },
@@ -31,15 +29,16 @@ export const nodes = [
     {
         id: "E", x: -400, y: 300, color: 'red', radius: 40, areaRadius: 150, isFixed: false, significance: 100, hotspots: [
             { x: -600, y: 200, intensityFactor: 1, width: 80, height: 80, forceType: "attract"  },
+            { x: -600, y: 200, intensityFactor: 1, width: 80, height: 80, forceType: "attract"  },
+            { x: -600, y: 200, intensityFactor: 1, width: 80, height: 80, forceType: "attract"  },
             { x: -200, y: 200, intensityFactor: 1, width: 80, height: 80, forceType: "attract"  },
-            { x: -550, y: 50, intensityFactor: 1, width: 80, height: 80, forceType: "attract"  },
+//            { x: -550, y: 50, intensityFactor: 1, width: 80, height: 80, forceType: "attract"  },
             { x: -250, y: 50, intensityFactor: 1, width: 80, height: 80, forceType: "attract"  },
             { x: -400, y: 0, intensityFactor: 1, width: 80, height: 80, forceType: "attract"  }
         ]
     },
 ];
 
- 
 // fix: flip the y-axis as browser-y+ is DOWN, and math-y+ is UP
 // Flip Y so that positive y is up in our math sense
 export function flipYCoordinates(nodes) {
