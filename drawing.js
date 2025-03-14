@@ -1,0 +1,68 @@
+// drawing.js
+import { collisionMargin } from "./data.js";
+
+export function createSvgAndContainer() {
+  const width  = window.innerWidth;
+  const height = window.innerHeight;
+  const svg = d3.select("body")
+    .append("svg")
+    .attr("width", width)
+    .attr("height", height);
+  
+  const container = svg.append("g")
+    .attr("class", "container")
+    .attr("transform", `translate(${width/2},${height/2})`);
+
+  return { svg, container, width, height };
+}
+
+export function createAxes(container, width, height, minDim) {
+  const domainExtent = 90;
+
+  const yScale = d3.scaleLinear()
+    .domain([-domainExtent, domainExtent])
+    .range([ minDim/2, -minDim/2 ]);
+
+  const xScale = d3.scaleLinear()
+    .domain([-domainExtent, domainExtent])
+    .range([-minDim/2, minDim/2]);
+
+  const yAxis = d3.axisLeft(yScale).ticks(10);
+  const xAxis = d3.axisBottom(xScale).ticks(10);
+
+  container.append("g")
+    .attr("class", "y-axis")
+    .call(yAxis);
+
+  container.append("g")
+    .attr("class", "x-axis")
+    .call(xAxis);
+
+  return { xScale, yScale, xAxis, yAxis };
+}
+
+export function createArrowheads(svg) {
+  svg.append("defs").append("marker")
+    .attr("id", "arrowhead-white")
+    .attr("viewBox", "0 0 10 10")
+    .attr("refX", 5)
+    .attr("refY", 5)
+    .attr("markerWidth", 4)
+    .attr("markerHeight", 4)
+    .attr("orient", "auto")
+    .append("path")
+    .attr("d", "M0,0 L10,5 L0,10 Z")
+    .attr("fill", "white");
+
+  svg.append("defs").append("marker")
+    .attr("id", "arrowhead-orange")
+    .attr("viewBox", "0 0 10 10")
+    .attr("refX", 5)
+    .attr("refY", 5)
+    .attr("markerWidth", 4)
+    .attr("markerHeight", 4)
+    .attr("orient", "auto")
+    .append("path")
+    .attr("d", "M0,0 L10,5 L0,10 Z")
+    .attr("fill", "orange");
+}

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+  <title>Force-Directed Graph</title>
+  <style>
+    body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        margin: 0; 
+        overflow: hidden;
+    }
+
+    svg {
+        background-color: #f3f3f3;
+        width: 100vw; 
+        height: 100vh; 
+        display: block;
+        margin: auto;
+    }
+
+    .label {
+        pointer-events: none;  /* Prevent selection or interaction */
+        user-select: none;  /* Prevent text selection */
+        font-size: 10px;
+        fill: rgba(0,0,0,0.2)
+    }
+
+    .debug-panel {
+        text-align: left;
+        font-size: 10px;
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: rgba(255, 255, 255, 0.7);
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+    }
+
+    .debug-panel input{
+        height: 10px;
+        width: 10px;
+    }
+    .force-arrow {
+      filter: drop-shadow(0px 3px 3px rgba(0, 0, 0, 0.4));
+    }
+  </style>
+</head>
+<body>
+  <script type="module" src="script.js"></script>
+  <div class="debug-panel">
+    <label><input type="checkbox" id="toggleNodeLabel" checked>ID Label</label><br>
+    <label><input type="checkbox" id="toggleCoordinates" checked>Coordinates</label><br>
+    <br>
+    <label><input type="checkbox" id="toggleForceArrows" checked>Force Arrows</label><br>
+    <label><input type="checkbox" id="toggleNetForce" checked>Net Force</label><br>
+    <br>
+    <input type="radio" name="spawnMethod" id="spawnAll" value="all" checked>
+    <label for="spawnAll">All-at-Once</label><br>
+    <input type="radio" name="spawnMethod" id="spawnIncr" value="incr">
+    <label for="spawnIncr">Incremental</label><br>
+    <button id="spawnButton">Spawn Now</button>
+    <br>
+    <br>
+    <input type="radio" name="weightMethod" id="weightSize" value="size" checked>
+    <label for="weightSize">Size</label><br>
+    <input type="radio" name="weightMethod" id="weightSignificance" value="signi">
+    <label for="weightSignificance">Significance</label><br>
+    <input type="radio" name="weightMethod" id="weightPriority" value="prio">
+    <label for="weightPriority">Priority</label><br>
+</div>
+</body>
+</html>
