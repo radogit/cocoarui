@@ -598,12 +598,12 @@ function hmrAccept(bundle /*: ParcelRequire */ , id /*: string */ ) {
 },{}],"6rimH":[function(require,module,exports,__globalThis) {
 var _d3 = require("d3");
 var _dataJs = require("./js/data.js");
+var _forcesJs = require("./js/forces.js");
+var _drawingJs = require("./js/drawing.js");
+var _heatmapsJs = require("./js/heatmaps.js");
+var _uiJs = require("./js/ui.js");
+var _spawnJs = require("./js/spawn.js");
 // ========= parameters =========
-// Global toggle states
-let showNodeLabel = true;
-let showForceArrows = true;
-let showNetForce = true;
-let showCoordinates = true;
 // ================================================================================================================
 // =============== ONE TIME =======================================================================================
 // ================================================================================================================
@@ -611,64 +611,21 @@ let showCoordinates = true;
 (0, _dataJs.flipYCoordinates)((0, _dataJs.nodes));
 // 2) Fix initial nodes that are isFixed
 (0, _dataJs.fixInitially)((0, _dataJs.nodes));
-// todo: UI control panel - enact the above hardcoded choices onto the html file
-// ========= draw the world =========
-const width = window.innerWidth;
-const height = window.innerHeight;
+// 3) Create the SVG, container
+const { svg, container, width, height } = (0, _drawingJs.createSvgAndContainer)();
 const minDim = Math.min(width, height);
-console.log(180 / Math.min(width, height));
-const svg = _d3.select("body").append("svg").attr("width", width).attr("height", height);
-// centering the simulation's coordinate system within the browser canvas
-const container = svg.append("g").attr("class", "container").attr("transform", `translate(${width / 2},${height / 2})`);
-// axis
-const domainExtent = 90;
-const yScale = _d3.scaleLinear().domain([
-    -domainExtent,
-    domainExtent
-]).range([
-    minDim / 2,
-    -minDim / 2
-]);
-const xScale = _d3.scaleLinear().domain([
-    -domainExtent,
-    domainExtent
-]) // the domain of x-values in your centered coords
-.range([
-    -minDim / 2,
-    minDim / 2
-]); // visually, negative is left, positive is right
-// Create a left-axis generator
-const yAxis = _d3.axisLeft(yScale).ticks(10);
-const xAxis = _d3.axisBottom(xScale).ticks(10); // choose how many ticks you want
-// Append the axis at x=0
-container.append("g").attr("class", "y-axis").attr("transform", "translate(0,0)").call(yAxis);
-// Then draw the x-axis at (x=0, y=0)
-container.append("g").attr("class", "x-axis").attr("transform", "translate(0,0)") // y=0 means horizontal line across center
-.call(xAxis);
+// 4) Draw axes
+const { xScale, yScale, xAxis, yAxis } = (0, _drawingJs.createAxes)(container, width, height, minDim);
+// 5) Arrowhead artefacts
+const defs = svg.append("defs");
+(0, _drawingJs.createArrowheads)(svg);
+// 6) Create the gradients by calling the new function
+(0, _heatmapsJs.createHeatmapGradients)(defs, (0, _dataJs.nodes));
+// 7) Then build the hotspot rects, also from the new function
+(0, _heatmapsJs.buildHeatspotRects)(container, (0, _dataJs.nodes));
 // ================================================================================================================
 // =============== SPAWN ===============================================================================
 // ================================================================================================================
-// Define gradients for each node's hotspots dynamically
-const defs = svg.append("defs");
-(0, _dataJs.nodes).forEach((node)=>{
-    // Create a unique radial gradient for each node's hotspots
-    const gradient = defs.append("radialGradient").attr("id", `forceGradient-${node.id}`).attr("cx", "50%").attr("cy", "50%").attr("r", "50%");
-    gradient.append("stop").attr("offset", "0%").style("stop-color", node.color) // Use node's color for the center
-    .style("stop-opacity", 0.4);
-    gradient.append("stop").attr("offset", "100%").style("stop-color", node.color).style("stop-opacity", 0.1);
-});
-// Create hotspot rectangles for each node
-const hotspotGroups = container.selectAll(".hotspot-group").data((0, _dataJs.nodes)).enter().append("g").attr("class", "hotspot-group");
-// Create each hotspot rectangle for a node
-hotspotGroups.selectAll(".hotspot").data((d)=>d.hotspots).enter().append("rect").attr("class", "hotspot").attr("x", (d)=>d.x - d.width / 2).attr("y", (d)=>d.y - d.height / 2).attr("width", (d)=>d.width).attr("height", (d)=>d.height).each(function(d) {
-    // Ensure each hotspot references the correct node ID dynamically
-    d.nodeId = _d3.select(this.parentNode).datum().id;
-    d.color = _d3.select(this.parentNode).datum().color;
-}).style("fill", (d)=>`url(#forceGradient-${d.nodeId})`) // Correctly associate hotspot with node's gradient
-.style("stroke", (d)=>d.color) // Thin black border
-.style("stroke-width", 1) // Border thickness
-.style("stroke-dasharray", "4,2") // Dashed border (4px dash, 2px space)    
-.style("opacity", 0.3);
 // Create a group for each node
 const nodeGroup = container.selectAll(".node-group").data((0, _dataJs.nodes)).enter().append("g").attr("class", "node-group").attr("transform", (d)=>`translate(${d.x}, ${d.y})`) // Positioning
 .on("dblclick", toggleFixed) // to toggle fixed state
@@ -685,33 +642,29 @@ nodeGroup.append("text").attr("class", "id-label").attr("dx", 0) // Offset to th
 nodeGroup.append("text").attr("class", "coord-label").attr("dx", 0) //d => d.radius)  // to the right
 .attr("dy", (d)=>d.radius + 15) // Below the node
 .attr("text-anchor", "middle").attr("font-size", "10px").attr("fill", "black").attr("opacity", 0.5);
-// Create the tooltip div and style it
-const tooltip = _d3.select("body").append("div").attr("class", "tooltip").style("position", "absolute").style("z-index", "10").style("visibility", "hidden").style("background", "lightsteelblue").style("padding", "8px").style("border-radius", "4px").style("box-shadow", "0 2px 10px rgba(0, 0, 0, 0.1)").style("font-size", "14px");
 // Force arrows container
 const forceArrows = nodeGroup.append("g").attr("class", "force-arrows");
-// Arrowheads
-svg.append("defs").append("marker").attr("id", "arrowhead-white").attr("viewBox", "0 0 10 10").attr("refX", 5).attr("refY", 5).attr("markerWidth", 4).attr("markerHeight", 4).attr("orient", "auto").append("path").attr("d", "M0,0 L10,5 L0,10 Z").attr("fill", "white");
-svg.append("defs").append("marker").attr("id", "arrowhead-orange").attr("viewBox", "0 0 10 10").attr("refX", 5).attr("refY", 5).attr("markerWidth", 4).attr("markerHeight", 4).attr("orient", "auto").append("path").attr("d", "M0,0 L10,5 L0,10 Z").attr("fill", "orange");
 // ================================================================================================================
 // =============== SIMULATION LOGIC =======================================================================================
 // ================================================================================================================
 const simulation = _d3.forceSimulation((0, _dataJs.nodes)).force("repel", _d3.forceManyBody().strength((d)=>d.isFixed ? 0 : -50)) // Mild repulsion
 .force("collide", _d3.forceCollide().radius((d)=>d.radius + (0, _dataJs.collisionMargin)).strength(1.2)) // Prevent overlap
-.force("gaussian", forceGaussianPreferredArea(1.5)) // Gaussian force for hotspots
-.force("customCollision", forceCustomCollision) // New collision force!
+.force("gaussian", (0, _forcesJs.forceGaussianPreferredArea)(1.5)) // Gaussian force for hotspots
+.force("customCollision", (0, _forcesJs.forceCustomCollision)) // New collision force!
 .on("tick", ticked);
 function ticked() {
     nodeGroup.attr("transform", (d)=>`translate(${d.x}, ${d.y})`);
     // Update coordinates label
-    if (showCoordinates) nodeGroup.select(".coord-label").text((d)=>`(${Math.round(d.x)}, ${Math.round(-d.y)})`);
+    if (0, _uiJs.showCoordinates) nodeGroup.select(".coord-label").text((d)=>`(${Math.round(d.x)}, ${Math.round(-d.y)})`);
     // Update hotspot positions (for visualizing hotspot areas)
-    hotspotGroups.selectAll(".hotspot").attr("x", (d)=>d.x - d.width / 2).attr("y", (d)=>d.y - d.height / 2);
-    hotspotGroups.selectAll(".hotspot").attr("x", (d)=>d.x - d.width / 2).attr("y", (d)=>d.y - d.height / 2);
+    // hotspotGroups.selectAll(".hotspot")
+    //     .attr("x", d => d.x - d.width / 2)
+    //     .attr("y", d => d.y - d.height / 2);
     // Clear previous arrows before drawing new ones
     forceArrows.selectAll(".force-arrow").remove();
     nodeGroup.select("circle").attr("stroke", (d)=>d.isFixed ? "black" : "none").attr("stroke-width", (d)=>d.isFixed ? 3 : 0);
     // If arrows are off, no need to draw them.
-    if (!showForceArrows) return;
+    if (!(0, _uiJs.showForceArrows)) return;
     // // Enforce collision constraints AFTER forces are applied
     // nodes.forEach((d, i) => {
     //     nodes.forEach((other, j) => {
@@ -741,7 +694,7 @@ function ticked() {
             arrowGroup.append("line").attr("class", "force-arrow").attr("x1", 0).attr("y1", 0).attr("x2", length * Math.cos(angle)).attr("y2", length * Math.sin(angle)).attr("stroke", force.source.includes("collision") ? "orange" : "white").attr("stroke-width", 5).attr("marker-end", "url(#arrowhead-" + (force.source.includes("collision") ? "orange" : "white") + ")").style("opacity", 0.5);
         });
         // Draw net force arrow in red, if showNetForce.
-        if (showNetForce) {
+        if (0, _uiJs.showNetForce) {
             const netForceX = d.vx;
             const netForceY = d.vy;
             const netForceMagnitude = Math.sqrt(netForceX ** 2 + netForceY ** 2);
@@ -751,104 +704,6 @@ function ticked() {
                 arrowGroup.append("line").attr("class", "force-arrow net-force-arrow").attr("x1", 0).attr("y1", 0).attr("x2", netLength * Math.cos(netAngle)).attr("y2", netLength * Math.sin(netAngle)).attr("stroke", "red").attr("stroke-width", 3).attr("marker-end", "url(#arrowhead)").style("opacity", netForceMagnitude > 0.9 ? 0.8 : 0.5);
             }
         }
-    });
-}
-// ==================== Forces & Collisions ========================
-// Custom force for Gaussian-like interaction between nodes and multiple hotspots
-function forceGaussianPreferredArea(strength) {
-    return function(alpha) {
-        (0, _dataJs.nodes).forEach((d)=>{
-            d.forces = []; // Reset all force vectors
-            // Apply Hotspot Forces (Attract/Repel)
-            d.hotspots.forEach((hotspot)=>{
-                const dx = hotspot.x - d.x;
-                const dy = hotspot.y - d.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                if (distance > 1) {
-                    const force = Math.exp(-distance / hotspot.width) * strength * hotspot.intensityFactor;
-                    // Check the force type: attract vs. repel
-                    const fx = hotspot.forceType === "attract" ? dx * force : -dx * force;
-                    const fy = hotspot.forceType === "attract" ? dy * force : -dy * force;
-                    d.vx += fx * alpha;
-                    d.vy += fy * alpha;
-                    //d.forces.push({ fx: -dx * force, fy: -dy * force });
-                    d.forces.push({
-                        fx,
-                        fy,
-                        source: "hotspot"
-                    });
-                }
-            });
-            // Node-to-node collision (soft approach)
-            (0, _dataJs.nodes).forEach((other)=>{
-                if (d !== other) {
-                    const dx = other.x - d.x;
-                    const dy = other.y - d.y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-                    const minDist = d.radius + other.radius + (0, _dataJs.collisionMargin); // Include margin
-                    //if(d.id=="B" && minDist>distance){console.log('distance of B to '+other.id+': '+distance + ' which is less than the midDist of' +minDist );}
-                    if (distance < minDist) {
-                        const overlapRatio = 1 - distance / minDist; // How much they overlap (0 to 1)
-                        const force = overlapRatio ** 2 * alpha * 5; // Quadratic falloff for smooth response
-                        // Normalize direction and push nodes apart
-                        const pushX = dx / distance * (minDist - distance);
-                        const pushY = dy / distance * (minDist - distance);
-                        d.vx -= pushX * alpha * 0.5; // Scale down to prevent excessive movement
-                        d.vy -= pushY * alpha * 0.5;
-                        d.forces.push({
-                            fx: -pushX,
-                            fy: -pushY,
-                            source: `collision with ${other.id}`
-                        });
-                    }
-                }
-            });
-        });
-    };
-}
-function forceCustomCollision(alpha) {
-    (0, _dataJs.nodes).forEach((d, i)=>{
-        (0, _dataJs.nodes).forEach((other, j)=>{
-            if (i !== j) {
-                const dx = d.x - other.x;
-                const dy = d.y - other.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                const minDist = d.radius + other.radius + (0, _dataJs.collisionMargin);
-                if (distance < minDist && distance > 0) {
-                    const overlapRatio = 1 - distance / minDist;
-                    const force = overlapRatio ** 2 * alpha * 5;
-                    // Normalize direction
-                    const pushX = dx / distance * force;
-                    const pushY = dy / distance * force;
-                    // Determine how to distribute the force
-                    if (!d.isFixed && !other.isFixed) {
-                        // // Both nodes are movable → Split force evenly
-                        // d.vx += pushX * 0.5;
-                        // d.vy += pushY * 0.5;
-                        // other.vx -= pushX * 0.5;
-                        // other.vy -= pushY * 0.5;
-                        const weight1 = d.significance || 1; // Default 1 if not defined
-                        const weight2 = other.significance || 1;
-                        const totalWeight = weight1 + weight2;
-                        //console.log(d.significance + ' vs. ' + other.significance);
-                        const dWeight = weight2 / totalWeight;
-                        const otherWeight = weight1 / totalWeight;
-                        d.vx += pushX * dWeight;
-                        d.vy += pushY * dWeight;
-                        other.vx -= pushX * otherWeight;
-                        other.vy -= pushY * otherWeight;
-                    } else if (!d.isFixed) {
-                        // `d` is movable, `other` is fixed → `d` takes full force
-                        d.vx += pushX;
-                        d.vy += pushY;
-                    } else if (!other.isFixed) {
-                        // `other` is movable, `d` is fixed → `other` takes full force
-                        other.vx -= pushX;
-                        other.vy -= pushY;
-                    }
-                }
-            }
-        });
     });
 }
 // ================================================================================================================
@@ -889,29 +744,8 @@ function toggleFixed(event, d) {
 // ================================================================================================================
 // =============== LISTENERS =======================================================================================
 // ================================================================================================================
-// ======== UI control panel logic ================================
-const toggleNodeLabel = document.getElementById("toggleNodeLabel");
-if (toggleNodeLabel) toggleNodeLabel.addEventListener("change", function() {
-    showNodeLabel = this.checked;
-    // Hide/show node labels
-    svg.selectAll(".id-label").style("display", showNodeLabel ? null : "none");
-});
-const toggleForceArrowsInput = document.getElementById("toggleForceArrows");
-if (toggleForceArrowsInput) toggleForceArrowsInput.addEventListener("change", function() {
-    showForceArrows = this.checked;
-    // Hide/show the forceArrows group
-    svg.selectAll(".force-arrows").style("display", showForceArrows ? null : "none");
-});
-const toggleNetForceInput = document.getElementById("toggleNetForce");
-if (toggleNetForceInput) toggleNetForceInput.addEventListener("change", function() {
-    showNetForce = this.checked;
-});
-const toggleCoordinatesInput = document.getElementById("toggleCoordinates");
-if (toggleCoordinatesInput) toggleCoordinatesInput.addEventListener("change", function() {
-    showCoordinates = this.checked;
-    // Hide/show coord-label elements
-    svg.selectAll(".coord-label").style("display", showCoordinates ? null : "none");
-});
+// 8) UI toggles
+(0, _uiJs.setupUI)();
 // ======== Browser window resize ================================
 window.addEventListener("resize", onResize);
 function onResize() {
@@ -928,7 +762,7 @@ function onResize() {
     redrawAxes(); // if you have an axis you want to keep consistent
 }
 
-},{"d3":"17XFv","./js/data.js":"3d49z"}],"17XFv":[function(require,module,exports,__globalThis) {
+},{"d3":"17XFv","./js/data.js":"3d49z","./js/forces.js":"kMF8R","./js/drawing.js":"acZLf","./js/ui.js":"1hWqh","./js/spawn.js":"8RTi2","./js/heatmaps.js":"kNCsT"}],"17XFv":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 var _d3Array = require("d3-array");
@@ -24530,6 +24364,248 @@ function fixInitially(nodes) {
     });
 }
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["eq8kL","6rimH"], "6rimH", "parcelRequire94c2")
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"kMF8R":[function(require,module,exports,__globalThis) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+// Gaussian force for hotspots
+parcelHelpers.export(exports, "forceGaussianPreferredArea", ()=>forceGaussianPreferredArea);
+// Weighted collision
+parcelHelpers.export(exports, "forceCustomCollision", ()=>forceCustomCollision);
+var _dataJs = require("./data.js");
+function forceGaussianPreferredArea(strength) {
+    return function(alpha) {
+        (0, _dataJs.nodes).forEach((d)=>{
+            d.forces = []; // Reset all force vectors for this tick
+            // Hotspot logic
+            d.hotspots.forEach((hotspot)=>{
+                const dx = hotspot.x - d.x;
+                const dy = hotspot.y - d.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance > 1) {
+                    const f = Math.exp(-distance / hotspot.width) * strength * hotspot.intensityFactor;
+                    const fx = hotspot.forceType === "attract" ? dx * f : -dx * f;
+                    const fy = hotspot.forceType === "attract" ? dy * f : -dy * f;
+                    d.vx += fx * alpha;
+                    d.vy += fy * alpha;
+                    d.forces.push({
+                        fx,
+                        fy,
+                        source: "hotspot"
+                    });
+                }
+            });
+            // Node-to-node collision (soft approach)
+            (0, _dataJs.nodes).forEach((other)=>{
+                if (d === other) return;
+                const dx = other.x - d.x;
+                const dy = other.y - d.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                const minDist = d.radius + other.radius + (0, _dataJs.collisionMargin);
+                if (dist < minDist) {
+                    const overlapRatio = 1 - dist / minDist;
+                    const pushVal = overlapRatio ** 2 * alpha * 5;
+                    const pushX = dx / dist * (minDist - dist);
+                    const pushY = dy / dist * (minDist - dist);
+                    d.vx -= pushX * alpha * 0.5;
+                    d.vy -= pushY * alpha * 0.5;
+                    d.forces.push({
+                        fx: -pushX,
+                        fy: -pushY,
+                        source: `collision with ${other.id}`
+                    });
+                }
+            });
+        });
+    };
+}
+function forceCustomCollision(alpha) {
+    (0, _dataJs.nodes).forEach((d, i)=>{
+        (0, _dataJs.nodes).forEach((other, j)=>{
+            if (i === j) return;
+            const dx = d.x - other.x;
+            const dy = d.y - other.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const minDist = d.radius + other.radius + (0, _dataJs.collisionMargin);
+            if (dist < minDist && dist > 0) {
+                const overlap = 1 - dist / minDist;
+                const f = overlap ** 2 * alpha * 5;
+                const pushX = dx / dist * f;
+                const pushY = dy / dist * f;
+                if (!d.isFixed && !other.isFixed) {
+                    const w1 = d.significance || 1, w2 = other.significance || 1;
+                    const tw = w1 + w2;
+                    const dWeight = w2 / tw, otherWeight = w1 / tw;
+                    d.vx += pushX * dWeight;
+                    d.vy += pushY * dWeight;
+                    other.vx -= pushX * otherWeight;
+                    other.vy -= pushY * otherWeight;
+                } else if (!d.isFixed) {
+                    d.vx += pushX;
+                    d.vy += pushY;
+                } else if (!other.isFixed) {
+                    other.vx -= pushX;
+                    other.vy -= pushY;
+                }
+                d.forces.push({
+                    fx: -pushX,
+                    fy: -pushY,
+                    source: `collision with ${other.id}`
+                });
+            }
+        });
+    });
+}
+
+},{"./data.js":"3d49z","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"acZLf":[function(require,module,exports,__globalThis) {
+// drawing.js
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "createSvgAndContainer", ()=>createSvgAndContainer);
+parcelHelpers.export(exports, "createAxes", ()=>createAxes);
+parcelHelpers.export(exports, "createArrowheads", ()=>createArrowheads);
+var _d3 = require("d3");
+var _dataJs = require("./data.js");
+function createSvgAndContainer() {
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    const svg = _d3.select("body").append("svg").attr("width", width).attr("height", height);
+    const container = svg.append("g").attr("class", "container").attr("transform", `translate(${width / 2},${height / 2})`);
+    return {
+        svg,
+        container,
+        width,
+        height
+    };
+}
+function createAxes(container, width, height, minDim) {
+    const domainExtent = 90;
+    const yScale = _d3.scaleLinear().domain([
+        -domainExtent,
+        domainExtent
+    ]).range([
+        minDim / 2,
+        -minDim / 2
+    ]);
+    const xScale = _d3.scaleLinear().domain([
+        -domainExtent,
+        domainExtent
+    ]).range([
+        -minDim / 2,
+        minDim / 2
+    ]);
+    const yAxis = _d3.axisLeft(yScale).ticks(10);
+    const xAxis = _d3.axisBottom(xScale).ticks(10);
+    container.append("g").attr("class", "y-axis").call(yAxis);
+    container.append("g").attr("class", "x-axis").call(xAxis);
+    return {
+        xScale,
+        yScale,
+        xAxis,
+        yAxis
+    };
+}
+function createArrowheads(svg) {
+    svg.append("defs").append("marker").attr("id", "arrowhead-white").attr("viewBox", "0 0 10 10").attr("refX", 5).attr("refY", 5).attr("markerWidth", 4).attr("markerHeight", 4).attr("orient", "auto").append("path").attr("d", "M0,0 L10,5 L0,10 Z").attr("fill", "white");
+    svg.append("defs").append("marker").attr("id", "arrowhead-orange").attr("viewBox", "0 0 10 10").attr("refX", 5).attr("refY", 5).attr("markerWidth", 4).attr("markerHeight", 4).attr("orient", "auto").append("path").attr("d", "M0,0 L10,5 L0,10 Z").attr("fill", "orange");
+}
+
+},{"./data.js":"3d49z","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","d3":"17XFv"}],"1hWqh":[function(require,module,exports,__globalThis) {
+// ui.js
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "showNodeLabel", ()=>showNodeLabel);
+parcelHelpers.export(exports, "showCoordinates", ()=>showCoordinates);
+parcelHelpers.export(exports, "showForceArrows", ()=>showForceArrows);
+parcelHelpers.export(exports, "showNetForce", ()=>showNetForce);
+parcelHelpers.export(exports, "setupUI", ()=>setupUI);
+let showNodeLabel = true;
+let showCoordinates = true;
+let showForceArrows = true;
+let showNetForce = true;
+function setupUI() {
+    // enact the above hardcoded choices onto the html file
+    document.getElementById("toggleNodeLabel").checked = showNodeLabel;
+    document.getElementById("toggleCoordinates").checked = showCoordinates;
+    document.getElementById("toggleForceArrows").checked = showForceArrows;
+    document.getElementById("toggleNetForce").checked = showNetForce;
+    const toggleNodeLabel = document.getElementById("toggleNodeLabel");
+    if (toggleNodeLabel) toggleNodeLabel.addEventListener("change", function() {
+        showNodeLabel = this.checked;
+        document.querySelectorAll(".id-label").forEach((el)=>{
+            el.style.display = showNodeLabel ? null : "none";
+        });
+    });
+    const toggleForceArrowsInput = document.getElementById("toggleForceArrows");
+    if (toggleForceArrowsInput) toggleForceArrowsInput.addEventListener("change", function() {
+        showForceArrows = this.checked;
+        if (!this.checked) document.getElementById("toggleNetForce").disabled = true;
+        else document.getElementById("toggleNetForce").disabled = false;
+        document.querySelectorAll(".force-arrows").forEach((el)=>{
+            el.style.display = showForceArrows ? null : "none";
+        });
+    });
+    const toggleNetForceInput = document.getElementById("toggleNetForce");
+    if (toggleNetForceInput) toggleNetForceInput.addEventListener("change", function() {
+        showNetForce = this.checked;
+    });
+    const toggleCoordinatesInput = document.getElementById("toggleCoordinates");
+    if (toggleCoordinatesInput) toggleCoordinatesInput.addEventListener("change", function() {
+        showCoordinates = this.checked;
+        document.querySelectorAll(".coord-label").forEach((el)=>{
+            el.style.display = showCoordinates ? null : "none";
+        });
+    });
+}
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"8RTi2":[function(require,module,exports,__globalThis) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "spawnNodes", ()=>spawnNodes);
+function spawnNodes() {
+    console.log('spawning!');
+}
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"kNCsT":[function(require,module,exports,__globalThis) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+/**
+ * Creates radial gradients for each node in `nodes`.
+ * 
+ * @param {d3.Selection} defs 
+ * @param {Array} nodes The array of node objects with .id and .color.
+ */ parcelHelpers.export(exports, "createHeatmapGradients", ()=>createHeatmapGradients);
+/**
+ * Builds hotspot rectangles for each node, placing them in a `<g.hotspot-group>` 
+ * with `<rect>` elements inside that group.
+ * 
+ * @param {d3.Selection} container The main <g> container for your simulation.
+ * @param {Array} nodes The array of node objects, each with .hotspots array
+ */ parcelHelpers.export(exports, "buildHeatspotRects", ()=>buildHeatspotRects);
+var _d3 = require("d3");
+function createHeatmapGradients(defs, nodes) {
+    // Define gradients for each node's hotspots dynamically
+    nodes.forEach((node)=>{
+        // Create a unique radial gradient for each node's hotspots
+        const gradient = defs.append("radialGradient").attr("id", `forceGradient-${node.id}`).attr("cx", "50%").attr("cy", "50%").attr("r", "50%");
+        gradient.append("stop").attr("offset", "0%").style("stop-color", node.color) // Use node's color for the center
+        .style("stop-opacity", 0.4);
+        gradient.append("stop").attr("offset", "100%").style("stop-color", node.color).style("stop-opacity", 0.1);
+    });
+}
+function buildHeatspotRects(container, nodes) {
+    // Create hotspot rectangles for each node
+    const hotspotGroups = container.selectAll(".hotspot-group").data(nodes).enter().append("g").attr("class", "hotspot-group");
+    hotspotGroups.selectAll(".hotspot").data((d)=>d.hotspots).enter().append("rect").attr("class", "hotspot").attr("x", (d)=>d.x - d.width / 2).attr("y", (d)=>d.y - d.height / 2).attr("width", (d)=>d.width).attr("height", (d)=>d.height).each(function(d) {
+        // Ensure each hotspot references the correct node ID dynamically
+        d.nodeId = _d3.select(this.parentNode).datum().id;
+        d.color = _d3.select(this.parentNode).datum().color;
+    }).style("fill", (d)=>`url(#forceGradient-${d.nodeId})`) // Correctly associate hotspot with node's gradient
+    .style("stroke", (d)=>d.color) // Thin black border
+    .style("stroke-width", 1) // Border thickness
+    .style("stroke-dasharray", "4,2") // Dashed border (4px dash, 2px space)    
+    .style("opacity", 0.3);
+}
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","d3":"17XFv"}]},["eq8kL","6rimH"], "6rimH", "parcelRequire94c2")
 
 //# sourceMappingURL=index.8cfc62b9.js.map
