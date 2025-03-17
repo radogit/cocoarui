@@ -6,7 +6,7 @@
     "start": "parcel *.html --open",
     "build": "parcel build index.html --dist-dir dist --public-url ./",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
+    "deploy": "gh-pages -d dist && echo \"deployed to: https://radogit.github.io/cocoarui\""
   },
   "keywords": [],
   "author": "",

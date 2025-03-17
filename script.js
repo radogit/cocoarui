@@ -42,7 +42,6 @@ buildHeatspotRects(container, nodes);
 // =============== SPAWN ===============================================================================
 // ================================================================================================================
 
-
 // Create a group for each node
 const nodeGroup = container.selectAll(".node-group")
     .data(nodes)
