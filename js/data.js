@@ -2,8 +2,9 @@
 export const collisionMargin = 10; // Extra space between nodes
 
 // ========= INPUT DATA - NODES ================================
+export const nodes = [];
 
-export const nodes = [
+export const nodesQueue = [
     {
         id: "A", x: 550, y: 550, color: 'green', radius: 30, areaRadius: 100, isFixed: false, significance: 100, hotspots: [
             { x: 450, y: 150, intensityFactor: 1.5, width: 200, height: 300, forceType: "attract" },

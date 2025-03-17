@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import { nodes, flipYCoordinates, fixInitially, collisionMargin } from "./js/data.js";
+import { nodes, nodesQueue, flipYCoordinates, fixInitially, collisionMargin } from "./js/data.js";
 import { forceGaussianPreferredArea, forceCustomCollision } from "./js/forces.js";
 import { createSvgAndContainer, createAxes, createArrowheads } from "./js/drawing.js";
 import { createHeatmapGradients, buildHeatspotRects } from "./js/heatmaps.js";
@@ -16,10 +16,10 @@ const colours = ['green','blue', 'orange', 'purple', 'red', 'pink', 'cyan'];
 // ================================================================================================================
 
 // 1) Flip Y to treat up as positive
-flipYCoordinates(nodes);
+flipYCoordinates(nodesQueue);
 
 // 2) Fix initial nodes that are isFixed
-fixInitially(nodes);
+fixInitially(nodesQueue);
 
 // 3) Create the SVG, container
 const { svg, container, nodeLayer, hotspotLayer, width, height } = createSvgAndContainer();
@@ -42,57 +42,6 @@ buildHeatspotRects(hotspotLayer, nodes);
 // ================================================================================================================
 // =============== SPAWN ===============================================================================
 // ================================================================================================================
-
-// // Create a group for each node
-// const nodeGroup = container.selectAll(".node-group")
-//     .data(nodes)
-//     .enter()
-//     .append("g")
-//     .attr("class", "node-group")
-//     .attr("transform", d => `translate(${d.x}, ${d.y})`) // Positioning
-//     .on("dblclick", toggleFixed) // to toggle fixed state
-//     .call(d3.drag()
-//         .on("start", dragStart)
-//         .on("drag", dragging)
-//         .on("end", dragEnd)
-//     );
-
-// // Append circles inside the group (node circles)
-// nodeGroup.append("circle")
-//     .attr("fill", d => d.color)  // Node color
-//     .attr("opacity", 0.6)
-//     .attr("r", d => d.radius)
-//     .attr("stroke", d => d.isFixed ? "black" : "none") // Visual cue: Black stroke if fixed
-//     .attr("stroke-width", d => d.isFixed ? 3 : 0)
-//     ;
-
-// // Primary Label: node ID
-// nodeGroup.append("text")
-//     .attr("class", "id-label")
-//     .attr("dx", 0)  // Offset to the right of the circle
-//     .attr("dy", d => -d.radius - 2)   // Slightly above center
-//     .attr("text-anchor", "middle")
-//     .text(d => d.id)
-//     .attr("font-size", "20px")
-//     .attr("fill", "black")
-//     .attr("opacity", 0.5);
-
-// // Secondary Label: node coordinates
-// nodeGroup.append("text")
-//     .attr("class", "coord-label")
-//     .attr("dx", 0) //d => d.radius)  // to the right
-//     .attr("dy", d => d.radius + 15) // Below the node
-//     .attr("text-anchor", "middle")
-//     .attr("font-size", "10px")
-//     .attr("fill", "black")
-//     .attr("opacity", 0.5);
-
-
-// // Force arrows container
-// const forceArrows = nodeGroup.append("g")
-//     .attr("class", "force-arrows");
-
-// ==========================
 
 let nodeGroup;
 
@@ -125,21 +74,15 @@ function buildOrUpdateNodes(container, nodes) {
             .attr("class", "id-label")
             .attr("dx", 0)
             .attr("dy", d => -d.radius - 2)
-            .attr("text-anchor", "middle")
             .text(d => d.id)
-            .attr("font-size", "20px")
-            .attr("fill", "black")
-            .attr("opacity", 0.5);
+            ;
   
           // append coords label (if you want)
           g.append("text")
             .attr("class", "coord-label")
             .attr("dx", 0)
             .attr("dy", d => d.radius + 15)
-            .attr("text-anchor", "middle")
-            .attr("font-size", "10px")
-            .attr("fill", "black")
-            .attr("opacity", 0.5);
+            ;
 
           // Force arrows container
           g.append("g")
@@ -164,8 +107,35 @@ function buildOrUpdateNodes(container, nodes) {
   
 // ========================================================================================================================
 
-buildOrUpdateNodes(nodeLayer, nodes);
+// Immediate Spawning Approach
+    // //buildOrUpdateNodes(nodeLayer, nodes);
+// Timed Drip Approach
+let i = 0; 
+const intervalId = setInterval(() => {
+  if (i >= nodesQueue.length) {
+    // We have spawned them all
+    clearInterval(intervalId);
+    return;
+  }
 
+  // Take the next node:
+  const newNode = nodesQueue[i];
+  i++;
+
+  // Add to the simulation array:
+  nodes.push(newNode);
+
+  // (A) Re-run hotspot data-join to create rects for newNode.hotspots
+  buildHeatspotRects(hotspotLayer, nodes);
+
+  // (B) Re-run node data-join to create circles, labels, etc.
+  buildOrUpdateNodes(nodeLayer, nodes);
+
+  // (C) Let the sim see the new array
+  simulation.nodes(nodes);
+  simulation.alpha(1).restart();
+  
+}, 1000); // spawn 1 node each second
 
 // ================================================================================================================
 // =============== SIMULATION LOGIC =======================================================================================
@@ -318,13 +288,18 @@ function addOne() {
       isFixed: false,
       significance: 1,
       hotspots: [
-        { x: 500 * Math.random(), y: 500 * Math.random(), intensityFactor: 1.0, width: 180 * Math.random(), height: 80 * Math.random(), forceType: "attract"  },
+        { x: 300 * Math.random(), y: 300 * Math.random(), intensityFactor: 1.0, width: 180 * Math.random(), height: 80 * Math.random(), forceType: "attract"  },
       ]
     };
 
     nodes.push(newNode);
+    // (A) Re-run hotspot data-join to create rects for newNode.hotspots
+    buildHeatspotRects(hotspotLayer, nodes);
+
+    // (B) Re-run node data-join to create circles, labels, etc.
     buildOrUpdateNodes(nodeLayer, nodes);
-    // Key: Let the simulation know about the updated node array
+
+    // (C) Let the simulation know about new node
     simulation.nodes(nodes);       
     simulation.alpha(1).restart(); 
   }

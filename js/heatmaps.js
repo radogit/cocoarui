@@ -43,15 +43,13 @@ export function buildHeatspotRects(container, nodes){
 
     // Create hotspot rectangles for each node
     const hotspotGroups = container.selectAll(".hotspot-group")
-        .data(nodes)
-        .enter()
-        .append("g")
+        .data(nodes, d => d.id)
+        .join("g")
         .attr("class", "hotspot-group");
     
     hotspotGroups.selectAll(".hotspot")
         .data(d => d.hotspots)
-        .enter()
-        .append("rect")
+        .join("rect")
         .attr("class", "hotspot")
         .attr("x", d => d.x - d.width / 2)
         .attr("y", d => d.y - d.height / 2)
