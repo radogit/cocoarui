@@ -1,4 +1,3 @@
-// forces.js
 import { collisionMargin, nodes } from "./data.js";
 
 // Gaussian force for hotspots

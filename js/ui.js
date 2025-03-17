@@ -1,12 +1,16 @@
-// todo: UI control panel - enact the above hardcoded choices onto the html file
-
 // ui.js
 export let showNodeLabel = true;
+export let showCoordinates = true;
 export let showForceArrows = true;
 export let showNetForce = true;
-export let showCoordinates = true;
 
 export function setupUI(/* references if needed: svg, etc. */) {
+  // enact the above hardcoded choices onto the html file
+  document.getElementById("toggleNodeLabel").checked = showNodeLabel;
+  document.getElementById("toggleCoordinates").checked = showCoordinates;
+  document.getElementById("toggleForceArrows").checked = showForceArrows;
+  document.getElementById("toggleNetForce").checked = showNetForce;
+
   const toggleNodeLabel = document.getElementById("toggleNodeLabel");
   if (toggleNodeLabel) {
     toggleNodeLabel.addEventListener("change", function() {
@@ -21,6 +25,7 @@ export function setupUI(/* references if needed: svg, etc. */) {
   if (toggleForceArrowsInput) {
     toggleForceArrowsInput.addEventListener("change", function() {
       showForceArrows = this.checked;
+      if(!this.checked){document.getElementById("toggleNetForce").disabled = true} else {document.getElementById("toggleNetForce").disabled = false;}
       document.querySelectorAll(".force-arrows").forEach(el => {
         el.style.display = showForceArrows ? null : "none";
       });

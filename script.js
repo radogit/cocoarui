@@ -1,13 +1,14 @@
 import * as d3 from "d3";
 import { nodes, flipYCoordinates, fixInitially, collisionMargin } from "./js/data.js";
+import { forceGaussianPreferredArea, forceCustomCollision } from "./js/forces.js";
+import { createSvgAndContainer, createAxes, createArrowheads } from "./js/drawing.js";
+import { createHeatmapGradients, buildHeatspotRects } from "./js/heatmaps.js";
+import { setupUI, showForceArrows, showNetForce, showCoordinates } from "./js/ui.js";
+import { spawnNodes } from './js/spawn.js';
 
 // ========= parameters =========
 
-// Global toggle states
-let showNodeLabel = true;
-let showForceArrows = true;
-let showNetForce = true;
-let showCoordinates = true;
+
 
 // ================================================================================================================
 // =============== ONE TIME =======================================================================================
@@ -19,110 +20,28 @@ flipYCoordinates(nodes);
 // 2) Fix initial nodes that are isFixed
 fixInitially(nodes);
 
-// todo: UI control panel - enact the above hardcoded choices onto the html file
+// 3) Create the SVG, container
+const { svg, container, width, height } = createSvgAndContainer();
+const minDim = Math.min(width, height);
 
-    
-// ========= draw the world =========
-    const width = window.innerWidth;
-    const height = window.innerHeight;
-    const minDim = Math.min(width, height);
-    console.log(180/Math.min(width, height));
+// 4) Draw axes
+const { xScale, yScale, xAxis, yAxis } = createAxes(container, width, height, minDim);
 
-    const svg = d3.select("body")
-    .append("svg")
-    .attr("width", width)
-    .attr("height", height);
+// 5) Arrowhead artefacts
+const defs = svg.append("defs");
+createArrowheads(svg);
 
-// centering the simulation's coordinate system within the browser canvas
-    const container = svg.append("g")
-        .attr("class", "container")
-        .attr("transform", `translate(${width/2},${height/2})`);
+// 6) Create the gradients by calling the new function
+createHeatmapGradients(defs, nodes);
 
-// axis
-    const domainExtent = 90;
-
-    const yScale = d3.scaleLinear()
-    .domain([-domainExtent, domainExtent]) 
-    .range([ minDim/2, -minDim/2 ]); 
-
-    const xScale = d3.scaleLinear()
-    .domain([-domainExtent, domainExtent])  // the domain of x-values in your centered coords
-    .range([-minDim/2, minDim/2]);  // visually, negative is left, positive is right
-    
-
-    // Create a left-axis generator
-    const yAxis = d3.axisLeft(yScale).ticks(10);
-    const xAxis = d3.axisBottom(xScale).ticks(10); // choose how many ticks you want
-
-    // Append the axis at x=0
-    container.append("g")
-    .attr("class", "y-axis")
-    .attr("transform", "translate(0,0)")
-    .call(yAxis);
-
-    // Then draw the x-axis at (x=0, y=0)
-    container.append("g")
-    .attr("class", "x-axis")
-    .attr("transform", "translate(0,0)") // y=0 means horizontal line across center
-    .call(xAxis);
-
-
+// 7) Then build the hotspot rects, also from the new function
+buildHeatspotRects(container, nodes);
 
 
 // ================================================================================================================
 // =============== SPAWN ===============================================================================
 // ================================================================================================================
 
-// Define gradients for each node's hotspots dynamically
-const defs = svg.append("defs");
-
-nodes.forEach(node => {
-    // Create a unique radial gradient for each node's hotspots
-    const gradient = defs.append("radialGradient")
-        .attr("id", `forceGradient-${node.id}`)
-        .attr("cx", "50%")
-        .attr("cy", "50%")
-        .attr("r", "50%");
-
-    gradient.append("stop")
-        .attr("offset", "0%")
-        .style("stop-color", node.color)  // Use node's color for the center
-        .style("stop-opacity", 0.4);
-
-    gradient.append("stop")
-        .attr("offset", "100%")
-        .style("stop-color", node.color)
-        .style("stop-opacity", 0.1);
-});
-
-// Create hotspot rectangles for each node
-const hotspotGroups = container.selectAll(".hotspot-group")
-    .data(nodes)
-    .enter()
-    .append("g")
-    .attr("class", "hotspot-group");
-
-// Create each hotspot rectangle for a node
-hotspotGroups.selectAll(".hotspot")
-    .data(d => d.hotspots)
-    .enter()
-    .append("rect")
-    .attr("class", "hotspot")
-    .attr("x", d => d.x - d.width / 2)
-    .attr("y", d => d.y - d.height / 2)
-    .attr("width", d => d.width)
-    .attr("height", d => d.height)
-    .each(function(d) {
-        // Ensure each hotspot references the correct node ID dynamically
-        d.nodeId = d3.select(this.parentNode).datum().id;
-        d.color = d3.select(this.parentNode).datum().color;
-    })
-    .style("fill", d => `url(#forceGradient-${d.nodeId})`)  // Correctly associate hotspot with node's gradient
-    .style("stroke", d=>d.color)        // Thin black border
-    .style("stroke-width", 1)        // Border thickness
-    .style("stroke-dasharray", "4,2") // Dashed border (4px dash, 2px space)    
-    .style("opacity", 0.3)
-;
 
 // Create a group for each node
 const nodeGroup = container.selectAll(".node-group")
@@ -168,49 +87,12 @@ nodeGroup.append("text")
     .attr("fill", "black")
     .attr("opacity", 0.5);
 
-// Create the tooltip div and style it
-const tooltip = d3.select("body").append("div")
-    .attr("class", "tooltip")
-    .style("position", "absolute")
-    .style("z-index", "10")
-    .style("visibility", "hidden")
-    .style("background", "lightsteelblue")
-    .style("padding", "8px")
-    .style("border-radius", "4px")
-    .style("box-shadow", "0 2px 10px rgba(0, 0, 0, 0.1)")
-    .style("font-size", "14px");
-
 
 // Force arrows container
 const forceArrows = nodeGroup.append("g")
     .attr("class", "force-arrows");
 
-// Arrowheads
-svg.append("defs").append("marker")
-    .attr("id", "arrowhead-white")
-    .attr("viewBox", "0 0 10 10")
-    .attr("refX", 5)
-    .attr("refY", 5)
-    .attr("markerWidth", 4)
-    .attr("markerHeight", 4)
-    .attr("orient", "auto")
-    .append("path")
-    .attr("d", "M0,0 L10,5 L0,10 Z")
-    .attr("fill", "white")
-    ;
-svg.append("defs").append("marker")
-    .attr("id", "arrowhead-orange")
-    .attr("viewBox", "0 0 10 10")
-    .attr("refX", 5)
-    .attr("refY", 5)
-    .attr("markerWidth", 4)
-    .attr("markerHeight", 4)
-    .attr("orient", "auto")
-    .append("path")
-    .attr("d", "M0,0 L10,5 L0,10 Z")
-    .attr("fill", "orange")
-    ;
-    
+
 // ================================================================================================================
 // =============== SIMULATION LOGIC =======================================================================================
 // ================================================================================================================
@@ -233,13 +115,9 @@ function ticked() {
     }
     
     // Update hotspot positions (for visualizing hotspot areas)
-    hotspotGroups.selectAll(".hotspot")
-        .attr("x", d => d.x - d.width / 2)
-        .attr("y", d => d.y - d.height / 2);
-
-    hotspotGroups.selectAll(".hotspot")
-        .attr("x", d => d.x - d.width / 2)
-        .attr("y", d => d.y - d.height / 2);
+    // hotspotGroups.selectAll(".hotspot")
+    //     .attr("x", d => d.x - d.width / 2)
+    //     .attr("y", d => d.y - d.height / 2);
 
     // Clear previous arrows before drawing new ones
     forceArrows.selectAll(".force-arrow").remove();  
@@ -319,111 +197,6 @@ function ticked() {
     });
 }
     
-// ==================== Forces & Collisions ========================
-
-// Custom force for Gaussian-like interaction between nodes and multiple hotspots
-function forceGaussianPreferredArea(strength) {
-    return function (alpha) {
-        nodes.forEach(d => {
-            d.forces = []; // Reset all force vectors
-
-            // Apply Hotspot Forces (Attract/Repel)
-            d.hotspots.forEach(hotspot => {
-                const dx = hotspot.x - d.x;
-                const dy = hotspot.y - d.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                if (distance > 1) {
-                    const force = Math.exp(-distance / hotspot.width) * strength * hotspot.intensityFactor;
-
-                    // Check the force type: attract vs. repel
-                    const fx = hotspot.forceType === "attract" ? dx * force : -dx * force;
-                    const fy = hotspot.forceType === "attract" ? dy * force : -dy * force;
-
-                    d.vx += fx * alpha;
-                    d.vy += fy * alpha;
-                    //d.forces.push({ fx: -dx * force, fy: -dy * force });
-                    d.forces.push({ fx, fy, source: "hotspot" });
-                }
-            });
-
-            // Node-to-node collision (soft approach)
-            nodes.forEach(other => {
-                if (d !== other) {
-                    const dx = other.x - d.x;
-                    const dy = other.y - d.y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-                    const minDist = d.radius + other.radius + collisionMargin; // Include margin
-                    //if(d.id=="B" && minDist>distance){console.log('distance of B to '+other.id+': '+distance + ' which is less than the midDist of' +minDist );}
-            
-                    if (distance < minDist) {
-                        const overlapRatio = 1 - distance / minDist; // How much they overlap (0 to 1)
-                        const force = (overlapRatio ** 2) * alpha * 5; // Quadratic falloff for smooth response
-            
-                        // Normalize direction and push nodes apart
-                        const pushX = (dx / distance) * (minDist - distance); 
-                        const pushY = (dy / distance) * (minDist - distance);
-            
-                        d.vx -= pushX * alpha * 0.5; // Scale down to prevent excessive movement
-                        d.vy -= pushY * alpha * 0.5;
-            
-                        d.forces.push({ fx: -pushX, fy: -pushY, source: `collision with ${other.id}` });
-                    }
-                }
-            });
-        });
-    };
-}
-
-function forceCustomCollision(alpha) {
-    nodes.forEach((d, i) => {
-        nodes.forEach((other, j) => {
-            if (i !== j) {
-                const dx = d.x - other.x;
-                const dy = d.y - other.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                const minDist = d.radius + other.radius + collisionMargin;
-
-                if (distance < minDist && distance > 0) {
-                    const overlapRatio = 1 - distance / minDist;
-                    const force = (overlapRatio ** 2) * alpha * 5;
-
-                    // Normalize direction
-                    const pushX = (dx / distance) * force;
-                    const pushY = (dy / distance) * force;
-
-                    // Determine how to distribute the force
-                    if (!d.isFixed && !other.isFixed) {
-                        // // Both nodes are movable → Split force evenly
-                        // d.vx += pushX * 0.5;
-                        // d.vy += pushY * 0.5;
-                        // other.vx -= pushX * 0.5;
-                        // other.vy -= pushY * 0.5;
-                        const weight1 = d.significance || 1; // Default 1 if not defined
-                        const weight2 = other.significance || 1;
-                        const totalWeight = weight1 + weight2;
-                        //console.log(d.significance + ' vs. ' + other.significance);
-                        
-                        const dWeight = weight2 / totalWeight;
-                        const otherWeight = weight1 / totalWeight;
-
-                        d.vx += pushX * dWeight;
-                        d.vy += pushY * dWeight;
-                        other.vx -= pushX * otherWeight;
-                        other.vy -= pushY * otherWeight;
-                    } else if (!d.isFixed) {
-                        // `d` is movable, `other` is fixed → `d` takes full force
-                        d.vx += pushX;
-                        d.vy += pushY;
-                    } else if (!other.isFixed) {
-                        // `other` is movable, `d` is fixed → `other` takes full force
-                        other.vx -= pushX;
-                        other.vy -= pushY;
-                    }
-                }
-            }
-        });
-    });
-}
 
 
 // ================================================================================================================
@@ -476,64 +249,29 @@ function forceCustomCollision(alpha) {
 // =============== LISTENERS =======================================================================================
 // ================================================================================================================
 
-// ======== UI control panel logic ================================
+// 8) UI toggles
+setupUI();
 
-    const toggleNodeLabel = document.getElementById("toggleNodeLabel");
-    if (toggleNodeLabel) {
-        toggleNodeLabel.addEventListener("change", function() {
-            showNodeLabel = this.checked;
-            // Hide/show node labels
-            svg.selectAll(".id-label")
-                .style("display", showNodeLabel ? null : "none");
-    });
-    }
-
-    const toggleForceArrowsInput = document.getElementById("toggleForceArrows");
-    if (toggleForceArrowsInput) {
-        toggleForceArrowsInput.addEventListener("change", function() {
-            showForceArrows = this.checked;
-            // Hide/show the forceArrows group
-            svg.selectAll(".force-arrows")
-                .style("display", showForceArrows ? null : "none");
-        });
-    }
-
-    const toggleNetForceInput = document.getElementById("toggleNetForce");
-    if (toggleNetForceInput) {
-    toggleNetForceInput.addEventListener("change", function() {
-        showNetForce = this.checked;
-    });
-    }
-
-    const toggleCoordinatesInput = document.getElementById("toggleCoordinates");
-    if (toggleCoordinatesInput) {
-        toggleCoordinatesInput.addEventListener("change", function() {
-            showCoordinates = this.checked;
-            // Hide/show coord-label elements
-            svg.selectAll(".coord-label")
-                .style("display", showCoordinates ? null : "none");
-        });
-    }
 
 // ======== Browser window resize ================================
 
-    window.addEventListener("resize", onResize);
+window.addEventListener("resize", onResize);
 
-    function onResize() {
-        // 1) Calculate new width/height
-        const newWidth = window.innerWidth;
-        const newHeight = window.innerHeight;
-        svg.attr("width", newWidth).attr("height", newHeight);
-    
-        // 2) Determine scale based on the smaller dimension
-        const scaleFactor = Math.min(newWidth, newHeight) / minDim;
-        // baseDimension is some baseline—eg. the initial smaller dimension or a desired reference size.
-    
-        // 3) Translate to center, scale uniformly
-        container.attr("transform",
-        `translate(${newWidth/2}, ${newHeight/2}) scale(${scaleFactor})`
-        );
-    
-        // 4) You can redraw axes or call `ticked()` if needed
-        redrawAxes(); // if you have an axis you want to keep consistent
-    }
+function onResize() {
+    // 1) Calculate new width/height
+    const newWidth = window.innerWidth;
+    const newHeight = window.innerHeight;
+    svg.attr("width", newWidth).attr("height", newHeight);
+
+    // 2) Determine scale based on the smaller dimension
+    const scaleFactor = Math.min(newWidth, newHeight) / minDim;
+    // baseDimension is some baseline—eg. the initial smaller dimension or a desired reference size.
+
+    // 3) Translate to center, scale uniformly
+    container.attr("transform",
+    `translate(${newWidth/2}, ${newHeight/2}) scale(${scaleFactor})`
+    );
+
+    // 4) You can redraw axes or call `ticked()` if needed
+    redrawAxes(); // if you have an axis you want to keep consistent
+}

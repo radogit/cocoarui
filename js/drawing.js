@@ -1,4 +1,5 @@
 // drawing.js
+import * as d3 from "d3";
 import { collisionMargin } from "./data.js";
 
 export function createSvgAndContainer() {
