@@ -602,48 +602,119 @@ var _forcesJs = require("./js/forces.js");
 var _drawingJs = require("./js/drawing.js");
 var _heatmapsJs = require("./js/heatmaps.js");
 var _uiJs = require("./js/ui.js");
+//import { dragging, dragEnd, dragStart, toggleFixed } from "./js/nodeInteraction.js";
 var _spawnJs = require("./js/spawn.js");
 // ========= parameters =========
+const colours = [
+    'green',
+    'blue',
+    'orange',
+    'purple',
+    'red',
+    'pink',
+    'cyan'
+];
 // ================================================================================================================
 // =============== ONE TIME =======================================================================================
 // ================================================================================================================
 // 1) Flip Y to treat up as positive
-(0, _dataJs.flipYCoordinates)((0, _dataJs.nodes));
+(0, _dataJs.flipYCoordinates)((0, _dataJs.nodesQueue));
 // 2) Fix initial nodes that are isFixed
-(0, _dataJs.fixInitially)((0, _dataJs.nodes));
+(0, _dataJs.fixInitially)((0, _dataJs.nodesQueue));
 // 3) Create the SVG, container
-const { svg, container, width, height } = (0, _drawingJs.createSvgAndContainer)();
+const { svg, container, nodeLayer, hotspotLayer, width, height } = (0, _drawingJs.createSvgAndContainer)();
 const minDim = Math.min(width, height);
 // 4) Draw axes
 const { xScale, yScale, xAxis, yAxis } = (0, _drawingJs.createAxes)(container, width, height, minDim);
 // 5) Arrowhead artefacts
-const defs = svg.append("defs");
+const defs = svg.append("defs").attr("id", "defs");
 (0, _drawingJs.createArrowheads)(svg);
 // 6) Create the gradients by calling the new function
-(0, _heatmapsJs.createHeatmapGradients)(defs, (0, _dataJs.nodes));
+(0, _heatmapsJs.createHeatmapGradients)(defs, (0, _dataJs.nodes), colours);
 // 7) Then build the hotspot rects, also from the new function
-(0, _heatmapsJs.buildHeatspotRects)(container, (0, _dataJs.nodes));
+(0, _heatmapsJs.buildHeatspotRects)(hotspotLayer, (0, _dataJs.nodes));
 // ================================================================================================================
 // =============== SPAWN ===============================================================================
 // ================================================================================================================
-// Create a group for each node
-const nodeGroup = container.selectAll(".node-group").data((0, _dataJs.nodes)).enter().append("g").attr("class", "node-group").attr("transform", (d)=>`translate(${d.x}, ${d.y})`) // Positioning
-.on("dblclick", toggleFixed) // to toggle fixed state
-.call(_d3.drag().on("start", dragStart).on("drag", dragging).on("end", dragEnd));
-// Append circles inside the group (node circles)
-nodeGroup.append("circle").attr("fill", (d)=>d.color) // Node color
-.attr("opacity", 0.6).attr("r", (d)=>d.radius).attr("stroke", (d)=>d.isFixed ? "black" : "none") // Visual cue: Black stroke if fixed
-.attr("stroke-width", (d)=>d.isFixed ? 3 : 0);
-// Primary Label: node ID
-nodeGroup.append("text").attr("class", "id-label").attr("dx", 0) // Offset to the right of the circle
-.attr("dy", (d)=>-d.radius - 2) // Slightly above center
-.attr("text-anchor", "middle").text((d)=>d.id).attr("font-size", "20px").attr("fill", "black").attr("opacity", 0.5);
-// Secondary Label: node coordinates
-nodeGroup.append("text").attr("class", "coord-label").attr("dx", 0) //d => d.radius)  // to the right
-.attr("dy", (d)=>d.radius + 15) // Below the node
-.attr("text-anchor", "middle").attr("font-size", "10px").attr("fill", "black").attr("opacity", 0.5);
-// Force arrows container
-const forceArrows = nodeGroup.append("g").attr("class", "force-arrows");
+let nodeGroup;
+function buildOrUpdateNodes(container, nodes) {
+    // The key is re-joining with the 'node-group' class
+    nodeGroup = container.selectAll(".node-group").data(nodes, (d)=>d.id) // key by node id
+    .join((enter)=>{
+        // For newly entered node(s):
+        const g = enter.append("g").attr("class", "node-group").on("dblclick", toggleFixed) // so new nodes also get toggleFixed
+        .call(_d3.drag().on("start", dragStart).on("drag", dragging).on("end", dragEnd));
+        // append the circle
+        g.append("circle").attr("fill", (d)=>d.color).attr("opacity", 0.6).attr("r", (d)=>d.radius).attr("stroke", (d)=>d.isFixed ? "black" : "none").attr("stroke-width", (d)=>d.isFixed ? 3 : 0);
+        // append ID label
+        g.append("text").attr("class", "id-label").attr("dx", 0).attr("dy", (d)=>-d.radius - 2).text((d)=>d.id);
+        // append coords label (if you want)
+        g.append("text").attr("class", "coord-label").attr("dx", 0).attr("dy", (d)=>d.radius + 15);
+        // Force arrows container
+        g.append("g").attr("class", "force-arrows");
+        return g;
+    }, (update)=>{
+        // If you want to handle updated nodes, set or transition them here
+        // e.g., update.attr(...).transition(...) 
+        return update;
+    }, (exit)=>exit.remove());
+    // Optionally, we can set the initial position for all nodes
+    nodeGroup.attr("transform", (d)=>`translate(${d.x}, ${d.y})`);
+    return nodeGroup; // return the selection if you want
+}
+// Then define a function or button that calls addNewNode:
+function addOne() {
+    const newNode = {
+        id: "spawn-" + Date.now().toString(36).substring(2, 8),
+        x: Math.random() * 500,
+        y: Math.random() * 500,
+        color: colours[Math.floor(Math.random() * colours.length)],
+        radius: 20,
+        isFixed: false,
+        significance: 1,
+        hotspots: [
+            {
+                x: 300 * Math.random(),
+                y: 300 * Math.random(),
+                intensityFactor: 1.0,
+                width: 180 * Math.random(),
+                height: 80 * Math.random(),
+                forceType: "attract"
+            }
+        ]
+    };
+    (0, _dataJs.nodes).push(newNode);
+    // (A) Re-run hotspot data-join to create rects for newNode.hotspots
+    (0, _heatmapsJs.buildHeatspotRects)(hotspotLayer, (0, _dataJs.nodes));
+    // (B) Re-run node data-join to create circles, labels, etc.
+    buildOrUpdateNodes(nodeLayer, (0, _dataJs.nodes));
+    // (C) Let the simulation know about new node
+    simulation.nodes((0, _dataJs.nodes));
+    simulation.alpha(1).restart();
+}
+// Immediate Spawning Approach
+// //buildOrUpdateNodes(nodeLayer, nodes);
+// Timed Drip Approach
+let i = 0;
+const intervalId = setInterval(()=>{
+    if (i >= (0, _dataJs.nodesQueue).length) {
+        // We have spawned them all
+        clearInterval(intervalId);
+        return;
+    }
+    // Take the next node:
+    const newNode = (0, _dataJs.nodesQueue)[i];
+    i++;
+    // Add to the simulation array:
+    (0, _dataJs.nodes).push(newNode);
+    // (A) Re-run hotspot data-join to create rects for newNode.hotspots
+    (0, _heatmapsJs.buildHeatspotRects)(hotspotLayer, (0, _dataJs.nodes));
+    // (B) Re-run node data-join to create circles, labels, etc.
+    buildOrUpdateNodes(nodeLayer, (0, _dataJs.nodes));
+    // (C) Let the sim see the new array
+    simulation.nodes((0, _dataJs.nodes));
+    simulation.alpha(1).restart();
+}, 1000); // spawn 1 node each second
 // ================================================================================================================
 // =============== SIMULATION LOGIC =======================================================================================
 // ================================================================================================================
@@ -653,6 +724,7 @@ const simulation = _d3.forceSimulation((0, _dataJs.nodes)).force("repel", _d3.fo
 .force("customCollision", (0, _forcesJs.forceCustomCollision)) // New collision force!
 .on("tick", ticked);
 function ticked() {
+    if (!nodeGroup) return; // If it's undefined, skip
     nodeGroup.attr("transform", (d)=>`translate(${d.x}, ${d.y})`);
     // Update coordinates label
     if (0, _uiJs.showCoordinates) nodeGroup.select(".coord-label").text((d)=>`(${Math.round(d.x)}, ${Math.round(-d.y)})`);
@@ -661,29 +733,11 @@ function ticked() {
     //     .attr("x", d => d.x - d.width / 2)
     //     .attr("y", d => d.y - d.height / 2);
     // Clear previous arrows before drawing new ones
-    forceArrows.selectAll(".force-arrow").remove();
+    //forceArrows.selectAll(".force-arrow").remove();  
+    nodeGroup.selectAll(".force-arrow").remove();
     nodeGroup.select("circle").attr("stroke", (d)=>d.isFixed ? "black" : "none").attr("stroke-width", (d)=>d.isFixed ? 3 : 0);
     // If arrows are off, no need to draw them.
     if (!(0, _uiJs.showForceArrows)) return;
-    // // Enforce collision constraints AFTER forces are applied
-    // nodes.forEach((d, i) => {
-    //     nodes.forEach((other, j) => {
-    //         if (i !== j) {
-    //             const dx = d.x - other.x;
-    //             const dy = d.y - other.y;
-    //             const distance = Math.sqrt(dx * dx + dy * dy);
-    //             const minDist = d.radius + other.radius + collisionMargin; // Include margin
-    //             if (distance < minDist && distance > 0) {  
-    //                 // Nodes are too close → Push them apart immediately
-    //                 const overlap = minDist - distance;
-    //                 const pushX = (dx / distance) * overlap * 0.5; // Half push each node
-    //                 const pushY = (dy / distance) * overlap * 0.5;
-    //                 if (!d.isFixed) { d.x += pushX * 0.5; d.y += pushY * 0.5; }
-    //                 if (!other.isFixed) { other.x -= pushX; other.y -= pushY; }
-    //             }
-    //         }
-    //     });
-    // });
     // Add arrows based on the calculated forces
     nodeGroup.each(function(d) {
         const arrowGroup = _d3.select(this).select(".force-arrows");
@@ -746,6 +800,8 @@ function toggleFixed(event, d) {
 // ================================================================================================================
 // 8) UI toggles
 (0, _uiJs.setupUI)();
+// attach spawning function to button
+document.getElementById("spawnOneButton").addEventListener("click", addOne);
 // ======== Browser window resize ================================
 window.addEventListener("resize", onResize);
 function onResize() {
@@ -24173,13 +24229,15 @@ var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "collisionMargin", ()=>collisionMargin);
 parcelHelpers.export(exports, "nodes", ()=>nodes);
+parcelHelpers.export(exports, "nodesQueue", ()=>nodesQueue);
 // fix: flip the y-axis as browser-y+ is DOWN, and math-y+ is UP
 // Flip Y so that positive y is up in our math sense
 parcelHelpers.export(exports, "flipYCoordinates", ()=>flipYCoordinates);
 // Ensure that nodes that start as fixed remain fixed
 parcelHelpers.export(exports, "fixInitially", ()=>fixInitially);
 const collisionMargin = 10; // Extra space between nodes
-const nodes = [
+const nodes = [];
+const nodesQueue = [
     {
         id: "A",
         x: 550,
@@ -24470,9 +24528,13 @@ function createSvgAndContainer() {
     const height = window.innerHeight;
     const svg = _d3.select("body").append("svg").attr("width", width).attr("height", height);
     const container = svg.append("g").attr("class", "container").attr("transform", `translate(${width / 2},${height / 2})`);
+    const hotspotLayer = container.append("g").attr("class", "hotspot-layer");
+    const nodeLayer = container.append("g").attr("class", "node-layer");
     return {
         svg,
         container,
+        nodeLayer,
+        hotspotLayer,
         width,
         height
     };
@@ -24495,8 +24557,9 @@ function createAxes(container, width, height, minDim) {
     ]);
     const yAxis = _d3.axisLeft(yScale).ticks(10);
     const xAxis = _d3.axisBottom(xScale).ticks(10);
-    container.append("g").attr("class", "y-axis").call(yAxis);
-    container.append("g").attr("class", "x-axis").call(xAxis);
+    const axisContainer = container.append("g").attr("class", "axis");
+    axisContainer.append("g").attr("class", "y-axis").call(yAxis);
+    axisContainer.append("g").attr("class", "x-axis").call(xAxis);
     return {
         xScale,
         yScale,
@@ -24505,8 +24568,8 @@ function createAxes(container, width, height, minDim) {
     };
 }
 function createArrowheads(svg) {
-    svg.append("defs").append("marker").attr("id", "arrowhead-white").attr("viewBox", "0 0 10 10").attr("refX", 5).attr("refY", 5).attr("markerWidth", 4).attr("markerHeight", 4).attr("orient", "auto").append("path").attr("d", "M0,0 L10,5 L0,10 Z").attr("fill", "white");
-    svg.append("defs").append("marker").attr("id", "arrowhead-orange").attr("viewBox", "0 0 10 10").attr("refX", 5).attr("refY", 5).attr("markerWidth", 4).attr("markerHeight", 4).attr("orient", "auto").append("path").attr("d", "M0,0 L10,5 L0,10 Z").attr("fill", "orange");
+    const arrowsContainer = svg.select("#defs").append("arrows").attr("class", "arrows").append("marker").attr("id", "arrowhead-white").attr("viewBox", "0 0 10 10").attr("refX", 5).attr("refY", 5).attr("markerWidth", 4).attr("markerHeight", 4).attr("orient", "auto").append("path").attr("d", "M0,0 L10,5 L0,10 Z").attr("fill", "white");
+    arrowsContainer.append("marker").attr("id", "arrowhead-orange").attr("viewBox", "0 0 10 10").attr("refX", 5).attr("refY", 5).attr("markerWidth", 4).attr("markerHeight", 4).attr("orient", "auto").append("path").attr("d", "M0,0 L10,5 L0,10 Z").attr("fill", "orange");
 }
 
 },{"./data.js":"3d49z","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","d3":"17XFv"}],"1hWqh":[function(require,module,exports,__globalThis) {
@@ -24558,43 +24621,47 @@ function setupUI() {
 }
 
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"8RTi2":[function(require,module,exports,__globalThis) {
+// addNode.js
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "addNewNode", ()=>addNewNode);
-function addNewNode() {
+/**
+ * Adds a single new node to the given simulation & container, 
+ * re-binds the data, and re-heats the simulation.
+ *
+ * @param {d3.Simulation} simulation - The D3 force simulation object.
+ * @param {d3.Selection} container   - The main <g> container holding the node groups.
+ * @param {Object} newNode           - The new node data object ({ id, x, y, color, radius, etc. }).
+ * @param {Object} dragHandlers      - An object holding { dragStart, dragging, dragEnd } if needed.
+ */ parcelHelpers.export(exports, "addNewNode", ()=>addNewNode);
+var _d3 = require("d3");
+function addNewNode(simulation, container, newNode, dragHandlers = {}) {
     console.log('spawning!');
-    // 1) The new node data
-    const newNode = {
-        id: "F",
-        x: Math.random() * 200 - 100,
-        y: Math.random() * 200 - 100,
-        color: "pink",
-        radius: 20,
-        isFixed: false,
-        significance: 10,
-        hotspots: []
-    };
-    // 2) Insert into the simulation
+    // 1) Insert the new node data into the sim
     const oldNodes = simulation.nodes();
     const newNodes = [
         ...oldNodes,
         newNode
     ];
     simulation.nodes(newNodes);
-    // 3) Re-bind to DOM
-    const nodeGroup = container.selectAll(".node-group").data(newNodes, (d)=>d.id).join((enter)=>{
-        const g = enter.append("g").attr("class", "node-group").call(d3.drag().on("start", dragStart).on("drag", dragging).on("end", dragEnd));
-        g.append("circle").attr("r", (d)=>d.radius).attr("fill", (d)=>d.color);
-        // ...
-        // ID label, coord label, etc., if you want
-        // ...
+    // 2) Re-bind data to DOM
+    const nodeGroup = container.selectAll(".node-group").data(newNodes, (d)=>d.id) // key by node id
+    .join((enter)=>{
+        // For newly entered node(s):
+        const g = enter.append("g").attr("class", "node-group");
+        // If you have a drag behavior, attach it:
+        if (dragHandlers.dragStart && dragHandlers.dragging && dragHandlers.dragEnd) g.call(_d3.drag().on("start", dragHandlers.dragStart).on("drag", dragHandlers.dragging).on("end", dragHandlers.dragEnd));
+        // For example, create a circle:
+        g.append("circle").attr("r", (d)=>d.radius || 10).attr("fill", (d)=>d.color || "steelblue");
+        // If you want a label:
+        g.append("text").attr("class", "id-label").attr("text-anchor", "middle").attr("dy", (d)=>-(d.radius || 10) - 2).text((d)=>d.id);
+        // Return the enter selection
         return g;
     }, (update)=>update, (exit)=>exit.remove());
-    // 4) Re-heat
+    // 3) Re-heat the simulation so the new node can settle in
     simulation.alpha(1).restart();
 }
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"kNCsT":[function(require,module,exports,__globalThis) {
+},{"d3":"17XFv","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"kNCsT":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 /**
@@ -24611,24 +24678,25 @@ parcelHelpers.defineInteropFlag(exports);
  * @param {Array} nodes The array of node objects, each with .hotspots array
  */ parcelHelpers.export(exports, "buildHeatspotRects", ()=>buildHeatspotRects);
 var _d3 = require("d3");
-function createHeatmapGradients(defs, nodes) {
+function createHeatmapGradients(defs, nodes, colours) {
+    const heatmapGradientContainer = defs.append("heatmapGradients");
     // Define gradients for each node's hotspots dynamically
-    nodes.forEach((node)=>{
+    colours.forEach((colour)=>{
         // Create a unique radial gradient for each node's hotspots
-        const gradient = defs.append("radialGradient").attr("id", `forceGradient-${node.id}`).attr("cx", "50%").attr("cy", "50%").attr("r", "50%");
-        gradient.append("stop").attr("offset", "0%").style("stop-color", node.color) // Use node's color for the center
+        const gradient = heatmapGradientContainer.append("radialGradient").attr("id", `forceGradient-${colour}`).attr("cx", "50%").attr("cy", "50%").attr("r", "50%");
+        gradient.append("stop").attr("offset", "0%").style("stop-color", colour) // Use node's color for the center
         .style("stop-opacity", 0.4);
-        gradient.append("stop").attr("offset", "100%").style("stop-color", node.color).style("stop-opacity", 0.1);
+        gradient.append("stop").attr("offset", "100%").style("stop-color", colour).style("stop-opacity", 0.1);
     });
 }
 function buildHeatspotRects(container, nodes) {
     // Create hotspot rectangles for each node
-    const hotspotGroups = container.selectAll(".hotspot-group").data(nodes).enter().append("g").attr("class", "hotspot-group");
-    hotspotGroups.selectAll(".hotspot").data((d)=>d.hotspots).enter().append("rect").attr("class", "hotspot").attr("x", (d)=>d.x - d.width / 2).attr("y", (d)=>d.y - d.height / 2).attr("width", (d)=>d.width).attr("height", (d)=>d.height).each(function(d) {
+    const hotspotGroups = container.selectAll(".hotspot-group").data(nodes, (d)=>d.id).join("g").attr("class", "hotspot-group");
+    hotspotGroups.selectAll(".hotspot").data((d)=>d.hotspots).join("rect").attr("class", "hotspot").attr("x", (d)=>d.x - d.width / 2).attr("y", (d)=>d.y - d.height / 2).attr("width", (d)=>d.width).attr("height", (d)=>d.height).each(function(d) {
         // Ensure each hotspot references the correct node ID dynamically
         d.nodeId = _d3.select(this.parentNode).datum().id;
         d.color = _d3.select(this.parentNode).datum().color;
-    }).style("fill", (d)=>`url(#forceGradient-${d.nodeId})`) // Correctly associate hotspot with node's gradient
+    }).style("fill", (d)=>`url(#forceGradient-${d.color})`) // Correctly associate hotspot with node's gradient
     .style("stroke", (d)=>d.color) // Thin black border
     .style("stroke-width", 1) // Border thickness
     .style("stroke-dasharray", "4,2") // Dashed border (4px dash, 2px space)    
