@@ -6,25 +6,27 @@ import * as d3 from "d3";
  * @param {d3.Selection} defs 
  * @param {Array} nodes The array of node objects with .id and .color.
  */
-export function createHeatmapGradients(defs, nodes) {
+export function createHeatmapGradients(defs, nodes, colours) {
+
+    const heatmapGradientContainer = defs.append("heatmapGradients");
 
     // Define gradients for each node's hotspots dynamically
-    nodes.forEach(node => {
+    colours.forEach(colour => {
         // Create a unique radial gradient for each node's hotspots
-        const gradient = defs.append("radialGradient")
-            .attr("id", `forceGradient-${node.id}`)
+        const gradient = heatmapGradientContainer.append("radialGradient")
+            .attr("id", `forceGradient-${colour}`)
             .attr("cx", "50%")
             .attr("cy", "50%")
             .attr("r", "50%");
     
         gradient.append("stop")
             .attr("offset", "0%")
-            .style("stop-color", node.color)  // Use node's color for the center
+            .style("stop-color", colour)  // Use node's color for the center
             .style("stop-opacity", 0.4);
     
         gradient.append("stop")
             .attr("offset", "100%")
-            .style("stop-color", node.color)
+            .style("stop-color", colour)
             .style("stop-opacity", 0.1);
     });
 }
@@ -60,7 +62,7 @@ export function buildHeatspotRects(container, nodes){
             d.nodeId = d3.select(this.parentNode).datum().id;
             d.color = d3.select(this.parentNode).datum().color;
         })
-        .style("fill", d => `url(#forceGradient-${d.nodeId})`)  // Correctly associate hotspot with node's gradient
+        .style("fill", d => `url(#forceGradient-${d.color})`)  // Correctly associate hotspot with node's gradient
         .style("stroke", d=>d.color)        // Thin black border
         .style("stroke-width", 1)        // Border thickness
         .style("stroke-dasharray", "4,2") // Dashed border (4px dash, 2px space)    

@@ -4,11 +4,12 @@ import { forceGaussianPreferredArea, forceCustomCollision } from "./js/forces.js
 import { createSvgAndContainer, createAxes, createArrowheads } from "./js/drawing.js";
 import { createHeatmapGradients, buildHeatspotRects } from "./js/heatmaps.js";
 import { setupUI, showForceArrows, showNetForce, showCoordinates } from "./js/ui.js";
-import { spawnNodes } from './js/spawn.js';
+//import { dragging, dragEnd, dragStart, toggleFixed } from "./js/nodeInteraction.js";
+import { addNewNode } from './js/spawn.js';
 
 // ========= parameters =========
 
-
+const colours = ['green','blue', 'orange', 'purple', 'red', 'pink', 'cyan'];
 
 // ================================================================================================================
 // =============== ONE TIME =======================================================================================
@@ -21,75 +22,149 @@ flipYCoordinates(nodes);
 fixInitially(nodes);
 
 // 3) Create the SVG, container
-const { svg, container, width, height } = createSvgAndContainer();
+const { svg, container, nodeLayer, hotspotLayer, width, height } = createSvgAndContainer();
 const minDim = Math.min(width, height);
 
 // 4) Draw axes
 const { xScale, yScale, xAxis, yAxis } = createAxes(container, width, height, minDim);
 
 // 5) Arrowhead artefacts
-const defs = svg.append("defs");
+const defs = svg.append("defs").attr("id","defs");
 createArrowheads(svg);
 
 // 6) Create the gradients by calling the new function
-createHeatmapGradients(defs, nodes);
+createHeatmapGradients(defs, nodes, colours);
 
 // 7) Then build the hotspot rects, also from the new function
-buildHeatspotRects(container, nodes);
+buildHeatspotRects(hotspotLayer, nodes);
 
 
 // ================================================================================================================
 // =============== SPAWN ===============================================================================
 // ================================================================================================================
 
-// Create a group for each node
-const nodeGroup = container.selectAll(".node-group")
-    .data(nodes)
-    .enter()
-    .append("g")
-    .attr("class", "node-group")
-    .attr("transform", d => `translate(${d.x}, ${d.y})`) // Positioning
-    .on("dblclick", toggleFixed) // to toggle fixed state
-    .call(d3.drag()
-        .on("start", dragStart)
-        .on("drag", dragging)
-        .on("end", dragEnd)
-    );
+// // Create a group for each node
+// const nodeGroup = container.selectAll(".node-group")
+//     .data(nodes)
+//     .enter()
+//     .append("g")
+//     .attr("class", "node-group")
+//     .attr("transform", d => `translate(${d.x}, ${d.y})`) // Positioning
+//     .on("dblclick", toggleFixed) // to toggle fixed state
+//     .call(d3.drag()
+//         .on("start", dragStart)
+//         .on("drag", dragging)
+//         .on("end", dragEnd)
+//     );
 
-// Append circles inside the group (node circles)
-nodeGroup.append("circle")
-    .attr("fill", d => d.color)  // Node color
-    .attr("opacity", 0.6)
-    .attr("r", d => d.radius)
-    .attr("stroke", d => d.isFixed ? "black" : "none") // Visual cue: Black stroke if fixed
-    .attr("stroke-width", d => d.isFixed ? 3 : 0)
-    ;
+// // Append circles inside the group (node circles)
+// nodeGroup.append("circle")
+//     .attr("fill", d => d.color)  // Node color
+//     .attr("opacity", 0.6)
+//     .attr("r", d => d.radius)
+//     .attr("stroke", d => d.isFixed ? "black" : "none") // Visual cue: Black stroke if fixed
+//     .attr("stroke-width", d => d.isFixed ? 3 : 0)
+//     ;
 
-// Primary Label: node ID
-nodeGroup.append("text")
-    .attr("class", "id-label")
-    .attr("dx", 0)  // Offset to the right of the circle
-    .attr("dy", d => -d.radius - 2)   // Slightly above center
-    .attr("text-anchor", "middle")
-    .text(d => d.id)
-    .attr("font-size", "20px")
-    .attr("fill", "black")
-    .attr("opacity", 0.5);
+// // Primary Label: node ID
+// nodeGroup.append("text")
+//     .attr("class", "id-label")
+//     .attr("dx", 0)  // Offset to the right of the circle
+//     .attr("dy", d => -d.radius - 2)   // Slightly above center
+//     .attr("text-anchor", "middle")
+//     .text(d => d.id)
+//     .attr("font-size", "20px")
+//     .attr("fill", "black")
+//     .attr("opacity", 0.5);
 
-// Secondary Label: node coordinates
-nodeGroup.append("text")
-    .attr("class", "coord-label")
-    .attr("dx", 0) //d => d.radius)  // to the right
-    .attr("dy", d => d.radius + 15) // Below the node
-    .attr("text-anchor", "middle")
-    .attr("font-size", "10px")
-    .attr("fill", "black")
-    .attr("opacity", 0.5);
+// // Secondary Label: node coordinates
+// nodeGroup.append("text")
+//     .attr("class", "coord-label")
+//     .attr("dx", 0) //d => d.radius)  // to the right
+//     .attr("dy", d => d.radius + 15) // Below the node
+//     .attr("text-anchor", "middle")
+//     .attr("font-size", "10px")
+//     .attr("fill", "black")
+//     .attr("opacity", 0.5);
 
 
-// Force arrows container
-const forceArrows = nodeGroup.append("g")
-    .attr("class", "force-arrows");
+// // Force arrows container
+// const forceArrows = nodeGroup.append("g")
+//     .attr("class", "force-arrows");
+
+// ==========================
+
+let nodeGroup;
+
+function buildOrUpdateNodes(container, nodes) {
+    // The key is re-joining with the 'node-group' class
+    nodeGroup = container.selectAll(".node-group")
+      .data(nodes, d => d.id)      // key by node id
+      .join(
+        enter => {
+          // For newly entered node(s):
+          const g = enter.append("g")
+            .attr("class", "node-group")
+            .on("dblclick", toggleFixed) // so new nodes also get toggleFixed
+            .call(d3.drag()
+              .on("start", dragStart)
+              .on("drag", dragging)
+              .on("end", dragEnd)
+            );
+  
+          // append the circle
+          g.append("circle")
+            .attr("fill", d => d.color)
+            .attr("opacity", 0.6)
+            .attr("r", d => d.radius)
+            .attr("stroke", d => d.isFixed ? "black" : "none")
+            .attr("stroke-width", d => d.isFixed ? 3 : 0);
+  
+          // append ID label
+          g.append("text")
+            .attr("class", "id-label")
+            .attr("dx", 0)
+            .attr("dy", d => -d.radius - 2)
+            .attr("text-anchor", "middle")
+            .text(d => d.id)
+            .attr("font-size", "20px")
+            .attr("fill", "black")
+            .attr("opacity", 0.5);
+  
+          // append coords label (if you want)
+          g.append("text")
+            .attr("class", "coord-label")
+            .attr("dx", 0)
+            .attr("dy", d => d.radius + 15)
+            .attr("text-anchor", "middle")
+            .attr("font-size", "10px")
+            .attr("fill", "black")
+            .attr("opacity", 0.5);
+
+          // Force arrows container
+          g.append("g")
+            .attr("class", "force-arrows");
+
+  
+          return g;
+        },
+        update => {
+          // If you want to handle updated nodes, set or transition them here
+          // e.g., update.attr(...).transition(...) 
+          return update;
+        },
+        exit => exit.remove()
+      );
+  
+    // Optionally, we can set the initial position for all nodes
+    nodeGroup.attr("transform", d => `translate(${d.x}, ${d.y})`);
+  
+    return nodeGroup; // return the selection if you want
+  }
+  
+// ========================================================================================================================
+
+buildOrUpdateNodes(nodeLayer, nodes);
 
 
 // ================================================================================================================
@@ -105,6 +180,7 @@ const simulation = d3.forceSimulation(nodes)
 
 
 function ticked() {
+    if (!nodeGroup) return;   // If it's undefined, skip
     nodeGroup.attr("transform", d => `translate(${d.x}, ${d.y})`);
     
     // Update coordinates label
@@ -119,7 +195,8 @@ function ticked() {
     //     .attr("y", d => d.y - d.height / 2);
 
     // Clear previous arrows before drawing new ones
-    forceArrows.selectAll(".force-arrow").remove();  
+    //forceArrows.selectAll(".force-arrow").remove();  
+    nodeGroup.selectAll(".force-arrow").remove();  
 
     nodeGroup.select("circle")
         .attr("stroke", d => d.isFixed ? "black" : "none")
@@ -127,28 +204,6 @@ function ticked() {
 
     // If arrows are off, no need to draw them.
     if (!showForceArrows) return;
-
-    // // Enforce collision constraints AFTER forces are applied
-    // nodes.forEach((d, i) => {
-    //     nodes.forEach((other, j) => {
-    //         if (i !== j) {
-    //             const dx = d.x - other.x;
-    //             const dy = d.y - other.y;
-    //             const distance = Math.sqrt(dx * dx + dy * dy);
-    //             const minDist = d.radius + other.radius + collisionMargin; // Include margin
-
-    //             if (distance < minDist && distance > 0) {  
-    //                 // Nodes are too close → Push them apart immediately
-    //                 const overlap = minDist - distance;
-    //                 const pushX = (dx / distance) * overlap * 0.5; // Half push each node
-    //                 const pushY = (dy / distance) * overlap * 0.5;
-
-    //                 if (!d.isFixed) { d.x += pushX * 0.5; d.y += pushY * 0.5; }
-    //                 if (!other.isFixed) { other.x -= pushX; other.y -= pushY; }
-    //             }
-    //         }
-    //     });
-    // });
 
     // Add arrows based on the calculated forces
     nodeGroup.each(function(d) {
@@ -250,6 +305,32 @@ function ticked() {
 
 // 8) UI toggles
 setupUI();
+
+
+// Then define a function or button that calls addNewNode:
+function addOne() {
+    const newNode = {
+      id: "spawn-"+Date.now().toString(36).substring(2, 8),
+      x: Math.random()*500,
+      y: Math.random()*500,
+      color: colours[Math.floor(Math.random() * colours.length)],
+      radius: 20,
+      isFixed: false,
+      significance: 1,
+      hotspots: [
+        { x: 500 * Math.random(), y: 500 * Math.random(), intensityFactor: 1.0, width: 180 * Math.random(), height: 80 * Math.random(), forceType: "attract"  },
+      ]
+    };
+
+    nodes.push(newNode);
+    buildOrUpdateNodes(nodeLayer, nodes);
+    // Key: Let the simulation know about the updated node array
+    simulation.nodes(nodes);       
+    simulation.alpha(1).restart(); 
+  }
+  
+  // Then maybe a button:
+  document.getElementById("spawnOneButton").addEventListener("click", addOne);
 
 
 // ======== Browser window resize ================================

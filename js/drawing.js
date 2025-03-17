@@ -14,7 +14,13 @@ export function createSvgAndContainer() {
     .attr("class", "container")
     .attr("transform", `translate(${width/2},${height/2})`);
 
-  return { svg, container, width, height };
+  const hotspotLayer = container.append("g")
+  .attr("class", "hotspot-layer");
+  
+  const nodeLayer = container.append("g")
+  .attr("class", "node-layer");
+
+  return { svg, container, nodeLayer, hotspotLayer, width, height };
 }
 
 export function createAxes(container, width, height, minDim) {
@@ -31,11 +37,12 @@ export function createAxes(container, width, height, minDim) {
   const yAxis = d3.axisLeft(yScale).ticks(10);
   const xAxis = d3.axisBottom(xScale).ticks(10);
 
-  container.append("g")
+  const axisContainer = container.append("g").attr("class","axis");
+  axisContainer.append("g")
     .attr("class", "y-axis")
     .call(yAxis);
 
-  container.append("g")
+    axisContainer.append("g")
     .attr("class", "x-axis")
     .call(xAxis);
 
@@ -43,7 +50,7 @@ export function createAxes(container, width, height, minDim) {
 }
 
 export function createArrowheads(svg) {
-  svg.append("defs").append("marker")
+  const arrowsContainer = svg.select("#defs").append("arrows").attr("class","arrows").append("marker")
     .attr("id", "arrowhead-white")
     .attr("viewBox", "0 0 10 10")
     .attr("refX", 5)
@@ -55,7 +62,7 @@ export function createArrowheads(svg) {
     .attr("d", "M0,0 L10,5 L0,10 Z")
     .attr("fill", "white");
 
-  svg.append("defs").append("marker")
+  arrowsContainer.append("marker")
     .attr("id", "arrowhead-orange")
     .attr("viewBox", "0 0 10 10")
     .attr("refX", 5)
