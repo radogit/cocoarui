@@ -46,7 +46,12 @@
         border-radius: 5px;
         box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
     }
-
+    span.todo {
+      opacity: 0.5;
+    }
+    span.todo::after {
+      content: " (todo)";
+    }
     .debug-panel input{
         height: 10px;
         width: 10px;
@@ -65,16 +70,13 @@
     <label><input type="checkbox" id="toggleForceArrows" checked>Force Arrows</label><br>
     <label><input type="checkbox" id="toggleNetForce" checked>Net Force</label><br>
     <br>
-    <input type="radio" name="spawnMethod" id="spawnAll" value="all" checked disabled>
-    <label for="spawnAll">All-at-Once</label><br>
-    <input type="radio" name="spawnMethod" id="spawnIncr" value="incr" disabled>
-    <label for="spawnIncr">Incremental</label><br>
-    <button id="spawnButton" disabled>Spawn Now</button>
+    <button id="spawnButton" disabled>Start Spawn<br>(auto)</button>
     <br>
     <br>
-    <button id="spawnOneButton">Spawn One</button>
+    <button id="spawnOneButton">+1 Spawn</button>
     <br>
     <br>
+    <span class="todo">weighing:</span><br>
     <input type="radio" name="weightMethod" id="weightSize" value="size" checked disabled>
     <label for="weightSize">Size</label><br>
     <input type="radio" name="weightMethod" id="weightSignificance" value="signi" disabled>

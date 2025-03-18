@@ -50,10 +50,11 @@ export function createAxes(container, width, height, minDim) {
 }
 
 export function createArrowheads(svg) {
-  const arrowsContainer = svg.select("#defs").append("arrows").attr("class","arrows").append("marker")
+  const arrowsContainer = svg.select("#defs").append("arrows").attr("class","arrows");
+  arrowsContainer.append("marker")
     .attr("id", "arrowhead-white")
     .attr("viewBox", "0 0 10 10")
-    .attr("refX", 5)
+    .attr("refX", 0)
     .attr("refY", 5)
     .attr("markerWidth", 4)
     .attr("markerHeight", 4)
@@ -65,7 +66,7 @@ export function createArrowheads(svg) {
   arrowsContainer.append("marker")
     .attr("id", "arrowhead-orange")
     .attr("viewBox", "0 0 10 10")
-    .attr("refX", 5)
+    .attr("refX", 0)
     .attr("refY", 5)
     .attr("markerWidth", 4)
     .attr("markerHeight", 4)

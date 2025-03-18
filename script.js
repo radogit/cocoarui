@@ -38,6 +38,9 @@ createHeatmapGradients(defs, nodes, colours);
 // 7) Then build the hotspot rects, also from the new function
 buildHeatspotRects(hotspotLayer, nodes);
 
+// 8) UI toggles
+setupUI();
+
 
 // ================================================================================================================
 // =============== SPAWN ===============================================================================
@@ -104,11 +107,9 @@ function buildOrUpdateNodes(container, nodes) {
   
     return nodeGroup; // return the selection if you want
   }
-  
-// ========================================================================================================================
 
-// Immediate Spawning Approach
-    // //buildOrUpdateNodes(nodeLayer, nodes);
+// ================================================================================================================
+  
 // Timed Drip Approach
 let i = 0; 
 const intervalId = setInterval(() => {
@@ -138,6 +139,35 @@ const intervalId = setInterval(() => {
 }, 1000); // spawn 1 node each second
 
 // ================================================================================================================
+
+function addOne() {
+  const newNode = {
+    id: "spawn-"+Date.now().toString(36).substring(2, 8),
+    x: Math.random()*500,
+    y: Math.random()*500,
+    color: colours[Math.floor(Math.random() * colours.length)],
+    radius: 20,
+    isFixed: false,
+    significance: 1,
+    hotspots: [
+      { x: 300 * Math.random(), y: 300 * Math.random(), intensityFactor: 1.0, width: 180 * Math.random(), height: 80 * Math.random(), forceType: "attract"  },
+    ]
+  };
+
+  nodes.push(newNode);
+  // (A) Re-run hotspot data-join to create rects for newNode.hotspots
+  buildHeatspotRects(hotspotLayer, nodes);
+
+  // (B) Re-run node data-join to create circles, labels, etc.
+  buildOrUpdateNodes(nodeLayer, nodes);
+
+  // (C) Let the simulation know about new node
+  simulation.nodes(nodes);       
+  simulation.alpha(1).restart(); 
+}
+
+
+// ================================================================================================================
 // =============== SIMULATION LOGIC =======================================================================================
 // ================================================================================================================
 
@@ -156,7 +186,7 @@ function ticked() {
     // Update coordinates label
     if (showCoordinates) {
         nodeGroup.select(".coord-label")
-            .text(d => `(${Math.round(d.x)}, ${Math.round(-d.y)})`);
+            .text(d => `(${Math.round(d.x/minDim*180)}, ${Math.round(-d.y/minDim*180)})`);
     }
     
     // Update hotspot positions (for visualizing hotspot areas)
@@ -166,7 +196,7 @@ function ticked() {
 
     // Clear previous arrows before drawing new ones
     //forceArrows.selectAll(".force-arrow").remove();  
-    nodeGroup.selectAll(".force-arrow").remove();  
+    nodeGroup.selectAll(".force-arrow, .force-arrow-value, .force-arrow-label-group").remove();  
 
     nodeGroup.select("circle")
         .attr("stroke", d => d.isFixed ? "black" : "none")
@@ -180,11 +210,16 @@ function ticked() {
         const arrowGroup = d3.select(this).select(".force-arrows");
 
         // Draw individual force arrows (e.g., from hotspots)
-        d.forces.forEach(force => {
+        d.forces.forEach((force, index) => {
 
             const length = Math.min(Math.sqrt(force.fx ** 2 + force.fy ** 2) * 2, 1000);
             const angle = Math.atan2(force.fy, force.fx);
+            const labelAngle = ( ((angle + Math.PI / 2)/Math.PI) * 180 ) %180;
+            // a little bit of magic to keep labels from ever perfectly overlapping each other
+            const labelPosX = (1.0 * length + 35) * Math.cos(angle) + index*2 - d.forces.length/2;
+            const labelPosY = (1.0 * length + 35) * Math.sin(angle) + index*2 - d.forces.length/2;
 
+            // 1) The arrow line
             arrowGroup.append("line")
                 .attr("class", "force-arrow")
                 .attr("x1", 0)
@@ -195,7 +230,56 @@ function ticked() {
                 .attr("stroke-width", 5)
                 .attr("marker-end", "url(#arrowhead-"+(force.source.includes("collision") ? "orange" : "white")+")")
                 .style("opacity", 0.5);
+            // 2) The arrow magnitude text
+            // Append a group to hold the label & background
+            const labelGroup = arrowGroup.append("g")
+                .attr("class", "force-arrow-label-group")
+                .attr("transform", `translate(${labelPosX},${labelPosY})`)
+                .attr("opacity", 0.3)
+                ;
+            const bgRect = labelGroup.append("rect")
+                .attr("class", "force-arrow-label-bg")
+                .attr("x", -20) // we’ll adjust this once we know the text width
+                .attr("y", -10)
+                .attr("width", 40) // default guess
+                .attr("height", 20)
+                .attr("rx", 4) // rounded corners
+                .attr("fill", "rgba(0,0,0)")
+                .attr("transform", `rotate(${labelAngle})`)
+                ; // a semi-transparent black background
+            const labelText = labelGroup.append("text")
+                .attr("class", "force-arrow-label-text")
+                .attr("x", 0)
+                .attr("y", 0)
+                .attr("text-anchor", "middle")
+                .attr("dominant-baseline", "middle")
+                .attr("fill", "white")
+                .attr("font-size", 12)
+                // Round magnitude to 2 decimals
+                .text(length.toFixed(0) + ' ∠' + labelAngle.toFixed(0) + '°')
+                .attr("transform", `rotate(${labelAngle})`)
+                ;
+            const bbox = labelText.node().getBBox(); 
+            // e.g. { x, y, width, height } of the text
+
+            bgRect
+              .attr("x", bbox.x - 4)
+              .attr("y", bbox.y - 2)
+              .attr("width", bbox.width + 8)
+              .attr("height", bbox.height + 4);
+
+            // arrowGroup.append("text")
+            //   .attr("class", "force-arrow-value")
+            //   // Position the text at, say, 60% along the arrow
+            //   .attr("x", 0.6 * length * Math.cos(angle) + 10 * Math.cos(labelAngle))
+            //   .attr("y", 0.6 * length * Math.sin(angle) + 10 * Math.sin(labelAngle))
+            //   .attr("fill", force.source.includes("collision") ? "orange" : "white")
+            //   .attr("font-size", "10px")
+            //   .attr("text-anchor", "middle")
+            //   // Round the magnitude to 2 decimals (or 1)
+            //   .text( (Math.sqrt(force.fx ** 2 + force.fy ** 2)).toFixed(0) );                
         });
+
         // Draw net force arrow in red, if showNetForce.
         if (showNetForce) {
             const netForceX = d.vx;
@@ -273,39 +357,8 @@ function ticked() {
 // =============== LISTENERS =======================================================================================
 // ================================================================================================================
 
-// 8) UI toggles
-setupUI();
-
-
-// Then define a function or button that calls addNewNode:
-function addOne() {
-    const newNode = {
-      id: "spawn-"+Date.now().toString(36).substring(2, 8),
-      x: Math.random()*500,
-      y: Math.random()*500,
-      color: colours[Math.floor(Math.random() * colours.length)],
-      radius: 20,
-      isFixed: false,
-      significance: 1,
-      hotspots: [
-        { x: 300 * Math.random(), y: 300 * Math.random(), intensityFactor: 1.0, width: 180 * Math.random(), height: 80 * Math.random(), forceType: "attract"  },
-      ]
-    };
-
-    nodes.push(newNode);
-    // (A) Re-run hotspot data-join to create rects for newNode.hotspots
-    buildHeatspotRects(hotspotLayer, nodes);
-
-    // (B) Re-run node data-join to create circles, labels, etc.
-    buildOrUpdateNodes(nodeLayer, nodes);
-
-    // (C) Let the simulation know about new node
-    simulation.nodes(nodes);       
-    simulation.alpha(1).restart(); 
-  }
-  
-  // Then maybe a button:
-  document.getElementById("spawnOneButton").addEventListener("click", addOne);
+// attach spawning function to button
+document.getElementById("spawnOneButton").addEventListener("click", addOne);
 
 
 // ======== Browser window resize ================================
