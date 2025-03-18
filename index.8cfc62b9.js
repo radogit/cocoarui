@@ -633,6 +633,8 @@ const defs = svg.append("defs").attr("id", "defs");
 (0, _heatmapsJs.createHeatmapGradients)(defs, (0, _dataJs.nodes), colours);
 // 7) Then build the hotspot rects, also from the new function
 (0, _heatmapsJs.buildHeatspotRects)(hotspotLayer, (0, _dataJs.nodes));
+// 8) UI toggles
+(0, _uiJs.setupUI)();
 // ================================================================================================================
 // =============== SPAWN ===============================================================================
 // ================================================================================================================
@@ -662,7 +664,29 @@ function buildOrUpdateNodes(container, nodes) {
     nodeGroup.attr("transform", (d)=>`translate(${d.x}, ${d.y})`);
     return nodeGroup; // return the selection if you want
 }
-// Then define a function or button that calls addNewNode:
+// ================================================================================================================
+// Timed Drip Approach
+let i = 0;
+const intervalId = setInterval(()=>{
+    if (i >= (0, _dataJs.nodesQueue).length) {
+        // We have spawned them all
+        clearInterval(intervalId);
+        return;
+    }
+    // Take the next node:
+    const newNode = (0, _dataJs.nodesQueue)[i];
+    i++;
+    // Add to the simulation array:
+    (0, _dataJs.nodes).push(newNode);
+    // (A) Re-run hotspot data-join to create rects for newNode.hotspots
+    (0, _heatmapsJs.buildHeatspotRects)(hotspotLayer, (0, _dataJs.nodes));
+    // (B) Re-run node data-join to create circles, labels, etc.
+    buildOrUpdateNodes(nodeLayer, (0, _dataJs.nodes));
+    // (C) Let the sim see the new array
+    simulation.nodes((0, _dataJs.nodes));
+    simulation.alpha(1).restart();
+}, 1000); // spawn 1 node each second
+// ================================================================================================================
 function addOne() {
     const newNode = {
         id: "spawn-" + Date.now().toString(36).substring(2, 8),
@@ -692,29 +716,6 @@ function addOne() {
     simulation.nodes((0, _dataJs.nodes));
     simulation.alpha(1).restart();
 }
-// Immediate Spawning Approach
-// //buildOrUpdateNodes(nodeLayer, nodes);
-// Timed Drip Approach
-let i = 0;
-const intervalId = setInterval(()=>{
-    if (i >= (0, _dataJs.nodesQueue).length) {
-        // We have spawned them all
-        clearInterval(intervalId);
-        return;
-    }
-    // Take the next node:
-    const newNode = (0, _dataJs.nodesQueue)[i];
-    i++;
-    // Add to the simulation array:
-    (0, _dataJs.nodes).push(newNode);
-    // (A) Re-run hotspot data-join to create rects for newNode.hotspots
-    (0, _heatmapsJs.buildHeatspotRects)(hotspotLayer, (0, _dataJs.nodes));
-    // (B) Re-run node data-join to create circles, labels, etc.
-    buildOrUpdateNodes(nodeLayer, (0, _dataJs.nodes));
-    // (C) Let the sim see the new array
-    simulation.nodes((0, _dataJs.nodes));
-    simulation.alpha(1).restart();
-}, 1000); // spawn 1 node each second
 // ================================================================================================================
 // =============== SIMULATION LOGIC =======================================================================================
 // ================================================================================================================
@@ -727,14 +728,14 @@ function ticked() {
     if (!nodeGroup) return; // If it's undefined, skip
     nodeGroup.attr("transform", (d)=>`translate(${d.x}, ${d.y})`);
     // Update coordinates label
-    if (0, _uiJs.showCoordinates) nodeGroup.select(".coord-label").text((d)=>`(${Math.round(d.x)}, ${Math.round(-d.y)})`);
+    if (0, _uiJs.showCoordinates) nodeGroup.select(".coord-label").text((d)=>`(${Math.round(d.x / minDim * 180)}, ${Math.round(-d.y / minDim * 180)})`);
     // Update hotspot positions (for visualizing hotspot areas)
     // hotspotGroups.selectAll(".hotspot")
     //     .attr("x", d => d.x - d.width / 2)
     //     .attr("y", d => d.y - d.height / 2);
     // Clear previous arrows before drawing new ones
     //forceArrows.selectAll(".force-arrow").remove();  
-    nodeGroup.selectAll(".force-arrow").remove();
+    nodeGroup.selectAll(".force-arrow, .force-arrow-value, .force-arrow-label-group").remove();
     nodeGroup.select("circle").attr("stroke", (d)=>d.isFixed ? "black" : "none").attr("stroke-width", (d)=>d.isFixed ? 3 : 0);
     // If arrows are off, no need to draw them.
     if (!(0, _uiJs.showForceArrows)) return;
@@ -742,10 +743,37 @@ function ticked() {
     nodeGroup.each(function(d) {
         const arrowGroup = _d3.select(this).select(".force-arrows");
         // Draw individual force arrows (e.g., from hotspots)
-        d.forces.forEach((force)=>{
+        d.forces.forEach((force, index)=>{
             const length = Math.min(Math.sqrt(force.fx ** 2 + force.fy ** 2) * 2, 1000);
             const angle = Math.atan2(force.fy, force.fx);
+            const labelAngle = (angle + Math.PI / 2) / Math.PI * 180 % 180;
+            // a little bit of magic to keep labels from ever perfectly overlapping each other
+            const labelPosX = (1.0 * length + 35) * Math.cos(angle) + index * 2 - d.forces.length / 2;
+            const labelPosY = (1.0 * length + 35) * Math.sin(angle) + index * 2 - d.forces.length / 2;
+            // 1) The arrow line
             arrowGroup.append("line").attr("class", "force-arrow").attr("x1", 0).attr("y1", 0).attr("x2", length * Math.cos(angle)).attr("y2", length * Math.sin(angle)).attr("stroke", force.source.includes("collision") ? "orange" : "white").attr("stroke-width", 5).attr("marker-end", "url(#arrowhead-" + (force.source.includes("collision") ? "orange" : "white") + ")").style("opacity", 0.5);
+            // 2) The arrow magnitude text
+            // Append a group to hold the label & background
+            const labelGroup = arrowGroup.append("g").attr("class", "force-arrow-label-group").attr("transform", `translate(${labelPosX},${labelPosY})`).attr("opacity", 0.3);
+            const bgRect = labelGroup.append("rect").attr("class", "force-arrow-label-bg").attr("x", -20) // we’ll adjust this once we know the text width
+            .attr("y", -10).attr("width", 40) // default guess
+            .attr("height", 20).attr("rx", 4) // rounded corners
+            .attr("fill", "rgba(0,0,0)").attr("transform", `rotate(${labelAngle})`); // a semi-transparent black background
+            const labelText = labelGroup.append("text").attr("class", "force-arrow-label-text").attr("x", 0).attr("y", 0).attr("text-anchor", "middle").attr("dominant-baseline", "middle").attr("fill", "white").attr("font-size", 12)// Round magnitude to 2 decimals
+            .text(length.toFixed(0) + " \u2220" + labelAngle.toFixed(0) + "\xb0").attr("transform", `rotate(${labelAngle})`);
+            const bbox = labelText.node().getBBox();
+            // e.g. { x, y, width, height } of the text
+            bgRect.attr("x", bbox.x - 4).attr("y", bbox.y - 2).attr("width", bbox.width + 8).attr("height", bbox.height + 4);
+        // arrowGroup.append("text")
+        //   .attr("class", "force-arrow-value")
+        //   // Position the text at, say, 60% along the arrow
+        //   .attr("x", 0.6 * length * Math.cos(angle) + 10 * Math.cos(labelAngle))
+        //   .attr("y", 0.6 * length * Math.sin(angle) + 10 * Math.sin(labelAngle))
+        //   .attr("fill", force.source.includes("collision") ? "orange" : "white")
+        //   .attr("font-size", "10px")
+        //   .attr("text-anchor", "middle")
+        //   // Round the magnitude to 2 decimals (or 1)
+        //   .text( (Math.sqrt(force.fx ** 2 + force.fy ** 2)).toFixed(0) );                
         });
         // Draw net force arrow in red, if showNetForce.
         if (0, _uiJs.showNetForce) {
@@ -798,8 +826,6 @@ function toggleFixed(event, d) {
 // ================================================================================================================
 // =============== LISTENERS =======================================================================================
 // ================================================================================================================
-// 8) UI toggles
-(0, _uiJs.setupUI)();
 // attach spawning function to button
 document.getElementById("spawnOneButton").addEventListener("click", addOne);
 // ======== Browser window resize ================================
@@ -24568,8 +24594,9 @@ function createAxes(container, width, height, minDim) {
     };
 }
 function createArrowheads(svg) {
-    const arrowsContainer = svg.select("#defs").append("arrows").attr("class", "arrows").append("marker").attr("id", "arrowhead-white").attr("viewBox", "0 0 10 10").attr("refX", 5).attr("refY", 5).attr("markerWidth", 4).attr("markerHeight", 4).attr("orient", "auto").append("path").attr("d", "M0,0 L10,5 L0,10 Z").attr("fill", "white");
-    arrowsContainer.append("marker").attr("id", "arrowhead-orange").attr("viewBox", "0 0 10 10").attr("refX", 5).attr("refY", 5).attr("markerWidth", 4).attr("markerHeight", 4).attr("orient", "auto").append("path").attr("d", "M0,0 L10,5 L0,10 Z").attr("fill", "orange");
+    const arrowsContainer = svg.select("#defs").append("arrows").attr("class", "arrows");
+    arrowsContainer.append("marker").attr("id", "arrowhead-white").attr("viewBox", "0 0 10 10").attr("refX", 0).attr("refY", 5).attr("markerWidth", 4).attr("markerHeight", 4).attr("orient", "auto").append("path").attr("d", "M0,0 L10,5 L0,10 Z").attr("fill", "white");
+    arrowsContainer.append("marker").attr("id", "arrowhead-orange").attr("viewBox", "0 0 10 10").attr("refX", 0).attr("refY", 5).attr("markerWidth", 4).attr("markerHeight", 4).attr("orient", "auto").append("path").attr("d", "M0,0 L10,5 L0,10 Z").attr("fill", "orange");
 }
 
 },{"./data.js":"3d49z","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","d3":"17XFv"}],"1hWqh":[function(require,module,exports,__globalThis) {
@@ -24661,7 +24688,7 @@ function addNewNode(simulation, container, newNode, dragHandlers = {}) {
     simulation.alpha(1).restart();
 }
 
-},{"d3":"17XFv","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"kNCsT":[function(require,module,exports,__globalThis) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","d3":"17XFv"}],"kNCsT":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 /**
