@@ -5,6 +5,7 @@ import { collisionMargin } from "./data.js";
 export function createSvgAndContainer() {
   const width  = window.innerWidth;
   const height = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+  if(window.visualViewport !== window.innerHeight) {alert("not the same height! are you on iOS?");}
   const svg = d3.select("body")
     .append("svg")
     .attr("xmlns","http://www.w3.org/2000/svg")
