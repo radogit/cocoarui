@@ -32,7 +32,7 @@ const minDim = Math.min(width, height);
 const { xScale, yScale, xAxis, yAxis } = createAxes(container, width, height, minDim);
 
 // 5) Arrowhead artefacts
-const defs = svg.append("defs").attr("id","defs");
+const defs = svg.append("defs").attr("id","defs").attr("width",100).attr("height",100);
 createArrowheads(svg);
 
 // 6) Create the gradients by calling the new function

@@ -9,13 +9,15 @@ import {showObservations} from "./ui.js";
  */
 export function createHeatmapGradients(defs, nodes, colours) {
 
-    const heatmapGradientContainer = defs.append("heatmapGradients");
+    const heatmapGradientContainer = defs.append("g").attr("id","heatmapGradients").attr("width",100).attr("height",100);
 
     // Define gradients for each node's hotspots dynamically
     colours.forEach(colour => {
         // Create a unique radial gradient for each node's hotspots
         const gradient = heatmapGradientContainer.append("radialGradient")
             .attr("id", `forceGradient-${colour}`)
+            .attr("width", 100)
+            .attr("height", 100)
             .attr("cx", "50%")
             .attr("cy", "50%")
             .attr("r", "50%");
@@ -83,7 +85,7 @@ export function buildHeatspotRects(container, nodes){
             d.nodeId = d3.select(this.parentNode).datum().id;
             d.color = d3.select(this.parentNode).datum().color;
         })
-        .style("fill", d => `url(#forceGradient-${d.color})`)  // Correctly associate hotspot with node's gradient
+        .attr("fill", d => `url(#forceGradient-${d.color})`)  // Correctly associate hotspot with node's gradient
         .style("stroke", d=>d.color)        // Thin black border
         .style("stroke-width", 1)        // Border thickness
         .style("stroke-dasharray", "4,2") // Dashed border (4px dash, 2px space)    

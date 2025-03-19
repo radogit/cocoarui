@@ -7,6 +7,7 @@ export function createSvgAndContainer() {
   const height = window.innerHeight;
   const svg = d3.select("body")
     .append("svg")
+    .attr("xmlns","http://www.w3.org/2000/svg")
     .attr("width", width)
     .attr("height", height);
   
@@ -50,7 +51,7 @@ export function createAxes(container, width, height, minDim) {
 }
 
 export function createArrowheads(svg) {
-  const arrowsContainer = svg.select("#defs").append("arrows").attr("class","arrows");
+  const arrowsContainer = svg.select("#defs").append("g").attr("id","arrows").attr("class","arrows");
   arrowsContainer.append("marker")
     .attr("id", "arrowhead-white")
     .attr("viewBox", "0 0 10 10")
