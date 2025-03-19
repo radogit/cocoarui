@@ -24592,7 +24592,12 @@ var _dataJs = require("./data.js");
 function createSvgAndContainer() {
     const width = window.innerWidth;
     const height = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-    if (window.visualViewport !== window.innerHeight) alert("not the same height! are you on iOS?");
+    if (window.visualViewport !== window.innerHeight) {
+        console.log("user appears to be on mobile. good luck.", "pink");
+        console.log(height, "pink");
+        console.log(window.visualViewport.height, "pink");
+        console.log(window.innerHeight, "pink");
+    }
     const svg = _d3.select("body").append("svg").attr("xmlns", "http://www.w3.org/2000/svg").attr("width", width).attr("height", height);
     const container = svg.append("g").attr("class", "container").attr("transform", `translate(${width / 2},${height / 2})`);
     const hotspotLayer = container.append("g").attr("class", "hotspot-layer");
