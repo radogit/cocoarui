@@ -603,16 +603,31 @@ var _drawingJs = require("./js/drawing.js");
 var _heatmapsJs = require("./js/heatmaps.js");
 var _uiJs = require("./js/ui.js");
 //import { dragging, dragEnd, dragStart, toggleFixed } from "./js/nodeInteraction.js";
-var _spawnJs = require("./js/spawn.js");
+var _loggerJs = require("./js/logger.js");
+// Set up the logger
+(0, _loggerJs.setupLogger)();
 // ========= parameters =========
 const colours = [
+    'red',
     'green',
     'blue',
     'orange',
     'purple',
-    'red',
-    'pink',
-    'cyan'
+    'cyan',
+    'magenta',
+    'yellow',
+    'darkblue',
+    'darkgreen',
+    'lightblue',
+    'lightgreen',
+    'coral',
+    'gold',
+    'salmon',
+    'slateblue',
+    'teal',
+    'olive',
+    'brown',
+    'darkorange'
 ];
 // ================================================================================================================
 // =============== ONE TIME =======================================================================================
@@ -627,7 +642,7 @@ const minDim = Math.min(width, height);
 // 4) Draw axes
 const { xScale, yScale, xAxis, yAxis } = (0, _drawingJs.createAxes)(container, width, height, minDim);
 // 5) Arrowhead artefacts
-const defs = svg.append("defs").attr("id", "defs");
+const defs = svg.append("defs").attr("id", "defs").attr("width", 100).attr("height", 100);
 (0, _drawingJs.createArrowheads)(svg);
 // 6) Create the gradients by calling the new function
 (0, _heatmapsJs.createHeatmapGradients)(defs, (0, _dataJs.nodes), colours);
@@ -649,11 +664,17 @@ function buildOrUpdateNodes(container, nodes) {
         // append the circle
         g.append("circle").attr("fill", (d)=>d.color).attr("opacity", 0.6).attr("r", (d)=>d.radius).attr("stroke", (d)=>d.isFixed ? "black" : "none").attr("stroke-width", (d)=>d.isFixed ? 3 : 0);
         // append ID label
-        g.append("text").attr("class", "id-label").attr("dx", 0).attr("dy", (d)=>-d.radius - 2).text((d)=>d.id);
+        g.append("text").attr("class", (0, _uiJs.showNodeLabel) ? "id-label" : "id-label hidden").attr("dx", 0).attr("dy", (d)=>-d.radius - 2).text((d)=>d.id);
         // append coords label (if you want)
         g.append("text").attr("class", "coord-label").attr("dx", 0).attr("dy", (d)=>d.radius + 15);
         // Force arrows container
         g.append("g").attr("class", "force-arrows");
+        // Node relations container
+        g.append("g").attr("class", "node-relations");
+        // Log the id of each newly spawned node
+        g.each(function(d) {
+            console.log('spawned: ' + d.id);
+        });
         return g;
     }, (update)=>{
         // If you want to handle updated nodes, set or transition them here
@@ -690,23 +711,22 @@ const intervalId = setInterval(()=>{
 function addOne() {
     const newNode = {
         id: "spawn-" + Date.now().toString(36).substring(2, 8),
-        x: Math.random() * 500,
-        y: Math.random() * 500,
+        x: width * (Math.random() - 0.5),
+        y: height * (Math.random() - 0.5),
         color: colours[Math.floor(Math.random() * colours.length)],
-        radius: 20,
+        radius: 20 + 30 * Math.random(),
         isFixed: false,
         significance: 1,
-        hotspots: [
-            {
-                x: 300 * Math.random(),
-                y: 300 * Math.random(),
-                intensityFactor: 1.0,
-                width: 180 * Math.random(),
-                height: 80 * Math.random(),
-                forceType: "attract"
-            }
-        ]
+        hotspots: []
     };
+    for(let i = 0, iterations = Math.floor(Math.random() * 4) + 1; i < iterations; i++)newNode.hotspots.push({
+        x: (width - 200) * (Math.random() - 0.5),
+        y: (height - 200) * (Math.random() - 0.5),
+        intensityFactor: 1.0,
+        width: 40 + 160 * Math.random(),
+        height: 40 + 160 * Math.random(),
+        forceType: "attract"
+    });
     (0, _dataJs.nodes).push(newNode);
     // (A) Re-run hotspot data-join to create rects for newNode.hotspots
     (0, _heatmapsJs.buildHeatspotRects)(hotspotLayer, (0, _dataJs.nodes));
@@ -716,6 +736,21 @@ function addOne() {
     simulation.nodes((0, _dataJs.nodes));
     simulation.alpha(1).restart();
 }
+// ================================================================================================================
+function removeAllNodes() {
+    // 1) Clear the array
+    (0, _dataJs.nodes).splice(0, (0, _dataJs.nodes).length); // or nodes.length = 0
+    // 2) Re-run the data join for nodes and hotspots
+    buildOrUpdateNodes(nodeLayer, (0, _dataJs.nodes));
+    (0, _heatmapsJs.buildHeatspotRects)(hotspotLayer, (0, _dataJs.nodes));
+    // 3) Notify the simulation we have no nodes
+    simulation.nodes((0, _dataJs.nodes));
+    // 4) Optionally reheat the simulation 
+    //    (with 0 nodes, there won’t be motion, but it can forcibly update)
+    simulation.alpha(1).restart();
+}
+// Then attach this to a button:
+document.getElementById("removeAllButton").addEventListener("click", removeAllNodes);
 // ================================================================================================================
 // =============== SIMULATION LOGIC =======================================================================================
 // ================================================================================================================
@@ -729,21 +764,25 @@ function ticked() {
     nodeGroup.attr("transform", (d)=>`translate(${d.x}, ${d.y})`);
     // Update coordinates label
     if (0, _uiJs.showCoordinates) nodeGroup.select(".coord-label").text((d)=>`(${Math.round(d.x / minDim * 180)}, ${Math.round(-d.y / minDim * 180)})`);
-    // Update hotspot positions (for visualizing hotspot areas)
-    // hotspotGroups.selectAll(".hotspot")
-    //     .attr("x", d => d.x - d.width / 2)
-    //     .attr("y", d => d.y - d.height / 2);
     // Clear previous arrows before drawing new ones
     //forceArrows.selectAll(".force-arrow").remove();  
     nodeGroup.selectAll(".force-arrow, .force-arrow-value, .force-arrow-label-group").remove();
+    nodeGroup.selectAll(".node-relation, .node-relation-value, .node-relation-label-group").remove();
     nodeGroup.select("circle").attr("stroke", (d)=>d.isFixed ? "black" : "none").attr("stroke-width", (d)=>d.isFixed ? 3 : 0);
-    // If arrows are off, no need to draw them.
-    if (!(0, _uiJs.showForceArrows)) return;
-    // Add arrows based on the calculated forces
+    // Add arrows and lines based on the calculated forces
     nodeGroup.each(function(d) {
         const arrowGroup = _d3.select(this).select(".force-arrows");
+        const nodeRelationsGroup = _d3.select(this).select(".node-relations");
+        d.hotspots.forEach((hotspot, index)=>{
+            // If toggle is off, no need to draw lines.
+            //if (!showNodeLines) return;
+            //console.log(hotspot.width);
+            nodeRelationsGroup.append("line").attr("class", (0, _uiJs.showNodeLines) ? "node-relation" : "node-relation hidden").attr("x1", 0).attr("y1", 0).attr("x2", -d.x + hotspot.x).attr("y2", -d.y + hotspot.y).attr("stroke", d.color).attr("stroke-width", 4).attr("stroke-dasharray", "0,20").attr("stroke-linecap", "round").style("opacity", 0.2);
+        });
         // Draw individual force arrows (e.g., from hotspots)
         d.forces.forEach((force, index)=>{
+            // If toggle is off, no need to draw arrows.
+            //if (!showForceArrows) return;
             const length = Math.min(Math.sqrt(force.fx ** 2 + force.fy ** 2) * 2, 1000);
             const angle = Math.atan2(force.fy, force.fx);
             const labelAngle = (angle + Math.PI / 2) / Math.PI * 180 % 180;
@@ -751,10 +790,11 @@ function ticked() {
             const labelPosX = (1.0 * length + 35) * Math.cos(angle) + index * 2 - d.forces.length / 2;
             const labelPosY = (1.0 * length + 35) * Math.sin(angle) + index * 2 - d.forces.length / 2;
             // 1) The arrow line
-            arrowGroup.append("line").attr("class", "force-arrow").attr("x1", 0).attr("y1", 0).attr("x2", length * Math.cos(angle)).attr("y2", length * Math.sin(angle)).attr("stroke", force.source.includes("collision") ? "orange" : "white").attr("stroke-width", 5).attr("marker-end", "url(#arrowhead-" + (force.source.includes("collision") ? "orange" : "white") + ")").style("opacity", 0.5);
+            arrowGroup.append("line")//.attr("class", "force-arrow")
+            .attr("class", force.source.includes("collision") ? (0, _uiJs.showForceArrows) ? "force-arrow force-arrow-orange" : "force-arrow force-arrow-orange hidden" : (0, _uiJs.showForceArrows) ? "force-arrow force-arrow-white" : "force-arrow force-arrow-white hidden").attr("x1", 0).attr("y1", 0).attr("x2", length * Math.cos(angle)).attr("y2", length * Math.sin(angle)).attr("stroke", force.source.includes("collision") ? "orange" : "white").attr("stroke-width", 5).attr("marker-end", "url(#arrowhead-" + (force.source.includes("collision") ? "orange" : "white") + ")").style("opacity", 0.5);
             // 2) The arrow magnitude text
             // Append a group to hold the label & background
-            const labelGroup = arrowGroup.append("g").attr("class", "force-arrow-label-group").attr("transform", `translate(${labelPosX},${labelPosY})`).attr("opacity", 0.3);
+            const labelGroup = arrowGroup.append("g").attr("class", (0, _uiJs.showForceArrows) ? "force-arrow-label-group" : "force-arrow-label-group hidden").attr("transform", `translate(${labelPosX},${labelPosY})`).attr("opacity", 0.3);
             const bgRect = labelGroup.append("rect").attr("class", "force-arrow-label-bg").attr("x", -20) // we’ll adjust this once we know the text width
             .attr("y", -10).attr("width", 40) // default guess
             .attr("height", 20).attr("rx", 4) // rounded corners
@@ -783,7 +823,7 @@ function ticked() {
             if (netForceMagnitude > 0.1) {
                 const netLength = Math.min(netForceMagnitude * 5, 1000);
                 const netAngle = Math.atan2(netForceY, netForceX);
-                arrowGroup.append("line").attr("class", "force-arrow net-force-arrow").attr("x1", 0).attr("y1", 0).attr("x2", netLength * Math.cos(netAngle)).attr("y2", netLength * Math.sin(netAngle)).attr("stroke", "red").attr("stroke-width", 3).attr("marker-end", "url(#arrowhead)").style("opacity", netForceMagnitude > 0.9 ? 0.8 : 0.5);
+                arrowGroup.append("line").attr("class", (0, _uiJs.showNetForce) ? "force-arrow net-force-arrow" : "force-arrow net-force-arrow hidden").attr("x1", 0).attr("y1", 0).attr("x2", netLength * Math.cos(netAngle)).attr("y2", netLength * Math.sin(netAngle)).attr("stroke", "red").attr("stroke-width", 3).attr("marker-end", "url(#arrowhead)").style("opacity", netForceMagnitude > 0.9 ? 0.8 : 0.5);
             }
         }
     });
@@ -826,8 +866,8 @@ function toggleFixed(event, d) {
 // ================================================================================================================
 // =============== LISTENERS =======================================================================================
 // ================================================================================================================
-// attach spawning function to button
 document.getElementById("spawnOneButton").addEventListener("click", addOne);
+document.getElementById("removeAllButton").addEventListener("click", removeAllNodes());
 // ======== Browser window resize ================================
 window.addEventListener("resize", onResize);
 function onResize() {
@@ -840,11 +880,11 @@ function onResize() {
     // baseDimension is some baseline—eg. the initial smaller dimension or a desired reference size.
     // 3) Translate to center, scale uniformly
     container.attr("transform", `translate(${newWidth / 2}, ${newHeight / 2}) scale(${scaleFactor})`);
-    // 4) You can redraw axes or call `ticked()` if needed
-    redrawAxes(); // if you have an axis you want to keep consistent
+// 4) You can redraw axes or call `ticked()` if needed
+//redrawAxes(); // if you have an axis you want to keep consistent
 }
 
-},{"d3":"17XFv","./js/data.js":"3d49z","./js/forces.js":"kMF8R","./js/drawing.js":"acZLf","./js/ui.js":"1hWqh","./js/spawn.js":"8RTi2","./js/heatmaps.js":"kNCsT"}],"17XFv":[function(require,module,exports,__globalThis) {
+},{"d3":"17XFv","./js/data.js":"3d49z","./js/forces.js":"kMF8R","./js/drawing.js":"acZLf","./js/heatmaps.js":"kNCsT","./js/ui.js":"1hWqh","./js/logger.js":"dEb81"}],"17XFv":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 var _d3Array = require("d3-array");
@@ -24552,7 +24592,7 @@ var _dataJs = require("./data.js");
 function createSvgAndContainer() {
     const width = window.innerWidth;
     const height = window.innerHeight;
-    const svg = _d3.select("body").append("svg").attr("width", width).attr("height", height);
+    const svg = _d3.select("body").append("svg").attr("xmlns", "http://www.w3.org/2000/svg").attr("width", width).attr("height", height);
     const container = svg.append("g").attr("class", "container").attr("transform", `translate(${width / 2},${height / 2})`);
     const hotspotLayer = container.append("g").attr("class", "hotspot-layer");
     const nodeLayer = container.append("g").attr("class", "node-layer");
@@ -24594,101 +24634,12 @@ function createAxes(container, width, height, minDim) {
     };
 }
 function createArrowheads(svg) {
-    const arrowsContainer = svg.select("#defs").append("arrows").attr("class", "arrows");
+    const arrowsContainer = svg.select("#defs").append("g").attr("id", "arrows").attr("class", "arrows");
     arrowsContainer.append("marker").attr("id", "arrowhead-white").attr("viewBox", "0 0 10 10").attr("refX", 0).attr("refY", 5).attr("markerWidth", 4).attr("markerHeight", 4).attr("orient", "auto").append("path").attr("d", "M0,0 L10,5 L0,10 Z").attr("fill", "white");
     arrowsContainer.append("marker").attr("id", "arrowhead-orange").attr("viewBox", "0 0 10 10").attr("refX", 0).attr("refY", 5).attr("markerWidth", 4).attr("markerHeight", 4).attr("orient", "auto").append("path").attr("d", "M0,0 L10,5 L0,10 Z").attr("fill", "orange");
 }
 
-},{"./data.js":"3d49z","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","d3":"17XFv"}],"1hWqh":[function(require,module,exports,__globalThis) {
-// ui.js
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "showNodeLabel", ()=>showNodeLabel);
-parcelHelpers.export(exports, "showCoordinates", ()=>showCoordinates);
-parcelHelpers.export(exports, "showForceArrows", ()=>showForceArrows);
-parcelHelpers.export(exports, "showNetForce", ()=>showNetForce);
-parcelHelpers.export(exports, "setupUI", ()=>setupUI);
-let showNodeLabel = true;
-let showCoordinates = true;
-let showForceArrows = true;
-let showNetForce = true;
-function setupUI() {
-    // enact the above hardcoded choices onto the html file
-    document.getElementById("toggleNodeLabel").checked = showNodeLabel;
-    document.getElementById("toggleCoordinates").checked = showCoordinates;
-    document.getElementById("toggleForceArrows").checked = showForceArrows;
-    document.getElementById("toggleNetForce").checked = showNetForce;
-    const toggleNodeLabel = document.getElementById("toggleNodeLabel");
-    if (toggleNodeLabel) toggleNodeLabel.addEventListener("change", function() {
-        showNodeLabel = this.checked;
-        document.querySelectorAll(".id-label").forEach((el)=>{
-            el.style.display = showNodeLabel ? null : "none";
-        });
-    });
-    const toggleForceArrowsInput = document.getElementById("toggleForceArrows");
-    if (toggleForceArrowsInput) toggleForceArrowsInput.addEventListener("change", function() {
-        showForceArrows = this.checked;
-        if (!this.checked) document.getElementById("toggleNetForce").disabled = true;
-        else document.getElementById("toggleNetForce").disabled = false;
-        document.querySelectorAll(".force-arrows").forEach((el)=>{
-            el.style.display = showForceArrows ? null : "none";
-        });
-    });
-    const toggleNetForceInput = document.getElementById("toggleNetForce");
-    if (toggleNetForceInput) toggleNetForceInput.addEventListener("change", function() {
-        showNetForce = this.checked;
-    });
-    const toggleCoordinatesInput = document.getElementById("toggleCoordinates");
-    if (toggleCoordinatesInput) toggleCoordinatesInput.addEventListener("change", function() {
-        showCoordinates = this.checked;
-        document.querySelectorAll(".coord-label").forEach((el)=>{
-            el.style.display = showCoordinates ? null : "none";
-        });
-    });
-}
-
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"8RTi2":[function(require,module,exports,__globalThis) {
-// addNode.js
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-/**
- * Adds a single new node to the given simulation & container, 
- * re-binds the data, and re-heats the simulation.
- *
- * @param {d3.Simulation} simulation - The D3 force simulation object.
- * @param {d3.Selection} container   - The main <g> container holding the node groups.
- * @param {Object} newNode           - The new node data object ({ id, x, y, color, radius, etc. }).
- * @param {Object} dragHandlers      - An object holding { dragStart, dragging, dragEnd } if needed.
- */ parcelHelpers.export(exports, "addNewNode", ()=>addNewNode);
-var _d3 = require("d3");
-function addNewNode(simulation, container, newNode, dragHandlers = {}) {
-    console.log('spawning!');
-    // 1) Insert the new node data into the sim
-    const oldNodes = simulation.nodes();
-    const newNodes = [
-        ...oldNodes,
-        newNode
-    ];
-    simulation.nodes(newNodes);
-    // 2) Re-bind data to DOM
-    const nodeGroup = container.selectAll(".node-group").data(newNodes, (d)=>d.id) // key by node id
-    .join((enter)=>{
-        // For newly entered node(s):
-        const g = enter.append("g").attr("class", "node-group");
-        // If you have a drag behavior, attach it:
-        if (dragHandlers.dragStart && dragHandlers.dragging && dragHandlers.dragEnd) g.call(_d3.drag().on("start", dragHandlers.dragStart).on("drag", dragHandlers.dragging).on("end", dragHandlers.dragEnd));
-        // For example, create a circle:
-        g.append("circle").attr("r", (d)=>d.radius || 10).attr("fill", (d)=>d.color || "steelblue");
-        // If you want a label:
-        g.append("text").attr("class", "id-label").attr("text-anchor", "middle").attr("dy", (d)=>-(d.radius || 10) - 2).text((d)=>d.id);
-        // Return the enter selection
-        return g;
-    }, (update)=>update, (exit)=>exit.remove());
-    // 3) Re-heat the simulation so the new node can settle in
-    simulation.alpha(1).restart();
-}
-
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","d3":"17XFv"}],"kNCsT":[function(require,module,exports,__globalThis) {
+},{"d3":"17XFv","./data.js":"3d49z","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"kNCsT":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 /**
@@ -24705,12 +24656,13 @@ parcelHelpers.defineInteropFlag(exports);
  * @param {Array} nodes The array of node objects, each with .hotspots array
  */ parcelHelpers.export(exports, "buildHeatspotRects", ()=>buildHeatspotRects);
 var _d3 = require("d3");
+var _uiJs = require("./ui.js");
 function createHeatmapGradients(defs, nodes, colours) {
-    const heatmapGradientContainer = defs.append("heatmapGradients");
+    const heatmapGradientContainer = defs.append("g").attr("id", "heatmapGradients").attr("width", 100).attr("height", 100);
     // Define gradients for each node's hotspots dynamically
     colours.forEach((colour)=>{
         // Create a unique radial gradient for each node's hotspots
-        const gradient = heatmapGradientContainer.append("radialGradient").attr("id", `forceGradient-${colour}`).attr("cx", "50%").attr("cy", "50%").attr("r", "50%");
+        const gradient = heatmapGradientContainer.append("radialGradient").attr("id", `forceGradient-${colour}`).attr("width", 100).attr("height", 100).attr("cx", "50%").attr("cy", "50%").attr("r", "50%");
         gradient.append("stop").attr("offset", "0%").style("stop-color", colour) // Use node's color for the center
         .style("stop-opacity", 0.4);
         gradient.append("stop").attr("offset", "100%").style("stop-color", colour).style("stop-opacity", 0.1);
@@ -24718,18 +24670,143 @@ function createHeatmapGradients(defs, nodes, colours) {
 }
 function buildHeatspotRects(container, nodes) {
     // Create hotspot rectangles for each node
-    const hotspotGroups = container.selectAll(".hotspot-group").data(nodes, (d)=>d.id).join("g").attr("class", "hotspot-group");
-    hotspotGroups.selectAll(".hotspot").data((d)=>d.hotspots).join("rect").attr("class", "hotspot").attr("x", (d)=>d.x - d.width / 2).attr("y", (d)=>d.y - d.height / 2).attr("width", (d)=>d.width).attr("height", (d)=>d.height).each(function(d) {
+    const hotspotGroups = container.selectAll(".hotspot-group").data(nodes, (d)=>d.id).join("g").attr("class", (0, _uiJs.showObservations) ? "hotspot-group" : "hotspot-group hidden");
+    hotspotGroups.selectAll(".hotspot").data((d)=>d.hotspots).join(// ========== Enter logic for new rects ==========
+    (enter)=>{
+        // Create newly entered <rect> elements
+        const r = enter.append("rect").attr("class", "hotspot");
+        // Log a message for each newly entered rect
+        r.each(function(h) {
+            const nodeData = _d3.select(this.parentNode).datum();
+            // (the node that owns these hotspots)
+            console.log(`New hotspot for node '${nodeData.id}' \u{2014} size: ${h.width.toFixed(0)}x${h.height.toFixed(0)}, position: (${h.x.toFixed(0)}, ${h.y.toFixed(0)})`);
+        });
+        // Return the newly created selection so D3 can handle update logic
+        return r;
+    }, // ========== Update logic (optional) ==========
+    (update)=>update, // ========== Exit logic ==========
+    (exit)=>exit.remove()).attr("x", (d)=>d.x - d.width / 2).attr("y", (d)=>d.y - d.height / 2).attr("width", (d)=>d.width).attr("height", (d)=>d.height).each(function(d) {
         // Ensure each hotspot references the correct node ID dynamically
         d.nodeId = _d3.select(this.parentNode).datum().id;
         d.color = _d3.select(this.parentNode).datum().color;
-    }).style("fill", (d)=>`url(#forceGradient-${d.color})`) // Correctly associate hotspot with node's gradient
+    }).attr("fill", (d)=>`url(#forceGradient-${d.color})`) // Correctly associate hotspot with node's gradient
     .style("stroke", (d)=>d.color) // Thin black border
     .style("stroke-width", 1) // Border thickness
     .style("stroke-dasharray", "4,2") // Dashed border (4px dash, 2px space)    
     .style("opacity", 0.3);
 }
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","d3":"17XFv"}]},["eq8kL","6rimH"], "6rimH", "parcelRequire94c2")
+},{"d3":"17XFv","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./ui.js":"1hWqh"}],"1hWqh":[function(require,module,exports,__globalThis) {
+// ui.js
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "showNodeLabel", ()=>showNodeLabel);
+parcelHelpers.export(exports, "showCoordinates", ()=>showCoordinates);
+parcelHelpers.export(exports, "showForceArrows", ()=>showForceArrows);
+parcelHelpers.export(exports, "showNetForce", ()=>showNetForce);
+parcelHelpers.export(exports, "showNodeLines", ()=>showNodeLines);
+parcelHelpers.export(exports, "showObservations", ()=>showObservations);
+parcelHelpers.export(exports, "setupUI", ()=>setupUI);
+/**
+ * Find elements in the DOM for which the class is the exact match to the className string, and hides them as desired
+ * 
+ * @param {Bool} bool 
+ * @param {String} className
+ * @param {String} shorthand
+ */ parcelHelpers.export(exports, "showOrHideElement", ()=>showOrHideElement);
+let showNodeLabel = true;
+let showCoordinates = true;
+let showForceArrows = true;
+let showNetForce = true;
+let showNodeLines = true;
+let showObservations = true;
+function setupUI() {
+    // enact the above hardcoded choices onto the html file
+    document.getElementById("toggleNodeLabel").checked = showNodeLabel;
+    document.getElementById("toggleCoordinates").checked = showCoordinates;
+    document.getElementById("toggleForceArrows").checked = showForceArrows;
+    document.getElementById("toggleNetForce").checked = showNetForce;
+    document.getElementById("toggleNodeLines").checked = showNodeLines;
+    document.getElementById("toggleObservations").checked = showObservations;
+    const toggleNodeLabel = document.getElementById("toggleNodeLabel");
+    if (toggleNodeLabel) toggleNodeLabel.addEventListener("change", function() {
+        showNodeLabel = this.checked;
+        showOrHideElement(showNodeLabel, ".id-label", "ID labels");
+    });
+    const toggleForceArrowsInput = document.getElementById("toggleForceArrows");
+    if (toggleForceArrowsInput) toggleForceArrowsInput.addEventListener("change", function() {
+        showForceArrows = this.checked;
+        showOrHideElement(showForceArrows, ".force-arrows", "arrows of forces");
+    });
+    const toggleNetForceInput = document.getElementById("toggleNetForce");
+    if (toggleNetForceInput) toggleNetForceInput.addEventListener("change", function() {
+        showNetForce = this.checked;
+        showOrHideElement(showNetForce, ".force-arrow-netForce", "net force arrows"); // TODODODOODODO
+    });
+    const toggleCoordinatesInput = document.getElementById("toggleCoordinates");
+    if (toggleCoordinatesInput) toggleCoordinatesInput.addEventListener("change", function() {
+        showCoordinates = this.checked;
+        showOrHideElement(showCoordinates, ".coord-label", "coordinate labels");
+    });
+    const toggleNodeLinesInput = document.getElementById("toggleNodeLines");
+    if (toggleNodeLinesInput) toggleNodeLinesInput.addEventListener("change", function() {
+        showNodeLines = this.checked;
+        showOrHideElement(showNodeLines, ".node-relations", "dotted lines to observations");
+    });
+    const toggleObservationsInput = document.getElementById("toggleObservations");
+    if (toggleObservationsInput) toggleObservationsInput.addEventListener("change", function() {
+        showObservations = this.checked;
+        showOrHideElement(showObservations, ".hotspot-group", "observations");
+    });
+}
+function showOrHideElement(bool, className, shorthand) {
+    document.querySelectorAll(className).forEach((el)=>{
+        bool ? el.classList.remove("hidden") : el.classList.add("hidden");
+    });
+    console.log((bool ? "show " : "hide ") + shorthand, "yellow");
+}
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"dEb81":[function(require,module,exports,__globalThis) {
+// logger.js
+// Create a container for log messages
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+// Export the setupLogger function
+parcelHelpers.export(exports, "setupLogger", ()=>setupLogger);
+const logContainer = document.createElement('div');
+logContainer.id = "logContainer";
+document.body.appendChild(logContainer);
+// Function to display messages
+function displayLog(message, color = 'white') {
+    const logMessage = document.createElement('div');
+    logMessage.textContent = `[${getTimestamp()}] ${message}`;
+    logMessage.style.color = color;
+    logContainer.prepend(logMessage);
+    logMessage.style.opacity = '1'; // Start fully visible
+    logMessage.style.transition = 'opacity 1s'; // Transition for fade-out
+    // Set a timeout to fade out and then remove the message
+    setTimeout(()=>{
+        logMessage.style.opacity = '0'; // Start fading out
+    }, 4000); // Delay to ensure the transition takes effect
+    // Set a timeout to remove the message after a certain duration (e.g., 5 seconds)
+    setTimeout(()=>{
+        logMessage.remove();
+    }, 5000); // Change 5000 to the desired duration in milliseconds
+}
+// Function to get the current timestamp
+function getTimestamp() {
+    const now = new Date();
+    return now.toLocaleTimeString(); // You can customize the format as needed
+}
+// Override console.log
+function setupLogger() {
+    const originalLog = console.log;
+    console.log = function(message, color) {
+        displayLog(message, color);
+        originalLog.apply(console, arguments); // Call the original console.log
+    };
+}
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["eq8kL","6rimH"], "6rimH", "parcelRequire94c2")
 
 //# sourceMappingURL=index.8cfc62b9.js.map
