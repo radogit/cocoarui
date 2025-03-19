@@ -24591,7 +24591,7 @@ var _d3 = require("d3");
 var _dataJs = require("./data.js");
 function createSvgAndContainer() {
     const width = window.innerWidth;
-    const height = window.innerHeight;
+    const height = window.visualViewport ? window.visualViewport.height : window.innerHeight;
     const svg = _d3.select("body").append("svg").attr("xmlns", "http://www.w3.org/2000/svg").attr("width", width).attr("height", height);
     const container = svg.append("g").attr("class", "container").attr("transform", `translate(${width / 2},${height / 2})`);
     const hotspotLayer = container.append("g").attr("class", "hotspot-layer");
