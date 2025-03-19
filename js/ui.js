@@ -3,6 +3,8 @@ export let showNodeLabel = true;
 export let showCoordinates = true;
 export let showForceArrows = true;
 export let showNetForce = true;
+export let showNodeLines = true;
+export let showObservations = true;
 
 export function setupUI(/* references if needed: svg, etc. */) {
   // enact the above hardcoded choices onto the html file
@@ -10,14 +12,14 @@ export function setupUI(/* references if needed: svg, etc. */) {
   document.getElementById("toggleCoordinates").checked = showCoordinates;
   document.getElementById("toggleForceArrows").checked = showForceArrows;
   document.getElementById("toggleNetForce").checked = showNetForce;
+  document.getElementById("toggleNodeLines").checked = showNodeLines;
+  document.getElementById("toggleObservations").checked = showObservations;
 
   const toggleNodeLabel = document.getElementById("toggleNodeLabel");
   if (toggleNodeLabel) {
     toggleNodeLabel.addEventListener("change", function() {
       showNodeLabel = this.checked;
-      document.querySelectorAll(".id-label").forEach(el => {
-        el.style.display = showNodeLabel ? null : "none";
-      });
+      showOrHideElement(showNodeLabel, ".id-label", "ID labels");
     });
   }
 
@@ -25,10 +27,7 @@ export function setupUI(/* references if needed: svg, etc. */) {
   if (toggleForceArrowsInput) {
     toggleForceArrowsInput.addEventListener("change", function() {
       showForceArrows = this.checked;
-      if(!this.checked){document.getElementById("toggleNetForce").disabled = true} else {document.getElementById("toggleNetForce").disabled = false;}
-      document.querySelectorAll(".force-arrows").forEach(el => {
-        el.style.display = showForceArrows ? null : "none";
-      });
+      showOrHideElement(showForceArrows, ".force-arrows", "arrows of forces");
     });
   }
 
@@ -36,6 +35,7 @@ export function setupUI(/* references if needed: svg, etc. */) {
   if (toggleNetForceInput) {
     toggleNetForceInput.addEventListener("change", function() {
       showNetForce = this.checked;
+      showOrHideElement(showNetForce, ".force-arrow-netForce", "net force arrows"); // TODODODOODODO
     });
   }
 
@@ -43,9 +43,37 @@ export function setupUI(/* references if needed: svg, etc. */) {
   if (toggleCoordinatesInput) {
     toggleCoordinatesInput.addEventListener("change", function() {
       showCoordinates = this.checked;
-      document.querySelectorAll(".coord-label").forEach(el => {
-        el.style.display = showCoordinates ? null : "none";
-      });
+      showOrHideElement(showCoordinates, ".coord-label", "coordinate labels");
     });
   }
+
+  const toggleNodeLinesInput = document.getElementById("toggleNodeLines");
+  if (toggleNodeLinesInput) {
+    toggleNodeLinesInput.addEventListener("change", function() {
+      showNodeLines = this.checked;
+      showOrHideElement(showNodeLines, ".node-relations", "dotted lines to observations");
+    });
+  }
+
+  const toggleObservationsInput = document.getElementById("toggleObservations");
+  if (toggleObservationsInput) {
+    toggleObservationsInput.addEventListener("change", function() {
+      showObservations = this.checked;
+      showOrHideElement(showObservations, ".hotspot-group", "observations");
+    });
+  }
+
+}
+/**
+ * Find elements in the DOM for which the class is the exact match to the className string, and hides them as desired
+ * 
+ * @param {Bool} bool 
+ * @param {String} className
+ * @param {String} shorthand
+ */
+export function showOrHideElement (bool, className, shorthand) {
+  document.querySelectorAll(className).forEach(el => {
+    bool ? el.classList.remove("hidden") : el.classList.add("hidden");
+  });
+  console.log((bool?"show ":"hide ") + shorthand, "yellow");
 }

@@ -3,13 +3,16 @@ import { nodes, nodesQueue, flipYCoordinates, fixInitially, collisionMargin } fr
 import { forceGaussianPreferredArea, forceCustomCollision } from "./js/forces.js";
 import { createSvgAndContainer, createAxes, createArrowheads } from "./js/drawing.js";
 import { createHeatmapGradients, buildHeatspotRects } from "./js/heatmaps.js";
-import { setupUI, showForceArrows, showNetForce, showCoordinates } from "./js/ui.js";
+import { setupUI, showForceArrows, showNodeLines, showObservations, showNetForce, showCoordinates, showNodeLabel } from "./js/ui.js";
 //import { dragging, dragEnd, dragStart, toggleFixed } from "./js/nodeInteraction.js";
-import { addNewNode } from './js/spawn.js';
+import { setupLogger } from './js/logger.js';
+
+// Set up the logger
+setupLogger();
 
 // ========= parameters =========
 
-const colours = ['green','blue', 'orange', 'purple', 'red', 'pink', 'cyan'];
+const colours = ['red', 'green', 'blue', 'orange', 'purple', 'cyan', 'magenta', 'yellow', 'darkblue', 'darkgreen', 'lightblue', 'lightgreen', 'coral', 'gold', 'salmon', 'slateblue', 'teal', 'olive', 'brown', 'darkorange'];
 
 // ================================================================================================================
 // =============== ONE TIME =======================================================================================
@@ -49,6 +52,7 @@ setupUI();
 let nodeGroup;
 
 function buildOrUpdateNodes(container, nodes) {
+  
     // The key is re-joining with the 'node-group' class
     nodeGroup = container.selectAll(".node-group")
       .data(nodes, d => d.id)      // key by node id
@@ -74,7 +78,7 @@ function buildOrUpdateNodes(container, nodes) {
   
           // append ID label
           g.append("text")
-            .attr("class", "id-label")
+            .attr("class", showNodeLabel? "id-label" : "id-label hidden")
             .attr("dx", 0)
             .attr("dy", d => -d.radius - 2)
             .text(d => d.id)
@@ -91,7 +95,14 @@ function buildOrUpdateNodes(container, nodes) {
           g.append("g")
             .attr("class", "force-arrows");
 
-  
+          // Node relations container
+          g.append("g")
+            .attr("class", "node-relations");
+            
+          // Log the id of each newly spawned node
+          g.each(function(d) {
+              console.log('spawned: ' + d.id);
+          });
           return g;
         },
         update => {
@@ -143,17 +154,27 @@ const intervalId = setInterval(() => {
 function addOne() {
   const newNode = {
     id: "spawn-"+Date.now().toString(36).substring(2, 8),
-    x: Math.random()*500,
-    y: Math.random()*500,
+    x: width * (Math.random() - 0.5),
+    y: height * (Math.random() - 0.5),
     color: colours[Math.floor(Math.random() * colours.length)],
-    radius: 20,
+    radius: 20+30 * Math.random(),
     isFixed: false,
     significance: 1,
-    hotspots: [
-      { x: 300 * Math.random(), y: 300 * Math.random(), intensityFactor: 1.0, width: 180 * Math.random(), height: 80 * Math.random(), forceType: "attract"  },
-    ]
+    hotspots: []
   };
-
+  for (let i = 0, iterations = Math.floor(Math.random() * 4) + 1; i < iterations; i++) {
+    newNode.hotspots.push(
+      { 
+        x: (width-200) * (Math.random() - 0.5), 
+        y: (height-200) * (Math.random() - 0.5), 
+        intensityFactor: 1.0, 
+        width: 40+160 * Math.random(), 
+        height: 40+160 * Math.random(), 
+        forceType: "attract"  
+      }
+    );
+  }
+  
   nodes.push(newNode);
   // (A) Re-run hotspot data-join to create rects for newNode.hotspots
   buildHeatspotRects(hotspotLayer, nodes);
@@ -166,6 +187,27 @@ function addOne() {
   simulation.alpha(1).restart(); 
 }
 
+// ================================================================================================================
+
+function removeAllNodes() {
+  // 1) Clear the array
+  nodes.splice(0, nodes.length);  // or nodes.length = 0
+
+  // 2) Re-run the data join for nodes and hotspots
+  buildOrUpdateNodes(nodeLayer, nodes);
+  buildHeatspotRects(hotspotLayer, nodes);
+
+  // 3) Notify the simulation we have no nodes
+  simulation.nodes(nodes);
+
+  // 4) Optionally reheat the simulation 
+  //    (with 0 nodes, there won’t be motion, but it can forcibly update)
+  simulation.alpha(1).restart();
+}
+
+// Then attach this to a button:
+document.getElementById("removeAllButton")
+  .addEventListener("click", removeAllNodes);
 
 // ================================================================================================================
 // =============== SIMULATION LOGIC =======================================================================================
@@ -189,28 +231,43 @@ function ticked() {
             .text(d => `(${Math.round(d.x/minDim*180)}, ${Math.round(-d.y/minDim*180)})`);
     }
     
-    // Update hotspot positions (for visualizing hotspot areas)
-    // hotspotGroups.selectAll(".hotspot")
-    //     .attr("x", d => d.x - d.width / 2)
-    //     .attr("y", d => d.y - d.height / 2);
-
     // Clear previous arrows before drawing new ones
     //forceArrows.selectAll(".force-arrow").remove();  
     nodeGroup.selectAll(".force-arrow, .force-arrow-value, .force-arrow-label-group").remove();  
+    nodeGroup.selectAll(".node-relation, .node-relation-value, .node-relation-label-group").remove();  
 
     nodeGroup.select("circle")
         .attr("stroke", d => d.isFixed ? "black" : "none")
         .attr("stroke-width", d => d.isFixed ? 3 : 0);
 
-    // If arrows are off, no need to draw them.
-    if (!showForceArrows) return;
 
-    // Add arrows based on the calculated forces
+    // Add arrows and lines based on the calculated forces
     nodeGroup.each(function(d) {
         const arrowGroup = d3.select(this).select(".force-arrows");
+        const nodeRelationsGroup = d3.select(this).select(".node-relations");
+
+        d.hotspots.forEach((hotspot, index) => {
+            // If toggle is off, no need to draw lines.
+            //if (!showNodeLines) return;
+            //console.log(hotspot.width);
+            nodeRelationsGroup.append("line")
+            .attr("class",showNodeLines ? "node-relation" : "node-relation hidden")
+            .attr("x1", 0)
+            .attr("y1", 0)
+            .attr("x2", (-d.x+hotspot.x))
+            .attr("y2", (-d.y+hotspot.y))
+            .attr("stroke", d.color)
+            .attr("stroke-width", 4)
+            .attr("stroke-dasharray", "0,20")
+            .attr("stroke-linecap", "round")
+            .style("opacity", 0.2);
+        });
 
         // Draw individual force arrows (e.g., from hotspots)
-        d.forces.forEach((force, index) => {
+        d.forces.forEach((force, index) => {          
+
+            // If toggle is off, no need to draw arrows.
+            //if (!showForceArrows) return;
 
             const length = Math.min(Math.sqrt(force.fx ** 2 + force.fy ** 2) * 2, 1000);
             const angle = Math.atan2(force.fy, force.fx);
@@ -221,7 +278,12 @@ function ticked() {
 
             // 1) The arrow line
             arrowGroup.append("line")
-                .attr("class", "force-arrow")
+                //.attr("class", "force-arrow")
+                .attr("class", force.source.includes("collision") ? 
+                  (showForceArrows ? "force-arrow force-arrow-orange" : "force-arrow force-arrow-orange hidden") 
+                  : 
+                  (showForceArrows ? "force-arrow force-arrow-white" : "force-arrow force-arrow-white hidden")
+                )
                 .attr("x1", 0)
                 .attr("y1", 0)
                 .attr("x2", length * Math.cos(angle))
@@ -233,7 +295,7 @@ function ticked() {
             // 2) The arrow magnitude text
             // Append a group to hold the label & background
             const labelGroup = arrowGroup.append("g")
-                .attr("class", "force-arrow-label-group")
+                .attr("class", showForceArrows? "force-arrow-label-group" : "force-arrow-label-group hidden")
                 .attr("transform", `translate(${labelPosX},${labelPosY})`)
                 .attr("opacity", 0.3)
                 ;
@@ -291,7 +353,7 @@ function ticked() {
                 const netAngle = Math.atan2(netForceY, netForceX);
 
                 arrowGroup.append("line")
-                    .attr("class", "force-arrow net-force-arrow")
+                    .attr("class", (showNetForce) ? "force-arrow net-force-arrow" : "force-arrow net-force-arrow hidden")
                     .attr("x1", 0)
                     .attr("y1", 0)
                     .attr("x2", netLength * Math.cos(netAngle))
@@ -357,9 +419,8 @@ function ticked() {
 // =============== LISTENERS =======================================================================================
 // ================================================================================================================
 
-// attach spawning function to button
 document.getElementById("spawnOneButton").addEventListener("click", addOne);
-
+document.getElementById("removeAllButton").addEventListener("click", removeAllNodes());
 
 // ======== Browser window resize ================================
 
@@ -381,5 +442,5 @@ function onResize() {
     );
 
     // 4) You can redraw axes or call `ticked()` if needed
-    redrawAxes(); // if you have an axis you want to keep consistent
+    //redrawAxes(); // if you have an axis you want to keep consistent
 }

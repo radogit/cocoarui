@@ -1,4 +1,5 @@
 import * as d3 from "d3";
+import {showObservations} from "./ui.js";
 
 /**
  * Creates radial gradients for each node in `nodes`.
@@ -45,12 +46,34 @@ export function buildHeatspotRects(container, nodes){
     const hotspotGroups = container.selectAll(".hotspot-group")
         .data(nodes, d => d.id)
         .join("g")
-        .attr("class", "hotspot-group");
+        .attr("class", showObservations ? "hotspot-group" : "hotspot-group hidden");
     
     hotspotGroups.selectAll(".hotspot")
         .data(d => d.hotspots)
-        .join("rect")
-        .attr("class", "hotspot")
+        .join(
+            // ========== Enter logic for new rects ==========
+            enter => {
+              // Create newly entered <rect> elements
+              const r = enter.append("rect")
+                .attr("class", "hotspot");
+      
+              // Log a message for each newly entered rect
+              r.each(function(h) {
+                const nodeData = d3.select(this.parentNode).datum(); 
+                // (the node that owns these hotspots)
+                console.log(
+                  `New hotspot for node '${nodeData.id}' — size: ${h.width.toFixed(0)}x${h.height.toFixed(0)}, position: (${h.x.toFixed(0)}, ${h.y.toFixed(0)})`
+                );
+              });
+      
+              // Return the newly created selection so D3 can handle update logic
+              return r;
+            },
+            // ========== Update logic (optional) ==========
+            update => update,
+            // ========== Exit logic ==========
+            exit => exit.remove()
+          )
         .attr("x", d => d.x - d.width / 2)
         .attr("y", d => d.y - d.height / 2)
         .attr("width", d => d.width)
