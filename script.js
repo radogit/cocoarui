@@ -307,7 +307,7 @@ function ticked() {
                 .attr("height", 20)
                 .attr("rx", 4) // rounded corners
                 .attr("fill", "rgba(0,0,0)")
-                .attr("transform", `rotate(${labelAngle})`)
+                .attr("transform", `rotate(${labelAngle>90? labelAngle-180 : labelAngle})`)
                 ; // a semi-transparent black background
             const labelText = labelGroup.append("text")
                 .attr("class", "force-arrow-label-text")
@@ -319,7 +319,7 @@ function ticked() {
                 .attr("font-size", 12)
                 // Round magnitude to 2 decimals
                 .text(length.toFixed(0) + ' ∠' + labelAngle.toFixed(0) + '°')
-                .attr("transform", `rotate(${labelAngle})`)
+                .attr("transform", `rotate(${labelAngle>90? labelAngle-180 : labelAngle})`) 
                 ;
             const bbox = labelText.node().getBBox(); 
             // e.g. { x, y, width, height } of the text
