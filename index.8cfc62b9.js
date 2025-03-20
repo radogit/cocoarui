@@ -596,14 +596,26 @@ function hmrAccept(bundle /*: ParcelRequire */ , id /*: string */ ) {
 }
 
 },{}],"6rimH":[function(require,module,exports,__globalThis) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+/**
+ * Timed "drip" approach to spawn nodes from a queue one at a time.
+ * @param {Array} nodesQueue     The array of node data to spawn over time.
+ * @param {Array} nodes          The main node array in the simulation.
+ * @param {d3.Selection} hotspotLayer The <g> container for hotspot rects.
+ * @param {d3.Selection} nodeLayer    The <g> container for node groups.
+ * @param {d3.Simulation} simulation  The d3 force simulation.
+ * @param {number} intervalMs    How many milliseconds between spawns, default 1000.
+ */ parcelHelpers.export(exports, "dripSpawnNodes", ()=>dripSpawnNodes);
 var _d3 = require("d3");
-var _dataJs = require("./js/data.js");
+var _datasetsJs = require("./js/datasets.js");
 var _forcesJs = require("./js/forces.js");
 var _drawingJs = require("./js/drawing.js");
 var _heatmapsJs = require("./js/heatmaps.js");
 var _uiJs = require("./js/ui.js");
 //import { dragging, dragEnd, dragStart, toggleFixed } from "./js/nodeInteraction.js";
 var _loggerJs = require("./js/logger.js");
+//import { dripSpawnNodes } from "./js/dripSpawnNodes.js";
 // Set up the logger
 (0, _loggerJs.setupLogger)();
 // ========= parameters =========
@@ -632,24 +644,20 @@ const colours = [
 // ================================================================================================================
 // =============== ONE TIME =======================================================================================
 // ================================================================================================================
-// 1) Flip Y to treat up as positive
-(0, _dataJs.flipYCoordinates)((0, _dataJs.nodesQueue));
-// 2) Fix initial nodes that are isFixed
-(0, _dataJs.fixInitially)((0, _dataJs.nodesQueue));
-// 3) Create the SVG, container
-const { svg, container, nodeLayer, hotspotLayer, width, height } = (0, _drawingJs.createSvgAndContainer)();
+// 1) Create the SVG, container
+const { svg, container, nodeLayer, hotspotLayer, width, height } = _drawingJs.createSvgAndContainer();
 const minDim = Math.min(width, height);
-// 4) Draw axes
-const { xScale, yScale, xAxis, yAxis } = (0, _drawingJs.createAxes)(container, width, height, minDim);
-// 5) Arrowhead artefacts
+// 2) Draw axes
+const { xScale, yScale, xAxis, yAxis } = _drawingJs.createAxes(container, width, height, minDim);
+// 3) Arrowhead artefacts
 const defs = svg.append("defs").attr("id", "defs").attr("width", 100).attr("height", 100);
-(0, _drawingJs.createArrowheads)(svg);
-// 6) Create the gradients by calling the new function
-(0, _heatmapsJs.createHeatmapGradients)(defs, (0, _dataJs.nodes), colours);
-// 7) Then build the hotspot rects, also from the new function
-(0, _heatmapsJs.buildHeatspotRects)(hotspotLayer, (0, _dataJs.nodes));
-// 8) UI toggles
-(0, _uiJs.setupUI)();
+_drawingJs.createArrowheads(svg);
+// 4) Create the gradients by calling the new function
+_heatmapsJs.createHeatmapGradients(defs, _datasetsJs.nodes, colours);
+// 5) Then build the hotspot rects, also from the new function
+_heatmapsJs.buildHeatspotRects(hotspotLayer, _datasetsJs.nodes);
+// 6) Set up UI toggles
+_uiJs.setupUI();
 // ================================================================================================================
 // =============== SPAWN ===============================================================================
 // ================================================================================================================
@@ -664,7 +672,7 @@ function buildOrUpdateNodes(container, nodes) {
         // append the circle
         g.append("circle").attr("fill", (d)=>d.color).attr("opacity", 0.6).attr("r", (d)=>d.radius).attr("stroke", (d)=>d.isFixed ? "black" : "none").attr("stroke-width", (d)=>d.isFixed ? 3 : 0);
         // append ID label
-        g.append("text").attr("class", (0, _uiJs.showNodeLabel) ? "id-label" : "id-label hidden").attr("dx", 0).attr("dy", (d)=>-d.radius - 2).text((d)=>d.id);
+        g.append("text").attr("class", _uiJs.showNodeLabel ? "id-label" : "id-label hidden").attr("dx", 0).attr("dy", (d)=>-d.radius - 2).text((d)=>d.id);
         // append coords label (if you want)
         g.append("text").attr("class", "coord-label").attr("dx", 0).attr("dy", (d)=>d.radius + 15);
         // Force arrows container
@@ -685,29 +693,7 @@ function buildOrUpdateNodes(container, nodes) {
     nodeGroup.attr("transform", (d)=>`translate(${d.x}, ${d.y})`);
     return nodeGroup; // return the selection if you want
 }
-// ================================================================================================================
-// Timed Drip Approach
-let i = 0;
-const intervalId = setInterval(()=>{
-    if (i >= (0, _dataJs.nodesQueue).length) {
-        // We have spawned them all
-        clearInterval(intervalId);
-        return;
-    }
-    // Take the next node:
-    const newNode = (0, _dataJs.nodesQueue)[i];
-    i++;
-    // Add to the simulation array:
-    (0, _dataJs.nodes).push(newNode);
-    // (A) Re-run hotspot data-join to create rects for newNode.hotspots
-    (0, _heatmapsJs.buildHeatspotRects)(hotspotLayer, (0, _dataJs.nodes));
-    // (B) Re-run node data-join to create circles, labels, etc.
-    buildOrUpdateNodes(nodeLayer, (0, _dataJs.nodes));
-    // (C) Let the sim see the new array
-    simulation.nodes((0, _dataJs.nodes));
-    simulation.alpha(1).restart();
-}, 1000); // spawn 1 node each second
-// ================================================================================================================
+// ====== ADD ONE ==========================================================================================================
 function addOne() {
     const newNode = {
         id: "spawn-" + Date.now().toString(36).substring(2, 8),
@@ -727,45 +713,81 @@ function addOne() {
         height: 40 + 160 * Math.random(),
         forceType: "attract"
     });
-    (0, _dataJs.nodes).push(newNode);
+    _datasetsJs.nodes.push(newNode);
     // (A) Re-run hotspot data-join to create rects for newNode.hotspots
-    (0, _heatmapsJs.buildHeatspotRects)(hotspotLayer, (0, _dataJs.nodes));
+    _heatmapsJs.buildHeatspotRects(hotspotLayer, _datasetsJs.nodes);
     // (B) Re-run node data-join to create circles, labels, etc.
-    buildOrUpdateNodes(nodeLayer, (0, _dataJs.nodes));
+    buildOrUpdateNodes(nodeLayer, _datasetsJs.nodes);
     // (C) Let the simulation know about new node
-    simulation.nodes((0, _dataJs.nodes));
+    simulation.nodes(_datasetsJs.nodes);
     simulation.alpha(1).restart();
 }
-// ================================================================================================================
+// ======= DRIP =========================================================================================================
+let nodesQueue = [];
+// Then define a function to handle a button click or something:
+function spawnOneByOne(someDataArray) {
+    console.log('spawning set: ', "green");
+    // 1) Clear the array
+    nodesQueue.splice(0, nodesQueue.length);
+    // 2) put the items from someDataArray to the queue
+    nodesQueue = structuredClone(someDataArray);
+    // 3) Flip Y to treat up as positive
+    _datasetsJs.flipYCoordinates(nodesQueue);
+    // 4) Fix initial nodes that are isFixed
+    _datasetsJs.fixInitially(nodesQueue);
+    // 5) let it drip 
+    dripSpawnNodes(nodesQueue, _datasetsJs.nodes, hotspotLayer, nodeLayer, simulation, 1000 // 1 second between spawns
+    );
+}
+function dripSpawnNodes(nodesQueue, nodes, hotspotLayer, nodeLayer, simulation, intervalMs = 1000) {
+    let i = 0;
+    const intervalId = setInterval(()=>{
+        if (i >= nodesQueue.length) {
+            clearInterval(intervalId);
+            return;
+        }
+        // Take the next node from the queue
+        const newNode = nodesQueue[i];
+        i++;
+        newNode.id = newNode.id + '-' + Date.now().toString(36).substring(2, 8);
+        // Add to the main node array
+        nodes.push(newNode);
+        // Re-run the hotspot data-join so new hotspots appear
+        _heatmapsJs.buildHeatspotRects(hotspotLayer, nodes);
+        // Re-run the node data-join so new node circles/labels appear
+        buildOrUpdateNodes(nodeLayer, nodes);
+        // Let the simulation know about the new array
+        simulation.nodes(nodes);
+        simulation.alpha(1).restart();
+    }, intervalMs);
+}
+// ======== REMOVE ========================================================================================================
 function removeAllNodes() {
     // 1) Clear the array
-    (0, _dataJs.nodes).splice(0, (0, _dataJs.nodes).length); // or nodes.length = 0
+    _datasetsJs.nodes.splice(0, _datasetsJs.nodes.length);
     // 2) Re-run the data join for nodes and hotspots
-    buildOrUpdateNodes(nodeLayer, (0, _dataJs.nodes));
-    (0, _heatmapsJs.buildHeatspotRects)(hotspotLayer, (0, _dataJs.nodes));
+    buildOrUpdateNodes(nodeLayer, _datasetsJs.nodes);
+    _heatmapsJs.buildHeatspotRects(hotspotLayer, _datasetsJs.nodes);
     // 3) Notify the simulation we have no nodes
-    simulation.nodes((0, _dataJs.nodes));
+    simulation.nodes(_datasetsJs.nodes);
     // 4) Optionally reheat the simulation 
     //    (with 0 nodes, there won’t be motion, but it can forcibly update)
     simulation.alpha(1).restart();
 }
-// Then attach this to a button:
-document.getElementById("removeAllButton").addEventListener("click", removeAllNodes);
 // ================================================================================================================
 // =============== SIMULATION LOGIC =======================================================================================
 // ================================================================================================================
-const simulation = _d3.forceSimulation((0, _dataJs.nodes)).force("repel", _d3.forceManyBody().strength((d)=>d.isFixed ? 0 : -50)) // Mild repulsion
-.force("collide", _d3.forceCollide().radius((d)=>d.radius + (0, _dataJs.collisionMargin)).strength(1.2)) // Prevent overlap
-.force("gaussian", (0, _forcesJs.forceGaussianPreferredArea)(1.5)) // Gaussian force for hotspots
-.force("customCollision", (0, _forcesJs.forceCustomCollision)) // New collision force!
+const simulation = _d3.forceSimulation(_datasetsJs.nodes).force("repel", _d3.forceManyBody().strength((d)=>d.isFixed ? 0 : -50)) // Mild repulsion
+.force("collide", _d3.forceCollide().radius((d)=>d.radius + _datasetsJs.collisionMargin).strength(1.2)) // Prevent overlap
+.force("gaussian", _forcesJs.forceGaussianPreferredArea(1.5)) // Gaussian force for hotspots
+.force("customCollision", _forcesJs.forceCustomCollision) // New collision force
 .on("tick", ticked);
 function ticked() {
     if (!nodeGroup) return; // If it's undefined, skip
     nodeGroup.attr("transform", (d)=>`translate(${d.x}, ${d.y})`);
     // Update coordinates label
-    if (0, _uiJs.showCoordinates) nodeGroup.select(".coord-label").text((d)=>`(${Math.round(d.x / minDim * 180)}, ${Math.round(-d.y / minDim * 180)})`);
+    if (_uiJs.showCoordinates) nodeGroup.select(".coord-label").text((d)=>`(${Math.round(d.x / minDim * 180)}, ${Math.round(-d.y / minDim * 180)})`);
     // Clear previous arrows before drawing new ones
-    //forceArrows.selectAll(".force-arrow").remove();  
     nodeGroup.selectAll(".force-arrow, .force-arrow-value, .force-arrow-label-group").remove();
     nodeGroup.selectAll(".node-relation, .node-relation-value, .node-relation-label-group").remove();
     nodeGroup.select("circle").attr("stroke", (d)=>d.isFixed ? "black" : "none").attr("stroke-width", (d)=>d.isFixed ? 3 : 0);
@@ -774,15 +796,12 @@ function ticked() {
         const arrowGroup = _d3.select(this).select(".force-arrows");
         const nodeRelationsGroup = _d3.select(this).select(".node-relations");
         d.hotspots.forEach((hotspot, index)=>{
-            // If toggle is off, no need to draw lines.
-            //if (!showNodeLines) return;
-            //console.log(hotspot.width);
-            nodeRelationsGroup.append("line").attr("class", (0, _uiJs.showNodeLines) ? "node-relation" : "node-relation hidden").attr("x1", 0).attr("y1", 0).attr("x2", -d.x + hotspot.x).attr("y2", -d.y + hotspot.y).attr("stroke", d.color).attr("stroke-width", 4).attr("stroke-dasharray", "0,20").attr("stroke-linecap", "round").style("opacity", 0.2);
+            nodeRelationsGroup.append("line").attr("class", _uiJs.showNodeLines ? "node-relation" : "node-relation hidden").attr("x1", 0).attr("y1", 0).attr("x2", -d.x + hotspot.x).attr("y2", -d.y + hotspot.y).attr("stroke", d.color).attr("stroke-width", 4).attr("stroke-dasharray", "0,20").attr("stroke-linecap", "round").style("opacity", 0.2);
         });
         // Draw individual force arrows (e.g., from hotspots)
         d.forces.forEach((force, index)=>{
             // If toggle is off, no need to draw arrows.
-            //if (!showForceArrows) return;
+            //if (!AppUI.showForceArrows) return;
             const length = Math.min(Math.sqrt(force.fx ** 2 + force.fy ** 2) * 2, 1000);
             const angle = Math.atan2(force.fy, force.fx);
             const labelAngle = (angle + Math.PI / 2) / Math.PI * 180 % 180;
@@ -791,39 +810,25 @@ function ticked() {
             const labelPosY = (1.0 * length + 35) * Math.sin(angle) + index * 2 - d.forces.length / 2;
             // 1) The arrow line
             arrowGroup.append("line")//.attr("class", "force-arrow")
-            .attr("class", force.source.includes("collision") ? (0, _uiJs.showForceArrows) ? "force-arrow force-arrow-orange" : "force-arrow force-arrow-orange hidden" : (0, _uiJs.showForceArrows) ? "force-arrow force-arrow-white" : "force-arrow force-arrow-white hidden").attr("x1", 0).attr("y1", 0).attr("x2", length * Math.cos(angle)).attr("y2", length * Math.sin(angle)).attr("stroke", force.source.includes("collision") ? "orange" : "white").attr("stroke-width", 5).attr("marker-end", "url(#arrowhead-" + (force.source.includes("collision") ? "orange" : "white") + ")").style("opacity", 0.5);
-            // 2) The arrow magnitude text
-            // Append a group to hold the label & background
-            const labelGroup = arrowGroup.append("g").attr("class", (0, _uiJs.showForceArrows) ? "force-arrow-label-group" : "force-arrow-label-group hidden").attr("transform", `translate(${labelPosX},${labelPosY})`).attr("opacity", 0.3);
+            .attr("class", force.source.includes("collision") ? _uiJs.showForceArrows ? "force-arrow force-arrow-orange" : "force-arrow force-arrow-orange hidden" : _uiJs.showForceArrows ? "force-arrow force-arrow-white" : "force-arrow force-arrow-white hidden").attr("x1", 0).attr("y1", 0).attr("x2", length * Math.cos(angle)).attr("y2", length * Math.sin(angle)).attr("stroke", force.source.includes("collision") ? "orange" : "white").attr("stroke-width", 5).attr("marker-end", "url(#arrowhead-" + (force.source.includes("collision") ? "orange" : "white") + ")").style("opacity", 0.5);
+            // 2) The arrow magnitude text, Append a group to hold the label & background
+            const labelGroup = arrowGroup.append("g").attr("class", _uiJs.showForceArrows ? "force-arrow-label-group" : "force-arrow-label-group hidden").attr("transform", `translate(${labelPosX},${labelPosY})`).attr("opacity", 0.3);
             const bgRect = labelGroup.append("rect").attr("class", "force-arrow-label-bg").attr("x", -20) // we’ll adjust this once we know the text width
             .attr("y", -10).attr("width", 40) // default guess
             .attr("height", 20).attr("rx", 4) // rounded corners
-            .attr("fill", "rgba(0,0,0)").attr("transform", `rotate(${labelAngle})`); // a semi-transparent black background
-            const labelText = labelGroup.append("text").attr("class", "force-arrow-label-text").attr("x", 0).attr("y", 0).attr("text-anchor", "middle").attr("dominant-baseline", "middle").attr("fill", "white").attr("font-size", 12)// Round magnitude to 2 decimals
-            .text(length.toFixed(0) + " \u2220" + labelAngle.toFixed(0) + "\xb0").attr("transform", `rotate(${labelAngle})`);
-            const bbox = labelText.node().getBBox();
-            // e.g. { x, y, width, height } of the text
+            .attr("fill", "rgba(0,0,0)").attr("transform", `rotate(${labelAngle > 90 ? labelAngle - 180 : labelAngle})`); // a semi-transparent black background
+            const labelText = labelGroup.append("text").attr("class", "force-arrow-label-text").attr("x", 0).attr("y", 0).attr("text-anchor", "middle").attr("dominant-baseline", "middle").attr("fill", "white").attr("font-size", 12).text(length.toFixed(0) + " \u2220" + labelAngle.toFixed(0) + "\xb0").attr("transform", `rotate(${labelAngle > 90 ? labelAngle - 180 : labelAngle})`);
+            const bbox = labelText.node().getBBox(); // e.g. { x, y, width, height } of the text
             bgRect.attr("x", bbox.x - 4).attr("y", bbox.y - 2).attr("width", bbox.width + 8).attr("height", bbox.height + 4);
-        // arrowGroup.append("text")
-        //   .attr("class", "force-arrow-value")
-        //   // Position the text at, say, 60% along the arrow
-        //   .attr("x", 0.6 * length * Math.cos(angle) + 10 * Math.cos(labelAngle))
-        //   .attr("y", 0.6 * length * Math.sin(angle) + 10 * Math.sin(labelAngle))
-        //   .attr("fill", force.source.includes("collision") ? "orange" : "white")
-        //   .attr("font-size", "10px")
-        //   .attr("text-anchor", "middle")
-        //   // Round the magnitude to 2 decimals (or 1)
-        //   .text( (Math.sqrt(force.fx ** 2 + force.fy ** 2)).toFixed(0) );                
         });
-        // Draw net force arrow in red, if showNetForce.
-        if (0, _uiJs.showNetForce) {
+        if (_uiJs.showNetForce) {
             const netForceX = d.vx;
             const netForceY = d.vy;
             const netForceMagnitude = Math.sqrt(netForceX ** 2 + netForceY ** 2);
             if (netForceMagnitude > 0.1) {
                 const netLength = Math.min(netForceMagnitude * 5, 1000);
                 const netAngle = Math.atan2(netForceY, netForceX);
-                arrowGroup.append("line").attr("class", (0, _uiJs.showNetForce) ? "force-arrow net-force-arrow" : "force-arrow net-force-arrow hidden").attr("x1", 0).attr("y1", 0).attr("x2", netLength * Math.cos(netAngle)).attr("y2", netLength * Math.sin(netAngle)).attr("stroke", "red").attr("stroke-width", 3).attr("marker-end", "url(#arrowhead)").style("opacity", netForceMagnitude > 0.9 ? 0.8 : 0.5);
+                arrowGroup.append("line").attr("class", _uiJs.showNetForce ? "force-arrow net-force-arrow" : "force-arrow net-force-arrow hidden").attr("x1", 0).attr("y1", 0).attr("x2", netLength * Math.cos(netAngle)).attr("y2", netLength * Math.sin(netAngle)).attr("stroke", "red").attr("stroke-width", 3).attr("marker-end", "url(#arrowhead)").style("opacity", netForceMagnitude > 0.9 ? 0.8 : 0.5);
             }
         }
     });
@@ -849,8 +854,6 @@ function dragEnd(event, d) {
     }
 }
 function toggleFixed(event, d) {
-    // We only allow toggling if the user wants to.
-    // If you want a separate checkbox to enable/disable toggling, do so.
     d.isFixed = !d.isFixed; // Toggle fixed state
     if (d.isFixed) {
         d.fx = d.x; // Lock position
@@ -868,6 +871,22 @@ function toggleFixed(event, d) {
 // ================================================================================================================
 document.getElementById("spawnOneButton").addEventListener("click", addOne);
 document.getElementById("removeAllButton").addEventListener("click", removeAllNodes());
+document.getElementById("removeAllButton").addEventListener("click", removeAllNodes);
+spawnButtonListener("spawnButtonSet1", _datasetsJs.nodesQueue1);
+spawnButtonListener("spawnButtonSet2", _datasetsJs.nodesQueue2);
+spawnButtonListener("spawnButtonSet3", _datasetsJs.nodesQueue3);
+spawnButtonListener("spawnButtonSet4", _datasetsJs.nodesQueue4);
+/**
+ * Attach a listener for spawning datasets
+ *
+ * @param {String} buttonId     The id of the button to attach a listener to
+ * @param {Array} dataset     The array of node data to spawn over time.
+ */ // Now if you have multiple data arrays for different scenarios:
+function spawnButtonListener(buttonId, dataset) {
+    document.getElementById(buttonId).addEventListener("click", ()=>{
+        spawnOneByOne(dataset);
+    });
+}
 // ======== Browser window resize ================================
 window.addEventListener("resize", onResize);
 function onResize() {
@@ -884,7 +903,7 @@ function onResize() {
 //redrawAxes(); // if you have an axis you want to keep consistent
 }
 
-},{"d3":"17XFv","./js/data.js":"3d49z","./js/forces.js":"kMF8R","./js/drawing.js":"acZLf","./js/heatmaps.js":"kNCsT","./js/ui.js":"1hWqh","./js/logger.js":"dEb81"}],"17XFv":[function(require,module,exports,__globalThis) {
+},{"d3":"17XFv","./js/forces.js":"kMF8R","./js/drawing.js":"acZLf","./js/heatmaps.js":"kNCsT","./js/ui.js":"1hWqh","./js/logger.js":"dEb81","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./js/datasets.js":"l4Fxs"}],"17XFv":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 var _d3Array = require("d3-array");
@@ -24289,13 +24308,108 @@ function nopropagation(event) {
     event.stopImmediatePropagation();
 }
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"3d49z":[function(require,module,exports,__globalThis) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"kMF8R":[function(require,module,exports,__globalThis) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+// Gaussian force for hotspots
+parcelHelpers.export(exports, "forceGaussianPreferredArea", ()=>forceGaussianPreferredArea);
+// Weighted collision
+parcelHelpers.export(exports, "forceCustomCollision", ()=>forceCustomCollision);
+var _datasetsJs = require("./datasets.js");
+function forceGaussianPreferredArea(strength) {
+    return function(alpha) {
+        (0, _datasetsJs.nodes).forEach((d)=>{
+            d.forces = []; // Reset all force vectors for this tick
+            // Hotspot logic
+            d.hotspots.forEach((hotspot)=>{
+                const dx = hotspot.x - d.x;
+                const dy = hotspot.y - d.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance > 1) {
+                    const f = Math.exp(-distance / hotspot.width) * strength * hotspot.intensityFactor;
+                    const fx = hotspot.forceType === "attract" ? dx * f : -dx * f;
+                    const fy = hotspot.forceType === "attract" ? dy * f : -dy * f;
+                    d.vx += fx * alpha;
+                    d.vy += fy * alpha;
+                    d.forces.push({
+                        fx,
+                        fy,
+                        source: "hotspot"
+                    });
+                }
+            });
+            // Node-to-node collision (soft approach)
+            (0, _datasetsJs.nodes).forEach((other)=>{
+                if (d === other) return;
+                const dx = other.x - d.x;
+                const dy = other.y - d.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                const minDist = d.radius + other.radius + (0, _datasetsJs.collisionMargin);
+                if (dist < minDist) {
+                    const overlapRatio = 1 - dist / minDist;
+                    const pushVal = overlapRatio ** 2 * alpha * 5;
+                    const pushX = dx / dist * (minDist - dist);
+                    const pushY = dy / dist * (minDist - dist);
+                    d.vx -= pushX * alpha * 0.5;
+                    d.vy -= pushY * alpha * 0.5;
+                    d.forces.push({
+                        fx: -pushX,
+                        fy: -pushY,
+                        source: `collision with ${other.id}`
+                    });
+                }
+            });
+        });
+    };
+}
+function forceCustomCollision(alpha) {
+    (0, _datasetsJs.nodes).forEach((d, i)=>{
+        (0, _datasetsJs.nodes).forEach((other, j)=>{
+            if (i === j) return;
+            const dx = d.x - other.x;
+            const dy = d.y - other.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const minDist = d.radius + other.radius + (0, _datasetsJs.collisionMargin);
+            if (dist < minDist && dist > 0) {
+                const overlap = 1 - dist / minDist;
+                const f = overlap ** 2 * alpha * 5;
+                const pushX = dx / dist * f;
+                const pushY = dy / dist * f;
+                if (!d.isFixed && !other.isFixed) {
+                    const w1 = d.significance || 1, w2 = other.significance || 1;
+                    const tw = w1 + w2;
+                    const dWeight = w2 / tw, otherWeight = w1 / tw;
+                    d.vx += pushX * dWeight;
+                    d.vy += pushY * dWeight;
+                    other.vx -= pushX * otherWeight;
+                    other.vy -= pushY * otherWeight;
+                } else if (!d.isFixed) {
+                    d.vx += pushX;
+                    d.vy += pushY;
+                } else if (!other.isFixed) {
+                    other.vx -= pushX;
+                    other.vy -= pushY;
+                }
+                d.forces.push({
+                    fx: -pushX,
+                    fy: -pushY,
+                    source: `collision with ${other.id}`
+                });
+            }
+        });
+    });
+}
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./datasets.js":"l4Fxs"}],"l4Fxs":[function(require,module,exports,__globalThis) {
 // ========= parameters =========
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "collisionMargin", ()=>collisionMargin);
 parcelHelpers.export(exports, "nodes", ()=>nodes);
-parcelHelpers.export(exports, "nodesQueue", ()=>nodesQueue);
+parcelHelpers.export(exports, "nodesQueue1", ()=>nodesQueue1);
+parcelHelpers.export(exports, "nodesQueue2", ()=>nodesQueue2);
+parcelHelpers.export(exports, "nodesQueue3", ()=>nodesQueue3);
+parcelHelpers.export(exports, "nodesQueue4", ()=>nodesQueue4);
 // fix: flip the y-axis as browser-y+ is DOWN, and math-y+ is UP
 // Flip Y so that positive y is up in our math sense
 parcelHelpers.export(exports, "flipYCoordinates", ()=>flipYCoordinates);
@@ -24303,7 +24417,18 @@ parcelHelpers.export(exports, "flipYCoordinates", ()=>flipYCoordinates);
 parcelHelpers.export(exports, "fixInitially", ()=>fixInitially);
 const collisionMargin = 10; // Extra space between nodes
 const nodes = [];
-const nodesQueue = [
+const nodesQueue1 = [
+    {
+        id: "D",
+        x: 590,
+        y: 180,
+        color: 'purple',
+        radius: 50,
+        areaRadius: 150,
+        isFixed: true,
+        significance: 1,
+        hotspots: []
+    },
     {
         id: "A",
         x: 550,
@@ -24339,7 +24464,9 @@ const nodesQueue = [
                 forceType: "attract"
             }
         ]
-    },
+    }
+];
+const nodesQueue2 = [
     {
         id: "B",
         x: 300,
@@ -24395,23 +24522,14 @@ const nodesQueue = [
                 forceType: "attract"
             }
         ]
-    },
+    }
+];
+const nodesQueue3 = [
     {
-        id: "D",
-        x: 590,
-        y: 180,
-        color: 'purple',
-        radius: 50,
-        areaRadius: 150,
-        isFixed: true,
-        significance: 1,
-        hotspots: []
-    },
-    {
-        id: "E",
+        id: "Banana",
         x: -400,
-        y: 300,
-        color: 'red',
+        y: 400,
+        color: 'orange',
         radius: 40,
         areaRadius: 150,
         isFixed: false,
@@ -24419,7 +24537,7 @@ const nodesQueue = [
         hotspots: [
             {
                 x: -600,
-                y: 200,
+                y: 300,
                 intensityFactor: 1,
                 width: 80,
                 height: 80,
@@ -24427,7 +24545,7 @@ const nodesQueue = [
             },
             {
                 x: -600,
-                y: 200,
+                y: 300,
                 intensityFactor: 1,
                 width: 80,
                 height: 80,
@@ -24435,7 +24553,7 @@ const nodesQueue = [
             },
             {
                 x: -600,
-                y: 200,
+                y: 300,
                 intensityFactor: 1,
                 width: 80,
                 height: 80,
@@ -24443,16 +24561,15 @@ const nodesQueue = [
             },
             {
                 x: -200,
-                y: 200,
+                y: 300,
                 intensityFactor: 1,
                 width: 80,
                 height: 80,
                 forceType: "attract"
             },
-            //            { x: -550, y: 50, intensityFactor: 1, width: 80, height: 80, forceType: "attract"  },
             {
                 x: -250,
-                y: 50,
+                y: 150,
                 intensityFactor: 1,
                 width: 80,
                 height: 80,
@@ -24460,7 +24577,61 @@ const nodesQueue = [
             },
             {
                 x: -400,
-                y: 0,
+                y: 100,
+                intensityFactor: 1,
+                width: 80,
+                height: 80,
+                forceType: "attract"
+            }
+        ]
+    }
+];
+const nodesQueue4 = [
+    {
+        id: "E",
+        x: -400,
+        y: -100,
+        color: 'brown',
+        radius: 40,
+        areaRadius: 150,
+        isFixed: false,
+        significance: 100,
+        hotspots: [
+            {
+                x: -600,
+                y: -200,
+                intensityFactor: 1,
+                width: 80,
+                height: 80,
+                forceType: "attract"
+            },
+            {
+                x: -200,
+                y: -200,
+                intensityFactor: 1,
+                width: 80,
+                height: 80,
+                forceType: "attract"
+            },
+            {
+                x: -550,
+                y: -350,
+                intensityFactor: 1,
+                width: 80,
+                height: 80,
+                forceType: "attract"
+            },
+            {
+                x: -250,
+                y: -350,
+                intensityFactor: 1,
+                width: 80,
+                height: 80,
+                forceType: "attract"
+            },
+            {
+                x: -400,
+                y: -400,
                 intensityFactor: 1,
                 width: 80,
                 height: 80,
@@ -24488,99 +24659,7 @@ function fixInitially(nodes) {
     });
 }
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"kMF8R":[function(require,module,exports,__globalThis) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-// Gaussian force for hotspots
-parcelHelpers.export(exports, "forceGaussianPreferredArea", ()=>forceGaussianPreferredArea);
-// Weighted collision
-parcelHelpers.export(exports, "forceCustomCollision", ()=>forceCustomCollision);
-var _dataJs = require("./data.js");
-function forceGaussianPreferredArea(strength) {
-    return function(alpha) {
-        (0, _dataJs.nodes).forEach((d)=>{
-            d.forces = []; // Reset all force vectors for this tick
-            // Hotspot logic
-            d.hotspots.forEach((hotspot)=>{
-                const dx = hotspot.x - d.x;
-                const dy = hotspot.y - d.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                if (distance > 1) {
-                    const f = Math.exp(-distance / hotspot.width) * strength * hotspot.intensityFactor;
-                    const fx = hotspot.forceType === "attract" ? dx * f : -dx * f;
-                    const fy = hotspot.forceType === "attract" ? dy * f : -dy * f;
-                    d.vx += fx * alpha;
-                    d.vy += fy * alpha;
-                    d.forces.push({
-                        fx,
-                        fy,
-                        source: "hotspot"
-                    });
-                }
-            });
-            // Node-to-node collision (soft approach)
-            (0, _dataJs.nodes).forEach((other)=>{
-                if (d === other) return;
-                const dx = other.x - d.x;
-                const dy = other.y - d.y;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-                const minDist = d.radius + other.radius + (0, _dataJs.collisionMargin);
-                if (dist < minDist) {
-                    const overlapRatio = 1 - dist / minDist;
-                    const pushVal = overlapRatio ** 2 * alpha * 5;
-                    const pushX = dx / dist * (minDist - dist);
-                    const pushY = dy / dist * (minDist - dist);
-                    d.vx -= pushX * alpha * 0.5;
-                    d.vy -= pushY * alpha * 0.5;
-                    d.forces.push({
-                        fx: -pushX,
-                        fy: -pushY,
-                        source: `collision with ${other.id}`
-                    });
-                }
-            });
-        });
-    };
-}
-function forceCustomCollision(alpha) {
-    (0, _dataJs.nodes).forEach((d, i)=>{
-        (0, _dataJs.nodes).forEach((other, j)=>{
-            if (i === j) return;
-            const dx = d.x - other.x;
-            const dy = d.y - other.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            const minDist = d.radius + other.radius + (0, _dataJs.collisionMargin);
-            if (dist < minDist && dist > 0) {
-                const overlap = 1 - dist / minDist;
-                const f = overlap ** 2 * alpha * 5;
-                const pushX = dx / dist * f;
-                const pushY = dy / dist * f;
-                if (!d.isFixed && !other.isFixed) {
-                    const w1 = d.significance || 1, w2 = other.significance || 1;
-                    const tw = w1 + w2;
-                    const dWeight = w2 / tw, otherWeight = w1 / tw;
-                    d.vx += pushX * dWeight;
-                    d.vy += pushY * dWeight;
-                    other.vx -= pushX * otherWeight;
-                    other.vy -= pushY * otherWeight;
-                } else if (!d.isFixed) {
-                    d.vx += pushX;
-                    d.vy += pushY;
-                } else if (!other.isFixed) {
-                    other.vx -= pushX;
-                    other.vy -= pushY;
-                }
-                d.forces.push({
-                    fx: -pushX,
-                    fy: -pushY,
-                    source: `collision with ${other.id}`
-                });
-            }
-        });
-    });
-}
-
-},{"./data.js":"3d49z","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"acZLf":[function(require,module,exports,__globalThis) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"acZLf":[function(require,module,exports,__globalThis) {
 // drawing.js
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
@@ -24588,7 +24667,7 @@ parcelHelpers.export(exports, "createSvgAndContainer", ()=>createSvgAndContainer
 parcelHelpers.export(exports, "createAxes", ()=>createAxes);
 parcelHelpers.export(exports, "createArrowheads", ()=>createArrowheads);
 var _d3 = require("d3");
-var _dataJs = require("./data.js");
+var _datasetsJs = require("./datasets.js");
 function createSvgAndContainer() {
     const width = window.innerWidth;
     const height = window.visualViewport ? window.visualViewport.height : window.innerHeight;
@@ -24645,7 +24724,7 @@ function createArrowheads(svg) {
     arrowsContainer.append("marker").attr("id", "arrowhead-orange").attr("viewBox", "0 0 10 10").attr("refX", 0).attr("refY", 5).attr("markerWidth", 4).attr("markerHeight", 4).attr("orient", "auto").append("path").attr("d", "M0,0 L10,5 L0,10 Z").attr("fill", "orange");
 }
 
-},{"d3":"17XFv","./data.js":"3d49z","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"kNCsT":[function(require,module,exports,__globalThis) {
+},{"d3":"17XFv","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./datasets.js":"l4Fxs"}],"kNCsT":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 /**
@@ -24712,7 +24791,11 @@ parcelHelpers.export(exports, "showForceArrows", ()=>showForceArrows);
 parcelHelpers.export(exports, "showNetForce", ()=>showNetForce);
 parcelHelpers.export(exports, "showNodeLines", ()=>showNodeLines);
 parcelHelpers.export(exports, "showObservations", ()=>showObservations);
-parcelHelpers.export(exports, "setupUI", ()=>setupUI);
+parcelHelpers.export(exports, "showTerminal", ()=>showTerminal);
+parcelHelpers.export(exports, "showBackground", ()=>showBackground);
+/**
+ * Sets up the User Interface
+ */ parcelHelpers.export(exports, "setupUI", ()=>setupUI);
 /**
  * Find elements in the DOM for which the class is the exact match to the className string, and hides them as desired
  * 
@@ -24726,6 +24809,26 @@ let showForceArrows = true;
 let showNetForce = true;
 let showNodeLines = true;
 let showObservations = true;
+let showTerminal = false;
+let showBackground = false;
+const url = new URL(window.location.href);
+const params = new URLSearchParams(url.search);
+showNodeLabel = URLWatchdog(showNodeLabel, 'nodeLabel');
+showCoordinates = URLWatchdog(showCoordinates, 'coords');
+showForceArrows = URLWatchdog(showForceArrows, 'forceArrows');
+showNetForce = URLWatchdog(showNetForce, 'netForceArrows');
+showNodeLines = URLWatchdog(showNodeLines, 'obsLines');
+showObservations = URLWatchdog(showObservations, 'obs');
+showTerminal = URLWatchdog(showTerminal, 'cmd');
+showBackground = URLWatchdog(showBackground, 'bg');
+/**
+ * Checks the URL params for provided terms and adjusts bools as desired
+ * @param {Bool} bool 
+ * @param {String} param
+ */ function URLWatchdog(bool, param) {
+    bool = params.get(param) ? params.get(param) == 'true' || params.get(param) == 1 ? true : params.get(param) == 'false' || params.get(param) == 0 ? false : bool : bool;
+    return bool;
+}
 function setupUI() {
     // enact the above hardcoded choices onto the html file
     document.getElementById("toggleNodeLabel").checked = showNodeLabel;
@@ -24734,6 +24837,9 @@ function setupUI() {
     document.getElementById("toggleNetForce").checked = showNetForce;
     document.getElementById("toggleNodeLines").checked = showNodeLines;
     document.getElementById("toggleObservations").checked = showObservations;
+    document.getElementById("toggleTerminal").checked = showTerminal;
+    showOrHideElement(showTerminal, "#logContainer", "terminal");
+    document.getElementById("toggleBackground").checked = showBackground;
     const toggleNodeLabel = document.getElementById("toggleNodeLabel");
     if (toggleNodeLabel) toggleNodeLabel.addEventListener("change", function() {
         showNodeLabel = this.checked;
@@ -24764,6 +24870,16 @@ function setupUI() {
         showObservations = this.checked;
         showOrHideElement(showObservations, ".hotspot-group", "observations");
     });
+    const toggleTerminal = document.getElementById("toggleTerminal");
+    if (toggleTerminal) toggleTerminal.addEventListener("change", function() {
+        showTerminal = this.checked;
+        showOrHideElement(showTerminal, "#logContainer", "terminal");
+    });
+    const toggleBackground = document.getElementById("toggleBackground");
+    if (toggleBackground) toggleBackground.addEventListener("change", function() {
+        showBackground = this.checked;
+        showOrHideElement(showBackground, "#background", "background");
+    });
 }
 function showOrHideElement(bool, className, shorthand) {
     document.querySelectorAll(className).forEach((el)=>{
@@ -24792,12 +24908,12 @@ function displayLog(message, color = 'white') {
     logMessage.style.transition = 'opacity 1s'; // Transition for fade-out
     // Set a timeout to fade out and then remove the message
     setTimeout(()=>{
-        logMessage.style.opacity = '0'; // Start fading out
+        logMessage.style.opacity = '0.3'; // Start fading out
     }, 4000); // Delay to ensure the transition takes effect
     // Set a timeout to remove the message after a certain duration (e.g., 5 seconds)
     setTimeout(()=>{
         logMessage.remove();
-    }, 5000); // Change 5000 to the desired duration in milliseconds
+    }, 50000); // Change 5000 to the desired duration in milliseconds
 }
 // Function to get the current timestamp
 function getTimestamp() {
