@@ -5,7 +5,43 @@ export let showForceArrows = true;
 export let showNetForce = true;
 export let showNodeLines = true;
 export let showObservations = true;
+export let showTerminal = false;
+export let showBackground = false;
 
+const url = new URL(window.location.href);
+const params = new URLSearchParams(url.search);
+
+showNodeLabel = URLWatchdog(showNodeLabel, 'nodeLabel');
+showCoordinates = URLWatchdog(showCoordinates, 'coords');
+showForceArrows = URLWatchdog(showForceArrows, 'forceArrows');
+showNetForce = URLWatchdog(showNetForce, 'netForceArrows');
+showNodeLines = URLWatchdog(showNodeLines, 'obsLines');
+showObservations = URLWatchdog(showObservations, 'obs');
+showTerminal = URLWatchdog(showTerminal, 'cmd');
+showBackground = URLWatchdog(showBackground, 'bg');
+
+/**
+ * Checks the URL params for provided terms and adjusts bools as desired
+ * @param {Bool} bool 
+ * @param {String} param
+ */
+function URLWatchdog(bool, param, ){
+  bool = 
+    params.get(param) ? 
+    (
+      params.get(param)=='true' || params.get(param)==1 ? 
+        true 
+        : 
+        (params.get(param)=='false' || params.get(param)==0 ? false : bool)
+    ) 
+    : 
+    bool;
+  return bool;
+}
+
+/**
+ * Sets up the User Interface
+ */
 export function setupUI(/* references if needed: svg, etc. */) {
   // enact the above hardcoded choices onto the html file
   document.getElementById("toggleNodeLabel").checked = showNodeLabel;
@@ -14,7 +50,10 @@ export function setupUI(/* references if needed: svg, etc. */) {
   document.getElementById("toggleNetForce").checked = showNetForce;
   document.getElementById("toggleNodeLines").checked = showNodeLines;
   document.getElementById("toggleObservations").checked = showObservations;
-
+  document.getElementById("toggleTerminal").checked = showTerminal;
+    showOrHideElement(showTerminal, "#logContainer", "terminal");
+  document.getElementById("toggleBackground").checked = showBackground;
+  
   const toggleNodeLabel = document.getElementById("toggleNodeLabel");
   if (toggleNodeLabel) {
     toggleNodeLabel.addEventListener("change", function() {
@@ -63,7 +102,25 @@ export function setupUI(/* references if needed: svg, etc. */) {
     });
   }
 
+  const toggleTerminal = document.getElementById("toggleTerminal");
+  if (toggleTerminal) {
+    toggleTerminal.addEventListener("change", function() {
+      showTerminal = this.checked;
+      showOrHideElement(showTerminal, "#logContainer", "terminal");
+    });
+  }
+  const toggleBackground = document.getElementById("toggleBackground");
+  if (toggleBackground) {
+    toggleBackground.addEventListener("change", function() {
+      showBackground = this.checked;
+      showOrHideElement(showBackground, "#background-layer", "background");
+    });
+  }
+
+
+
 }
+
 /**
  * Find elements in the DOM for which the class is the exact match to the className string, and hides them as desired
  * 

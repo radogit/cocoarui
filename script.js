@@ -1,11 +1,13 @@
 import * as d3 from "d3";
-import { nodes, nodesQueue, flipYCoordinates, fixInitially, collisionMargin } from "./js/data.js";
-import { forceGaussianPreferredArea, forceCustomCollision } from "./js/forces.js";
-import { createSvgAndContainer, createAxes, createArrowheads } from "./js/drawing.js";
-import { createHeatmapGradients, buildHeatspotRects } from "./js/heatmaps.js";
-import { setupUI, showForceArrows, showNodeLines, showObservations, showNetForce, showCoordinates, showNodeLabel } from "./js/ui.js";
+import * as Datasets from "./js/datasets.js";
+import * as Forces from "./js/forces.js";
+import * as Drawing from "./js/drawing.js";
+import * as Heatmaps from "./js/heatmaps.js";
+import * as AppUI from "./js/ui.js";
+import * as Backgrounds from "./js/backgrounds.js";
 //import { dragging, dragEnd, dragStart, toggleFixed } from "./js/nodeInteraction.js";
 import { setupLogger } from './js/logger.js';
+//import { dripSpawnNodes } from "./js/dripSpawnNodes.js";
 
 // Set up the logger
 setupLogger();
@@ -18,31 +20,27 @@ const colours = ['red', 'green', 'blue', 'orange', 'purple', 'cyan', 'magenta', 
 // =============== ONE TIME =======================================================================================
 // ================================================================================================================
 
-// 1) Flip Y to treat up as positive
-flipYCoordinates(nodesQueue);
+// 1) Create the SVG, container
+const { svg, container, nodeLayer, hotspotLayer, width, height, minDim, scaleUnit } = Drawing.createSvgAndContainer();
 
-// 2) Fix initial nodes that are isFixed
-fixInitially(nodesQueue);
+// 2) Draw axes
+const { xScale, yScale, xAxis, yAxis } = Drawing.createAxes(container, width, height, minDim);
 
-// 3) Create the SVG, container
-const { svg, container, nodeLayer, hotspotLayer, width, height } = createSvgAndContainer();
-const minDim = Math.min(width, height);
-
-// 4) Draw axes
-const { xScale, yScale, xAxis, yAxis } = createAxes(container, width, height, minDim);
-
-// 5) Arrowhead artefacts
+// 3) Arrowhead artefacts
 const defs = svg.append("defs").attr("id","defs").attr("width",100).attr("height",100);
-createArrowheads(svg);
+Drawing.createArrowheads(svg);
 
-// 6) Create the gradients by calling the new function
-createHeatmapGradients(defs, nodes, colours);
+// 3+) Backgrounds
+//Backgrounds.createBackgroundDefs(defs, scaleUnit);
 
-// 7) Then build the hotspot rects, also from the new function
-buildHeatspotRects(hotspotLayer, nodes);
+// 4) Create the gradients by calling the new function
+Heatmaps.createHeatmapGradients(defs, Datasets.nodes, colours);
 
-// 8) UI toggles
-setupUI();
+// 5) Then build the hotspot rects, also from the new function
+Heatmaps.buildHeatspotRects(hotspotLayer, Datasets.nodes);
+
+// 6) Set up UI toggles
+AppUI.setupUI();
 
 
 // ================================================================================================================
@@ -78,7 +76,7 @@ function buildOrUpdateNodes(container, nodes) {
   
           // append ID label
           g.append("text")
-            .attr("class", showNodeLabel? "id-label" : "id-label hidden")
+            .attr("class", AppUI.showNodeLabel? "id-label" : "id-label hidden")
             .attr("dx", 0)
             .attr("dy", d => -d.radius - 2)
             .text(d => d.id)
@@ -119,37 +117,7 @@ function buildOrUpdateNodes(container, nodes) {
     return nodeGroup; // return the selection if you want
   }
 
-// ================================================================================================================
-  
-// Timed Drip Approach
-let i = 0; 
-const intervalId = setInterval(() => {
-  if (i >= nodesQueue.length) {
-    // We have spawned them all
-    clearInterval(intervalId);
-    return;
-  }
-
-  // Take the next node:
-  const newNode = nodesQueue[i];
-  i++;
-
-  // Add to the simulation array:
-  nodes.push(newNode);
-
-  // (A) Re-run hotspot data-join to create rects for newNode.hotspots
-  buildHeatspotRects(hotspotLayer, nodes);
-
-  // (B) Re-run node data-join to create circles, labels, etc.
-  buildOrUpdateNodes(nodeLayer, nodes);
-
-  // (C) Let the sim see the new array
-  simulation.nodes(nodes);
-  simulation.alpha(1).restart();
-  
-}, 1000); // spawn 1 node each second
-
-// ================================================================================================================
+// ====== ADD ONE ==========================================================================================================
 
 function addOne() {
   const newNode = {
@@ -175,49 +143,120 @@ function addOne() {
     );
   }
   
-  nodes.push(newNode);
+  Datasets.nodes.push(newNode);
   // (A) Re-run hotspot data-join to create rects for newNode.hotspots
-  buildHeatspotRects(hotspotLayer, nodes);
+  Heatmaps.buildHeatspotRects(hotspotLayer, Datasets.nodes);
 
   // (B) Re-run node data-join to create circles, labels, etc.
-  buildOrUpdateNodes(nodeLayer, nodes);
+  buildOrUpdateNodes(nodeLayer, Datasets.nodes);
 
   // (C) Let the simulation know about new node
-  simulation.nodes(nodes);       
+  simulation.nodes(Datasets.nodes);       
   simulation.alpha(1).restart(); 
 }
 
-// ================================================================================================================
+
+// ======= DRIP =========================================================================================================
+let nodesQueue = [];
+
+// Then define a function to handle a button click or something:
+function spawnOneByOne(someDataArray) {
+  console.log('spawning set: ', "green");
+  // 1) Clear the array
+  nodesQueue.splice(0, nodesQueue.length);
+
+  // 2) put the items from someDataArray to the queue
+  nodesQueue = structuredClone(someDataArray);
+
+  // 3) Flip Y to treat up as positive
+  Datasets.flipYCoordinates(nodesQueue);
+
+  // 4) Fix initial nodes that are isFixed
+  Datasets.fixInitially(nodesQueue);
+
+  // 5) let it drip 
+  dripSpawnNodes(
+    nodesQueue,
+    Datasets.nodes,
+    hotspotLayer,
+    nodeLayer,
+    simulation,
+    1000 // 1 second between spawns
+  );
+}
+
+/**
+ * Timed "drip" approach to spawn nodes from a queue one at a time.
+ * @param {Array} nodesQueue     The array of node data to spawn over time.
+ * @param {Array} nodes          The main node array in the simulation.
+ * @param {d3.Selection} hotspotLayer The <g> container for hotspot rects.
+ * @param {d3.Selection} nodeLayer    The <g> container for node groups.
+ * @param {d3.Simulation} simulation  The d3 force simulation.
+ * @param {number} intervalMs    How many milliseconds between spawns, default 1000.
+ */
+export function dripSpawnNodes(
+  nodesQueue,
+  nodes,
+  hotspotLayer,
+  nodeLayer,
+  simulation,
+  intervalMs = 1000
+) {
+  let i = 0; 
+  const intervalId = setInterval(() => {
+    if (i >= nodesQueue.length) {
+      clearInterval(intervalId);
+      return;
+    }
+
+    // Take the next node from the queue
+    const newNode = nodesQueue[i];
+    i++;
+    newNode.id = newNode.id + '-' + Date.now().toString(36).substring(2, 8);
+
+    // Add to the main node array
+    nodes.push(newNode);
+
+    // Re-run the hotspot data-join so new hotspots appear
+    Heatmaps.buildHeatspotRects(hotspotLayer, nodes);
+
+    // Re-run the node data-join so new node circles/labels appear
+    buildOrUpdateNodes(nodeLayer, nodes);
+
+    // Let the simulation know about the new array
+    simulation.nodes(nodes);
+    simulation.alpha(1).restart();
+
+  }, intervalMs);
+}
+
+// ======== REMOVE ========================================================================================================
 
 function removeAllNodes() {
   // 1) Clear the array
-  nodes.splice(0, nodes.length);  // or nodes.length = 0
+  Datasets.nodes.splice(0, Datasets.nodes.length);
 
   // 2) Re-run the data join for nodes and hotspots
-  buildOrUpdateNodes(nodeLayer, nodes);
-  buildHeatspotRects(hotspotLayer, nodes);
+  buildOrUpdateNodes(nodeLayer, Datasets.nodes);
+  Heatmaps.buildHeatspotRects(hotspotLayer, Datasets.nodes);
 
   // 3) Notify the simulation we have no nodes
-  simulation.nodes(nodes);
+  simulation.nodes(Datasets.nodes);
 
   // 4) Optionally reheat the simulation 
   //    (with 0 nodes, there won’t be motion, but it can forcibly update)
   simulation.alpha(1).restart();
 }
 
-// Then attach this to a button:
-document.getElementById("removeAllButton")
-  .addEventListener("click", removeAllNodes);
-
 // ================================================================================================================
 // =============== SIMULATION LOGIC =======================================================================================
 // ================================================================================================================
 
-const simulation = d3.forceSimulation(nodes)
+const simulation = d3.forceSimulation(Datasets.nodes)
     .force("repel", d3.forceManyBody().strength(d => d.isFixed ? 0 : -50)) // Mild repulsion
-    .force("collide", d3.forceCollide().radius(d => d.radius + collisionMargin).strength(1.2)) // Prevent overlap
-    .force("gaussian", forceGaussianPreferredArea(1.5)) // Gaussian force for hotspots
-    .force("customCollision", forceCustomCollision) // New collision force!
+    .force("collide", d3.forceCollide().radius(d => d.radius + Datasets.collisionMargin).strength(1.2)) // Prevent overlap
+    .force("gaussian", Forces.forceGaussianPreferredArea(1.5)) // Gaussian force for hotspots
+    .force("customCollision", Forces.forceCustomCollision) // New collision force
     .on("tick", ticked);
 
 
@@ -226,13 +265,12 @@ function ticked() {
     nodeGroup.attr("transform", d => `translate(${d.x}, ${d.y})`);
     
     // Update coordinates label
-    if (showCoordinates) {
+    if (AppUI.showCoordinates) {
         nodeGroup.select(".coord-label")
             .text(d => `(${Math.round(d.x/minDim*180)}, ${Math.round(-d.y/minDim*180)})`);
     }
     
     // Clear previous arrows before drawing new ones
-    //forceArrows.selectAll(".force-arrow").remove();  
     nodeGroup.selectAll(".force-arrow, .force-arrow-value, .force-arrow-label-group").remove();  
     nodeGroup.selectAll(".node-relation, .node-relation-value, .node-relation-label-group").remove();  
 
@@ -247,11 +285,8 @@ function ticked() {
         const nodeRelationsGroup = d3.select(this).select(".node-relations");
 
         d.hotspots.forEach((hotspot, index) => {
-            // If toggle is off, no need to draw lines.
-            //if (!showNodeLines) return;
-            //console.log(hotspot.width);
             nodeRelationsGroup.append("line")
-            .attr("class",showNodeLines ? "node-relation" : "node-relation hidden")
+            .attr("class",AppUI.showNodeLines ? "node-relation" : "node-relation hidden")
             .attr("x1", 0)
             .attr("y1", 0)
             .attr("x2", (-d.x+hotspot.x))
@@ -267,7 +302,7 @@ function ticked() {
         d.forces.forEach((force, index) => {          
 
             // If toggle is off, no need to draw arrows.
-            //if (!showForceArrows) return;
+            //if (!AppUI.showForceArrows) return;
 
             const length = Math.min(Math.sqrt(force.fx ** 2 + force.fy ** 2) * 2, 1000);
             const angle = Math.atan2(force.fy, force.fx);
@@ -280,9 +315,9 @@ function ticked() {
             arrowGroup.append("line")
                 //.attr("class", "force-arrow")
                 .attr("class", force.source.includes("collision") ? 
-                  (showForceArrows ? "force-arrow force-arrow-orange" : "force-arrow force-arrow-orange hidden") 
+                  (AppUI.showForceArrows ? "force-arrow force-arrow-orange" : "force-arrow force-arrow-orange hidden") 
                   : 
-                  (showForceArrows ? "force-arrow force-arrow-white" : "force-arrow force-arrow-white hidden")
+                  (AppUI.showForceArrows ? "force-arrow force-arrow-white" : "force-arrow force-arrow-white hidden")
                 )
                 .attr("x1", 0)
                 .attr("y1", 0)
@@ -292,10 +327,9 @@ function ticked() {
                 .attr("stroke-width", 5)
                 .attr("marker-end", "url(#arrowhead-"+(force.source.includes("collision") ? "orange" : "white")+")")
                 .style("opacity", 0.5);
-            // 2) The arrow magnitude text
-            // Append a group to hold the label & background
+            // 2) The arrow magnitude text, Append a group to hold the label & background
             const labelGroup = arrowGroup.append("g")
-                .attr("class", showForceArrows? "force-arrow-label-group" : "force-arrow-label-group hidden")
+                .attr("class", AppUI.showForceArrows? "force-arrow-label-group" : "force-arrow-label-group hidden")
                 .attr("transform", `translate(${labelPosX},${labelPosY})`)
                 .attr("opacity", 0.3)
                 ;
@@ -317,33 +351,19 @@ function ticked() {
                 .attr("dominant-baseline", "middle")
                 .attr("fill", "white")
                 .attr("font-size", 12)
-                // Round magnitude to 2 decimals
                 .text(length.toFixed(0) + ' ∠' + labelAngle.toFixed(0) + '°')
                 .attr("transform", `rotate(${labelAngle>90? labelAngle-180 : labelAngle})`) 
                 ;
-            const bbox = labelText.node().getBBox(); 
-            // e.g. { x, y, width, height } of the text
+            const bbox = labelText.node().getBBox();  // e.g. { x, y, width, height } of the text
 
             bgRect
               .attr("x", bbox.x - 4)
               .attr("y", bbox.y - 2)
               .attr("width", bbox.width + 8)
               .attr("height", bbox.height + 4);
-
-            // arrowGroup.append("text")
-            //   .attr("class", "force-arrow-value")
-            //   // Position the text at, say, 60% along the arrow
-            //   .attr("x", 0.6 * length * Math.cos(angle) + 10 * Math.cos(labelAngle))
-            //   .attr("y", 0.6 * length * Math.sin(angle) + 10 * Math.sin(labelAngle))
-            //   .attr("fill", force.source.includes("collision") ? "orange" : "white")
-            //   .attr("font-size", "10px")
-            //   .attr("text-anchor", "middle")
-            //   // Round the magnitude to 2 decimals (or 1)
-            //   .text( (Math.sqrt(force.fx ** 2 + force.fy ** 2)).toFixed(0) );                
         });
 
-        // Draw net force arrow in red, if showNetForce.
-        if (showNetForce) {
+        if (AppUI.showNetForce) {
             const netForceX = d.vx;
             const netForceY = d.vy;
             const netForceMagnitude = Math.sqrt(netForceX ** 2 + netForceY ** 2);
@@ -353,7 +373,7 @@ function ticked() {
                 const netAngle = Math.atan2(netForceY, netForceX);
 
                 arrowGroup.append("line")
-                    .attr("class", (showNetForce) ? "force-arrow net-force-arrow" : "force-arrow net-force-arrow hidden")
+                    .attr("class", (AppUI.showNetForce) ? "force-arrow net-force-arrow" : "force-arrow net-force-arrow hidden")
                     .attr("x1", 0)
                     .attr("y1", 0)
                     .attr("x2", netLength * Math.cos(netAngle))
@@ -394,8 +414,6 @@ function ticked() {
     }
 
     function toggleFixed(event, d) {
-        // We only allow toggling if the user wants to.
-        // If you want a separate checkbox to enable/disable toggling, do so.
         d.isFixed = !d.isFixed; // Toggle fixed state
 
         if (d.isFixed) {
@@ -420,7 +438,22 @@ function ticked() {
 // ================================================================================================================
 
 document.getElementById("spawnOneButton").addEventListener("click", addOne);
-document.getElementById("removeAllButton").addEventListener("click", removeAllNodes());
+document.getElementById("removeAllButton").addEventListener("click", removeAllNodes);
+
+const spawnButtonContainer = document.getElementById("spawnButtonContainer");
+
+if(spawnButtonContainer){
+  Datasets.preppedNodes.forEach(({name, nodes}) => {
+    const spawnButton = document.createElement('button');
+    spawnButton.textContent = 'Set \'' + name + '\'';
+    spawnButton.id = 'spawnButton-'+name;
+    spawnButton.addEventListener("click", () => {
+      spawnOneByOne(nodes);
+    });
+    spawnButtonContainer.append(spawnButton);
+  });  
+}
+
 
 // ======== Browser window resize ================================
 

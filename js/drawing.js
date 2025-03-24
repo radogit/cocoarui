@@ -1,10 +1,15 @@
 // drawing.js
 import * as d3 from "d3";
-import { collisionMargin } from "./data.js";
+import { showBackground } from "./ui.js";
+import { imagePaths } from "./backgrounds.js";
 
 export function createSvgAndContainer() {
   const width  = window.innerWidth;
   const height = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+  const minDim = Math.min(width, height);
+  const scaleUnit = minDim/180;
+  console.log("minDim: " + minDim, "red");
+
   if(window.visualViewport.height > (window.innerHeight+2)) {
     console.log("user appears to be on mobile. good luck.", "pink"); 
     console.log('height: ' + height, "pink"); 
@@ -21,13 +26,35 @@ export function createSvgAndContainer() {
     .attr("class", "container")
     .attr("transform", `translate(${width/2},${height/2})`);
 
+  const backgroundLayer = container.append("g")
+    .attr("id", "background-layer")
+    .attr("class", showBackground ? "" : "hidden");
+    imagePaths.forEach((imagePath, index) => {
+        // backgroundLayer.append("rect")
+        // .attr("width", imagePath.width * scaleUnit)
+        // .attr("height", imagePath.height * scaleUnit)
+        // .attr("x", imagePath.x * scaleUnit)
+        // .attr("y", imagePath.y * scaleUnit)
+        // .attr("fill", "url(#"+imagePath.name+")");  
+        backgroundLayer.append("image")
+        .attr("href",imagePath.url)
+        .attr("width", imagePath.width * scaleUnit)
+        .attr("height", imagePath.height * scaleUnit)
+        .attr("x", imagePath.x * scaleUnit)
+        .attr("y", imagePath.y * scaleUnit)
+        //.attr("fill", "url(#"+imagePath.name+")")
+        ;  
+
+    });
+
+    
   const hotspotLayer = container.append("g")
   .attr("class", "hotspot-layer");
   
   const nodeLayer = container.append("g")
   .attr("class", "node-layer");
 
-  return { svg, container, nodeLayer, hotspotLayer, width, height };
+  return { svg, container, nodeLayer, hotspotLayer, width, height, minDim, scaleUnit };
 }
 
 export function createAxes(container, width, height, minDim) {

@@ -16,14 +16,14 @@ function displayLog(message, color = 'white') {
 
     // Set a timeout to fade out and then remove the message
     setTimeout(() => {
-        logMessage.style.opacity = '0'; // Start fading out
+        logMessage.style.opacity = '0.3'; // Start fading out
     }, 4000); // Delay to ensure the transition takes effect
 
 
     // Set a timeout to remove the message after a certain duration (e.g., 5 seconds)
     setTimeout(() => {
         logMessage.remove();
-    }, 5000); // Change 5000 to the desired duration in milliseconds
+    }, 50000); // Change 5000 to the desired duration in milliseconds
 }
 
 // Function to get the current timestamp

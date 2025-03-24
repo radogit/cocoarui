@@ -1,4 +1,4 @@
-import { collisionMargin, nodes } from "./data.js";
+import { collisionMargin, nodes } from "./datasets.js";
 
 // Gaussian force for hotspots
 export function forceGaussianPreferredArea(strength) {
