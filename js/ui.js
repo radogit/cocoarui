@@ -60,7 +60,7 @@ export function setupUI(/* references if needed: svg, etc. */) {
   document.getElementById(showNodeLines.ToggleObjectString).checked     = showNodeLines.boolState;
   document.getElementById(showObservations.ToggleObjectString).checked  = showObservations.boolState;
   document.getElementById(showTerminal.ToggleObjectString).checked      = showTerminal.boolState;
-    showOrHideElement(showTerminal.boolState, "#logContainer", "terminal");
+    showOrHideElement(showTerminal.boolState, "#"+showTerminal.DOMObjectString, showTerminal.shorthandString, showTerminal.URLParamString);
   document.getElementById(showBackground.ToggleObjectString).checked    = showBackground.boolState;
   
   const toggleNodeLabel = document.getElementById(showNodeLabel.ToggleObjectString);
