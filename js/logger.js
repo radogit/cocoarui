@@ -1,8 +1,10 @@
 // logger.js
+import { showTerminal } from './ui.js'
 
 // Create a container for log messages
 const logContainer = document.createElement('div');
 logContainer.id = "logContainer";
+logContainer.classList = showTerminal.boolState ? "logContainer" : "logContainer hidden";
 document.body.appendChild(logContainer);
 
 // Function to display messages
