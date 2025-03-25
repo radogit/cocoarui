@@ -1,24 +1,32 @@
 // ui.js
-export let showNodeLabel = true;
-export let showCoordinates = true;
-export let showForceArrows = true;
-export let showNetForce = true;
-export let showNodeLines = true;
-export let showObservations = true;
-export let showTerminal = false;
-export let showBackground = false;
+export let showNodeLabel = {boolState: true, shorthandString: 'ID labels', ToggleObjectString: 'toggleNodeLabel', DOMObjectString: 'id-label', URLParamString: 'nodeLabel'};
+//export let showCoordinates = true;
+export let showCoordinates = {boolState: true, shorthandString: 'coordinate labels', ToggleObjectString: 'toggleCoordinates', DOMObjectString: 'coord-label', URLParamString: 'coords'};
+//export let showForceArrows = true;
+export let showForceArrows = {boolState: true, shorthandString: 'arrows of forces', ToggleObjectString: 'toggleForceArrows', DOMObjectString: 'force-arrows', DOMObjectSingleString: 'force-arrow', URLParamString: 'forceArrows'};
+//export let showNetForce = true;
+export let showNetForce = {boolState: true, shorthandString: 'net force arrows', ToggleObjectString: 'toggleNetForce', DOMObjectString: 'force-arrow-netForce', URLParamString: 'netForceArrows'};
+//export let showNodeLines = true;
+export let showNodeLines = {boolState: true, shorthandString: 'dotted lines to observations', ToggleObjectString: 'toggleNodeLines', DOMObjectString: 'node-relations', DOMObjectSingleString: 'node-relation', URLParamString: 'obsLines'};
+//export let showObservations = true;
+export let showObservations = {boolState: true, shorthandString: 'observations', ToggleObjectString: 'toggleObservations', DOMObjectString: 'hotspot-group', URLParamString: 'obs'};
+//export let showTerminal = false;
+export let showTerminal = {boolState: false, shorthandString: 'terminal', ToggleObjectString: 'toggleTerminal', DOMObjectString: 'logContainer', URLParamString: 'cmd'};
+//export let showBackground = false;
+export let showBackground = {boolState: false, shorthandString: 'background', ToggleObjectString: 'toggleBackground', DOMObjectString: 'background-layer', URLParamString: 'bg'};
 
 const url = new URL(window.location.href);
 const params = new URLSearchParams(url.search);
 
-showNodeLabel = URLWatchdog(showNodeLabel, 'nodeLabel');
-showCoordinates = URLWatchdog(showCoordinates, 'coords');
-showForceArrows = URLWatchdog(showForceArrows, 'forceArrows');
-showNetForce = URLWatchdog(showNetForce, 'netForceArrows');
-showNodeLines = URLWatchdog(showNodeLines, 'obsLines');
-showObservations = URLWatchdog(showObservations, 'obs');
-showTerminal = URLWatchdog(showTerminal, 'cmd');
-showBackground = URLWatchdog(showBackground, 'bg');
+//showNodeLabel = URLWatchdog(showNodeLabel, 'nodeLabel');
+showNodeLabel.boolState =     URLWatchdog(showNodeLabel.boolState,    showNodeLabel.URLParamString);
+showCoordinates.boolState =   URLWatchdog(showCoordinates.boolState,  showCoordinates.URLParamString);
+showForceArrows.boolState =   URLWatchdog(showForceArrows.boolState,  showForceArrows.URLParamString);
+showNetForce.boolState =      URLWatchdog(showNetForce.boolState,     showNetForce.URLParamString);
+showNodeLines.boolState =     URLWatchdog(showNodeLines.boolState,    showNodeLines.URLParamString);
+showObservations.boolState =  URLWatchdog(showObservations.boolState, showObservations.URLParamString);
+showTerminal.boolState =      URLWatchdog(showTerminal.boolState,     showTerminal.URLParamString);
+showBackground.boolState =    URLWatchdog(showBackground.boolState,   showBackground.URLParamString);
 
 /**
  * Checks the URL params for provided terms and adjusts bools as desired
@@ -44,76 +52,77 @@ function URLWatchdog(bool, param, ){
  */
 export function setupUI(/* references if needed: svg, etc. */) {
   // enact the above hardcoded choices onto the html file
-  document.getElementById("toggleNodeLabel").checked = showNodeLabel;
-  document.getElementById("toggleCoordinates").checked = showCoordinates;
-  document.getElementById("toggleForceArrows").checked = showForceArrows;
-  document.getElementById("toggleNetForce").checked = showNetForce;
-  document.getElementById("toggleNodeLines").checked = showNodeLines;
-  document.getElementById("toggleObservations").checked = showObservations;
-  document.getElementById("toggleTerminal").checked = showTerminal;
-    showOrHideElement(showTerminal, "#logContainer", "terminal");
-  document.getElementById("toggleBackground").checked = showBackground;
+  // document.getElementById("toggleNodeLabel").checked = showNodeLabel;
+  document.getElementById(showNodeLabel.ToggleObjectString).checked     = showNodeLabel.boolState;
+  document.getElementById(showCoordinates.ToggleObjectString).checked   = showCoordinates.boolState;
+  document.getElementById(showForceArrows.ToggleObjectString).checked   = showForceArrows.boolState;
+  document.getElementById(showNetForce.ToggleObjectString).checked      = showNetForce.boolState;
+  document.getElementById(showNodeLines.ToggleObjectString).checked     = showNodeLines.boolState;
+  document.getElementById(showObservations.ToggleObjectString).checked  = showObservations.boolState;
+  document.getElementById(showTerminal.ToggleObjectString).checked      = showTerminal.boolState;
+    showOrHideElement(showTerminal.boolState, "#logContainer", "terminal");
+  document.getElementById(showBackground.ToggleObjectString).checked    = showBackground.boolState;
   
-  const toggleNodeLabel = document.getElementById("toggleNodeLabel");
+  const toggleNodeLabel = document.getElementById(showNodeLabel.ToggleObjectString);
   if (toggleNodeLabel) {
     toggleNodeLabel.addEventListener("change", function() {
-      showNodeLabel = this.checked;
-      showOrHideElement(showNodeLabel, ".id-label", "ID labels");
+      showNodeLabel.boolState = this.checked;
+      showOrHideElement(showNodeLabel.boolState, "."+showNodeLabel.DOMObjectString, showNodeLabel.shorthandString, showNodeLabel.URLParamString);
     });
   }
 
-  const toggleForceArrowsInput = document.getElementById("toggleForceArrows");
+  const toggleForceArrowsInput = document.getElementById(showForceArrows.ToggleObjectString);
   if (toggleForceArrowsInput) {
     toggleForceArrowsInput.addEventListener("change", function() {
-      showForceArrows = this.checked;
-      showOrHideElement(showForceArrows, ".force-arrows", "arrows of forces");
+      showForceArrows.boolState = this.checked;
+      showOrHideElement(showForceArrows.boolState, "."+showForceArrows.DOMObjectString, showForceArrows.shorthandString, showForceArrows.URLParamString);
     });
   }
 
-  const toggleNetForceInput = document.getElementById("toggleNetForce");
+  const toggleNetForceInput = document.getElementById(showNetForce.ToggleObjectString);
   if (toggleNetForceInput) {
     toggleNetForceInput.addEventListener("change", function() {
-      showNetForce = this.checked;
-      showOrHideElement(showNetForce, ".force-arrow-netForce", "net force arrows"); // TODODODOODODO
+      showNetForce.boolState = this.checked;
+      showOrHideElement(showNetForce.boolState, "."+showNetForce.DOMObjectString, showNetForce.shorthandString, showNetForce.URLParamString);
     });
   }
 
-  const toggleCoordinatesInput = document.getElementById("toggleCoordinates");
+  const toggleCoordinatesInput = document.getElementById(showCoordinates.ToggleObjectString);
   if (toggleCoordinatesInput) {
     toggleCoordinatesInput.addEventListener("change", function() {
-      showCoordinates = this.checked;
-      showOrHideElement(showCoordinates, ".coord-label", "coordinate labels");
+      showCoordinates.boolState = this.checked;
+      showOrHideElement(showCoordinates.boolState, "."+showCoordinates.DOMObjectString, showCoordinates.shorthandString, showCoordinates.URLParamString);
     });
   }
 
-  const toggleNodeLinesInput = document.getElementById("toggleNodeLines");
+  const toggleNodeLinesInput = document.getElementById(showNodeLines.ToggleObjectString);
   if (toggleNodeLinesInput) {
     toggleNodeLinesInput.addEventListener("change", function() {
-      showNodeLines = this.checked;
-      showOrHideElement(showNodeLines, ".node-relations", "dotted lines to observations");
+      showNodeLines.boolState = this.checked;
+      showOrHideElement(showNodeLines.boolState, "."+showNodeLines.DOMObjectString, showNodeLines.shorthandString, showNodeLines.URLParamString);
     });
   }
 
-  const toggleObservationsInput = document.getElementById("toggleObservations");
+  const toggleObservationsInput = document.getElementById(showObservations.ToggleObjectString);
   if (toggleObservationsInput) {
     toggleObservationsInput.addEventListener("change", function() {
-      showObservations = this.checked;
-      showOrHideElement(showObservations, ".hotspot-group", "observations");
+      showObservations.boolState = this.checked;
+      showOrHideElement(showObservations.boolState, "."+showObservations.DOMObjectString, showObservations.shorthandString, showObservations.URLParamString);
     });
   }
 
-  const toggleTerminal = document.getElementById("toggleTerminal");
+  const toggleTerminal = document.getElementById(showTerminal.ToggleObjectString);
   if (toggleTerminal) {
     toggleTerminal.addEventListener("change", function() {
-      showTerminal = this.checked;
-      showOrHideElement(showTerminal, "#logContainer", "terminal");
+      showTerminal.boolState = this.checked;
+      showOrHideElement(showTerminal.boolState, "#"+showTerminal.DOMObjectString, showTerminal.shorthandString, showTerminal.URLParamString);
     });
   }
-  const toggleBackground = document.getElementById("toggleBackground");
+  const toggleBackground = document.getElementById(showBackground.ToggleObjectString);
   if (toggleBackground) {
     toggleBackground.addEventListener("change", function() {
-      showBackground = this.checked;
-      showOrHideElement(showBackground, "#background-layer", "background");
+      showBackground.boolState = this.checked;
+      showOrHideElement(showBackground.boolState, "#"+showBackground.DOMObjectString, showBackground.shorthandString, showBackground.URLParamString);
     });
   }
 
@@ -127,10 +136,39 @@ export function setupUI(/* references if needed: svg, etc. */) {
  * @param {Bool} bool 
  * @param {String} className
  * @param {String} shorthand
+ * @param {String} URLparam
  */
-export function showOrHideElement (bool, className, shorthand) {
+export function showOrHideElement (bool, className, shorthand, URLparam) {
   document.querySelectorAll(className).forEach(el => {
     bool ? el.classList.remove("hidden") : el.classList.add("hidden");
   });
+  // Also reflect new state in the URL
+  updateURLParam(URLparam, bool);
+
   console.log((bool?"show ":"hide ") + shorthand, "yellow");
+}
+
+/**
+ * Sets or deletes a param in the URL, 
+ * then updates the browser’s address bar without reloading.
+ *
+ * @param {String} param - the parameter name, e.g. "coords"
+ * @param {Boolean} bool - the new state
+ */
+function updateURLParam(param, bool) {
+  const url = new URL(window.location);
+  // If we want to reflect the checkbox being "true" or "false"
+  // you can do:
+  url.searchParams.set(param, bool ? "true" : "false");
+  
+  // If you prefer removing the param when false, you can do:
+  // if (bool) {
+  //   url.searchParams.set(param, "true");
+  // } else {
+  //   url.searchParams.delete(param);
+  // }
+  
+  // Update the browser's URL bar 
+  // but don’t reload or add a new history entry:
+  window.history.replaceState({}, "", url);
 }

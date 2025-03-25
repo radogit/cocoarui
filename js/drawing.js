@@ -28,7 +28,7 @@ export function createSvgAndContainer() {
 
   const backgroundLayer = container.append("g")
     .attr("id", "background-layer")
-    .attr("class", showBackground ? "" : "hidden");
+    .attr("class", showBackground.boolState ? "" : "hidden");
     imagePaths.forEach((imagePath, index) => {
         // backgroundLayer.append("rect")
         // .attr("width", imagePath.width * scaleUnit)

@@ -45,10 +45,10 @@ export function createHeatmapGradients(defs, nodes, colours) {
 export function buildHeatspotRects(container, nodes){
 
     // Create hotspot rectangles for each node
-    const hotspotGroups = container.selectAll(".hotspot-group")
+    const hotspotGroups = container.selectAll("."+showObservations.DOMObjectString)
         .data(nodes, d => d.id)
         .join("g")
-        .attr("class", showObservations ? "hotspot-group" : "hotspot-group hidden");
+        .attr("class", showObservations.boolState ? showObservations.DOMObjectString : showObservations.DOMObjectString+" hidden");
     
     hotspotGroups.selectAll(".hotspot")
         .data(d => d.hotspots)

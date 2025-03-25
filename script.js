@@ -76,7 +76,7 @@ function buildOrUpdateNodes(container, nodes) {
   
           // append ID label
           g.append("text")
-            .attr("class", AppUI.showNodeLabel? "id-label" : "id-label hidden")
+            .attr("class", AppUI.showNodeLabel.boolState? AppUI.showNodeLabel.DOMObjectString : AppUI.showNodeLabel.DOMObjectString + " hidden")
             .attr("dx", 0)
             .attr("dy", d => -d.radius - 2)
             .text(d => d.id)
@@ -265,14 +265,14 @@ function ticked() {
     nodeGroup.attr("transform", d => `translate(${d.x}, ${d.y})`);
     
     // Update coordinates label
-    if (AppUI.showCoordinates) {
-        nodeGroup.select(".coord-label")
-            .text(d => `(${Math.round(d.x/minDim*180)}, ${Math.round(-d.y/minDim*180)})`);
+    if (AppUI.showCoordinates.boolState) {
+        nodeGroup.select("."+AppUI.showCoordinates.DOMObjectString)
+            .text(d => `(${Math.round(d.x * scaleUnit)}, ${Math.round(-d.y * scaleUnit)})`);
     }
     
     // Clear previous arrows before drawing new ones
-    nodeGroup.selectAll(".force-arrow, .force-arrow-value, .force-arrow-label-group").remove();  
-    nodeGroup.selectAll(".node-relation, .node-relation-value, .node-relation-label-group").remove();  
+    nodeGroup.selectAll("."+AppUI.showForceArrows.DOMObjectSingleString+", ."+AppUI.showForceArrows.DOMObjectSingleString+"-value, ."+AppUI.showForceArrows.DOMObjectSingleString+"-label-group").remove();  
+    nodeGroup.selectAll("."+AppUI.showNodeLines.DOMObjectSingleString+", ."+AppUI.showNodeLines.DOMObjectSingleString+"-value, ."+AppUI.showNodeLines.DOMObjectSingleString+"-label-group").remove();  
 
     nodeGroup.select("circle")
         .attr("stroke", d => d.isFixed ? "black" : "none")
@@ -281,12 +281,12 @@ function ticked() {
 
     // Add arrows and lines based on the calculated forces
     nodeGroup.each(function(d) {
-        const arrowGroup = d3.select(this).select(".force-arrows");
-        const nodeRelationsGroup = d3.select(this).select(".node-relations");
+        const arrowGroup = d3.select(this).select("."+AppUI.showForceArrows.DOMObjectString);
+        const nodeRelationsGroup = d3.select(this).select("."+AppUI.showNodeLines.DOMObjectString);
 
         d.hotspots.forEach((hotspot, index) => {
             nodeRelationsGroup.append("line")
-            .attr("class",AppUI.showNodeLines ? "node-relation" : "node-relation hidden")
+            .attr("class",AppUI.showNodeLines.boolState ? AppUI.showNodeLines.DOMObjectSingleString : AppUI.showNodeLines.DOMObjectSingleString+" hidden")
             .attr("x1", 0)
             .attr("y1", 0)
             .attr("x2", (-d.x+hotspot.x))
@@ -315,9 +315,9 @@ function ticked() {
             arrowGroup.append("line")
                 //.attr("class", "force-arrow")
                 .attr("class", force.source.includes("collision") ? 
-                  (AppUI.showForceArrows ? "force-arrow force-arrow-orange" : "force-arrow force-arrow-orange hidden") 
+                  (AppUI.showForceArrows.boolState ? AppUI.showForceArrows.DOMObjectSingleString+" "+AppUI.showForceArrows.DOMObjectSingleString+"-orange" : AppUI.showForceArrows.DOMObjectSingleString+" "+AppUI.showForceArrows.DOMObjectSingleString+"-orange hidden") 
                   : 
-                  (AppUI.showForceArrows ? "force-arrow force-arrow-white" : "force-arrow force-arrow-white hidden")
+                  (AppUI.showForceArrows.boolState ? AppUI.showForceArrows.DOMObjectSingleString+" "+AppUI.showForceArrows.DOMObjectSingleString+"-white" : AppUI.showForceArrows.DOMObjectSingleString+" "+AppUI.showForceArrows.DOMObjectSingleString+"-white hidden")
                 )
                 .attr("x1", 0)
                 .attr("y1", 0)
@@ -329,12 +329,12 @@ function ticked() {
                 .style("opacity", 0.5);
             // 2) The arrow magnitude text, Append a group to hold the label & background
             const labelGroup = arrowGroup.append("g")
-                .attr("class", AppUI.showForceArrows? "force-arrow-label-group" : "force-arrow-label-group hidden")
+                .attr("class", AppUI.showForceArrows.boolState? AppUI.showForceArrows.DOMObjectSingleString+"-label-group" : AppUI.showForceArrows.DOMObjectSingleString+"-label-group hidden")
                 .attr("transform", `translate(${labelPosX},${labelPosY})`)
                 .attr("opacity", 0.3)
                 ;
             const bgRect = labelGroup.append("rect")
-                .attr("class", "force-arrow-label-bg")
+                .attr("class", AppUI.showForceArrows.DOMObjectSingleString+"-label-bg")
                 .attr("x", -20) // we’ll adjust this once we know the text width
                 .attr("y", -10)
                 .attr("width", 40) // default guess
@@ -344,7 +344,7 @@ function ticked() {
                 .attr("transform", `rotate(${labelAngle>90? labelAngle-180 : labelAngle})`)
                 ; // a semi-transparent black background
             const labelText = labelGroup.append("text")
-                .attr("class", "force-arrow-label-text")
+                .attr("class", AppUI.showForceArrows.DOMObjectSingleString+"-label-text")
                 .attr("x", 0)
                 .attr("y", 0)
                 .attr("text-anchor", "middle")
@@ -363,7 +363,7 @@ function ticked() {
               .attr("height", bbox.height + 4);
         });
 
-        if (AppUI.showNetForce) {
+        if (AppUI.showNetForce.boolState) {
             const netForceX = d.vx;
             const netForceY = d.vy;
             const netForceMagnitude = Math.sqrt(netForceX ** 2 + netForceY ** 2);
@@ -373,7 +373,7 @@ function ticked() {
                 const netAngle = Math.atan2(netForceY, netForceX);
 
                 arrowGroup.append("line")
-                    .attr("class", (AppUI.showNetForce) ? "force-arrow net-force-arrow" : "force-arrow net-force-arrow hidden")
+                    .attr("class", (AppUI.showNetForce.boolState) ? AppUI.showForceArrows.DOMObjectSingleString+" net-force-arrow" : AppUI.showForceArrows.DOMObjectSingleString+" net-force-arrow hidden")
                     .attr("x1", 0)
                     .attr("y1", 0)
                     .attr("x2", netLength * Math.cos(netAngle))
