@@ -1,12 +1,12 @@
 // ui.js
-export let showNodeLabel =    { boolState: true, shorthandString: 'ID labels', ToggleObjectString: 'toggleNodeLabel', DOMObjectString: 'id-label', URLParamString: 'nodeLabel'};
-export let showCoordinates =  { boolState: true, shorthandString: 'coordinate labels', ToggleObjectString: 'toggleCoordinates', DOMObjectString: 'coord-label', URLParamString: 'coords'};
-export let showForceArrows =  { boolState: true, shorthandString: 'arrows of forces', ToggleObjectString: 'toggleForceArrows', DOMObjectString: 'force-arrows', DOMObjectSingleString: 'force-arrow', URLParamString: 'forceArrows'};
-export let showNetForce =     { boolState: true, shorthandString: 'net force arrows', ToggleObjectString: 'toggleNetForce', DOMObjectString: 'force-arrow-netForce', URLParamString: 'netForceArrows'};
-export let showNodeLines =    { boolState: true, shorthandString: 'dotted lines to observations', ToggleObjectString: 'toggleNodeLines', DOMObjectString: 'node-relations', DOMObjectSingleString: 'node-relation', URLParamString: 'obsLines'};
-export let showObservations = { boolState: true, shorthandString: 'observations', ToggleObjectString: 'toggleObservations', DOMObjectString: 'hotspot-group', URLParamString: 'obs'};
-export let showTerminal =     { boolState: false, shorthandString: 'terminal', ToggleObjectString: 'toggleTerminal', DOMObjectString: 'logContainer', URLParamString: 'cmd'};
-export let showBackground =   { boolState: false, shorthandString: 'background', ToggleObjectString: 'toggleBackground', DOMObjectString: 'background-layer', URLParamString: 'bg'};
+export let showNodeLabel =    { defaultState: true, boolState: true, shorthandString: 'ID labels', ToggleObjectString: 'toggleNodeLabel', DOMObjectString: 'id-label', URLParamString: 'nodeLabel'};
+export let showCoordinates =  { defaultState: true, boolState: true, shorthandString: 'coordinate labels', ToggleObjectString: 'toggleCoordinates', DOMObjectString: 'coord-label', URLParamString: 'coords'};
+export let showForceArrows =  { defaultState: true, boolState: true, shorthandString: 'arrows of forces', ToggleObjectString: 'toggleForceArrows', DOMObjectString: 'force-arrows', DOMObjectSingleString: 'force-arrow', URLParamString: 'forceArrows'};
+export let showNetForce =     { defaultState: true, boolState: true, shorthandString: 'net force arrows', ToggleObjectString: 'toggleNetForce', DOMObjectString: 'force-arrow-netForce', URLParamString: 'netForceArrows'};
+export let showNodeLines =    { defaultState: true, boolState: true, shorthandString: 'dotted lines to observations', ToggleObjectString: 'toggleNodeLines', DOMObjectString: 'node-relations', DOMObjectSingleString: 'node-relation', URLParamString: 'obsLines'};
+export let showObservations = { defaultState: true, boolState: true, shorthandString: 'observations', ToggleObjectString: 'toggleObservations', DOMObjectString: 'hotspot-group', URLParamString: 'obs'};
+export let showTerminal =     { defaultState: false, boolState: false, shorthandString: 'terminal', ToggleObjectString: 'toggleTerminal', DOMObjectString: 'logContainer', URLParamString: 'cmd'};
+export let showBackground =   { defaultState: false, boolState: false, shorthandString: 'background', ToggleObjectString: 'toggleBackground', DOMObjectString: 'background-layer', URLParamString: 'bg'};
 
 const url = new URL(window.location.href);
 const params = new URLSearchParams(url.search);
@@ -47,16 +47,19 @@ export function setupUI(/* references if needed: svg, etc. */) {
 
   showSettings.forEach(setting => {
     // check URL params
-    setting.boolState = URLWatchdog(setting.boolState, setting.URLParamString);
+    setting.boolState = URLWatchdog(setting.defaultState, setting.URLParamString);
     // update the checkbox in UI
     document.getElementById(setting.ToggleObjectString).checked = setting.boolState;
+
+    // enact the state in the UI
+    showOrHideElement(setting.boolState, "." + setting.DOMObjectString, setting.shorthandString, setting.URLParamString, setting.defaultState);
 
     // add a listener to the checkbox to update UI and URL param
     const toggleInput = document.getElementById(setting.ToggleObjectString);
     if (toggleInput) {
         toggleInput.addEventListener("change", function() {
             setting.boolState = this.checked;
-            showOrHideElement(setting.boolState, "." + setting.DOMObjectString, setting.shorthandString, setting.URLParamString);
+            showOrHideElement(setting.boolState, "." + setting.DOMObjectString, setting.shorthandString, setting.URLParamString, setting.defaultState);
         });
     }
   });
@@ -70,12 +73,12 @@ export function setupUI(/* references if needed: svg, etc. */) {
  * @param {String} shorthand
  * @param {String} URLparam
  */
-export function showOrHideElement (bool, className, shorthand, URLparam) {
+export function showOrHideElement (bool, className, shorthand, URLparam, defaultState) {
   document.querySelectorAll(className).forEach(el => {
     bool ? el.classList.remove("hidden") : el.classList.add("hidden");
   });
   // Also reflect new state in the URL
-  updateURLParam(URLparam, bool);
+  updateURLParam(URLparam, bool, defaultState);
 
   console.log((bool ? "show " : "hide ") + shorthand, "yellow");
 }
@@ -85,16 +88,16 @@ export function showOrHideElement (bool, className, shorthand, URLparam) {
  * @param {String} param - the parameter name, e.g. "coords"
  * @param {Boolean} bool - the new state
  */
-function updateURLParam(param, bool) {
+function updateURLParam(param, bool, defaultState) {
   const url = new URL(window.location);
   url.searchParams.set(param, bool ? "1" : "0");
   
-  // If you prefer removing the param when false, you can do:
-  // if (bool) {
-  //   url.searchParams.set(param, "true");
-  // } else {
-  //   url.searchParams.delete(param);
-  // }
+  //If you prefer removing the param when false, you can do:
+  if (bool != defaultState) {
+    url.searchParams.set(param, bool);
+  } else {
+    url.searchParams.delete(param);
+  }
   
   // Update the browser's URL bar but don’t reload or add a new history entry:
   window.history.replaceState({}, "", url);

@@ -8,7 +8,6 @@ export function createSvgAndContainer() {
   const height = window.visualViewport ? window.visualViewport.height : window.innerHeight;
   const minDim = Math.min(width, height);
   const scaleUnit = minDim/180;
-  console.log("minDim: " + minDim, "red");
 
   if(window.visualViewport.height > (window.innerHeight+2)) {
     console.log("user appears to be on mobile. good luck.", "pink"); 
