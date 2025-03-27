@@ -1,12 +1,12 @@
 // ui.js
-export let showNodeLabel =    { defaultState: true, boolState: true, shorthandString: 'ID labels', ToggleObjectString: 'toggleNodeLabel', DOMObjectString: 'id-label', URLParamString: 'nodeLabel'};
-export let showCoordinates =  { defaultState: true, boolState: true, shorthandString: 'coordinate labels', ToggleObjectString: 'toggleCoordinates', DOMObjectString: 'coord-label', URLParamString: 'coords'};
-export let showForceArrows =  { defaultState: true, boolState: true, shorthandString: 'arrows of forces', ToggleObjectString: 'toggleForceArrows', DOMObjectString: 'force-arrows', DOMObjectSingleString: 'force-arrow', URLParamString: 'forceArrows'};
-export let showNetForce =     { defaultState: true, boolState: true, shorthandString: 'net force arrows', ToggleObjectString: 'toggleNetForce', DOMObjectString: 'force-arrow-netForce', URLParamString: 'netForceArrows'};
-export let showNodeLines =    { defaultState: true, boolState: true, shorthandString: 'dotted lines to observations', ToggleObjectString: 'toggleNodeLines', DOMObjectString: 'node-relations', DOMObjectSingleString: 'node-relation', URLParamString: 'obsLines'};
-export let showObservations = { defaultState: true, boolState: true, shorthandString: 'observations', ToggleObjectString: 'toggleObservations', DOMObjectString: 'hotspot-group', URLParamString: 'obs'};
-export let showTerminal =     { defaultState: false, boolState: false, shorthandString: 'terminal', ToggleObjectString: 'toggleTerminal', DOMObjectString: 'logContainer', URLParamString: 'cmd'};
-export let showBackground =   { defaultState: false, boolState: false, shorthandString: 'background', ToggleObjectString: 'toggleBackground', DOMObjectString: 'background-layer', URLParamString: 'bg'};
+export let showNodeLabel =    { defaultState: true, boolState: true, UILabelString: 'ID Label', shorthandString: 'ID labels', ToggleObjectString: 'toggleNodeLabel', DOMObjectString: 'id-label', URLParamString: 'nodeLabel'};
+export let showCoordinates =  { defaultState: true, boolState: true, UILabelString: 'Coordinates', shorthandString: 'coordinate labels', ToggleObjectString: 'toggleCoordinates', DOMObjectString: 'coord-label', URLParamString: 'coords'};
+export let showForceArrows =  { defaultState: true, boolState: true, UILabelString: 'Force Arrows', shorthandString: 'arrows of forces', ToggleObjectString: 'toggleForceArrows', DOMObjectString: 'force-arrows', DOMObjectSingleString: 'force-arrow', URLParamString: 'forceArrows'};
+export let showNetForce =     { defaultState: true, boolState: true, UILabelString: 'Net Force', shorthandString: 'net force arrows', ToggleObjectString: 'toggleNetForce', DOMObjectString: 'force-arrow-netForce', URLParamString: 'netForceArrows'};
+export let showNodeLines =    { defaultState: true, boolState: true, UILabelString: 'Observations', shorthandString: 'dotted lines to observations', ToggleObjectString: 'toggleNodeLines', DOMObjectString: 'node-relations', DOMObjectSingleString: 'node-relation', URLParamString: 'obsLines'};
+export let showObservations = { defaultState: true, boolState: true, UILabelString: 'Obs. Lines', shorthandString: 'observations', ToggleObjectString: 'toggleObservations', DOMObjectString: 'hotspot-group', URLParamString: 'obs'};
+export let showTerminal =     { defaultState: false, boolState: false, UILabelString: 'Log', shorthandString: 'terminal', ToggleObjectString: 'toggleTerminal', DOMObjectString: 'logContainer', URLParamString: 'cmd'};
+export let showBackground =   { defaultState: false, boolState: false, UILabelString: 'Background', shorthandString: 'background', ToggleObjectString: 'toggleBackground', DOMObjectString: 'background-layer', URLParamString: 'bg'};
 
 const url = new URL(window.location.href);
 const params = new URLSearchParams(url.search);
@@ -17,9 +17,11 @@ const showSettings = [
   showNetForce,
   showNodeLines,
   showObservations,
-  showTerminal,
-  showBackground
+  showBackground,
+  showTerminal
 ];
+
+
 
 /**
  * Checks the URL params for provided terms and adjusts bools as desired
@@ -44,10 +46,19 @@ function URLWatchdog(bool, param, ){
  * Sets up the User Interface
  */
 export function setupUI(/* references if needed: svg, etc. */) {
-
+  const UIContainer = document.getElementById("UIContainer");
+  
   showSettings.forEach(setting => {
     // check URL params
     setting.boolState = URLWatchdog(setting.defaultState, setting.URLParamString);
+    // create a checkbox in UI
+    const UIElement = document.createElement("label");
+    UIElementInput = document.createElement("input");
+    UIElementInput.id = setting.ToggleObjectString;
+    UIElementInput.type = "checkbox";
+    UIElement.appendChild(UIElementInput);
+    UIElement.appendChild(document.createTextNode(setting.UILabelString));
+    UIContainer.appendChild(UIElement);
     // update the checkbox in UI
     document.getElementById(setting.ToggleObjectString).checked = setting.boolState;
 

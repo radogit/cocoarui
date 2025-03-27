@@ -6,142 +6,18 @@
   <link rel="stylesheet" href="style.css">
   <title>CoCoARUI - Dynamic UI Optimizer</title>
   <style>
-    body {
-        font-family: Arial, sans-serif;
-        text-align: center;
-        margin: 0; 
-        overflow: hidden;
-    }
-
-    svg {
-        background-color: #f3f3f3;
-        width: 100vw; 
-        height: 100vh; 
-        display: block; 
-        margin: auto;
-    }
-
-    .label {
-        pointer-events: none;  /* Prevent selection or interaction */
-        user-select: none;  /* Prevent text selection */
-        font-size: 10px;
-        fill: rgba(0,0,0,0.2)
-    }
-    .id-label, .coord-label {
-        font-size: 10px;
-        opacity: 0.5;
-        text-anchor: middle;
-    }
-    input:disabled+label { opacity: 0.4;}
-    div, .force-arrows, .node-relations, .coord-label, .id-label, .hotspot-group {
-      transition: opacity 0.5s ease; /* Adjust duration and easing as needed */
-    }
-    button {
-      margin-bottom: 5px;
-    }
-    .hidden {
-      opacity: 0 !important;
-      pointer-events: none; /* Optional: Prevent interaction when hidden // visibility: hidden;
-      */
-      user-select: none;  /* Prevent text selection */
-    }
-
-    #debug-panel {
-        text-align: left;
-        font-size: 10px;
-        position: absolute;
-        z-index: 9999;
-        top: 10px;
-        left: 10px;
-        background: rgba(255, 255, 255, 0.7);
-        padding: 10px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
-    }
-    span.todo {
-      opacity: 0.5;
-    }
-    span.todo::after {
-      content: " (todo)";
-    }
-    #debug-panel input{
-        height: 10px;
-        width: 10px;
-    }
-    .force-arrow {
-      filter: drop-shadow(0px 3px 3px rgba(0, 0, 0, 0.4));
-    }
-    #logContainer > div {
-      background: rgba(0,0,0,0.9);
-      float: left;
-      clear: both;
-      margin-bottom: 5px;
-    }
-    #logContainer {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      color: white;
-      padding: 10px;
-      overflow-y: auto;
-      max-height: 50vh;
-      z-index: 8888;
-      text-align: left;
-    }
-    #spawnButtonContainer button {
-      float: left;
-      clear: both;
-    }
-    #removeAllButton { margin-top: 10px;}
-    #debug-panel hr {
-      border: 0;
-      border-top: 1px rgba(0,0,0,0.4) solid;
-      margin: 15px 5px 15px 5px;
-    }
-    #debug-panel h2{
-      font-size: 12px;
-      font-weight: normal;
-      margin-top: 0;
-    }
-    /* #background-layer, #background-layer > pattern {x: -50vw; y: -50vh; width: 100vw; height:100vh; fill: blue;} */
-    /* #background-bottom {fill: url('./img/background-bottom-base.png');}
-    #background-top-uphill {fill: url('./img/background-top-uphill.png');}
-    #backgroundTopDownhill {fill: url('./img/background-top-downhill.png');} */
-</style>
+  </style>
 </head>
 <body>
   <script type="module" src="script.js"></script>
   <div id="debug-panel">
     <h2>UI</h2>
     <div id="UIContainer">
-    <label><input type="checkbox" id="toggleNodeLabel" checked>ID Label</label><br>
-    <label><input type="checkbox" id="toggleCoordinates" checked>Coordinates</label><br>
-    <br>
-    <label><input type="checkbox" id="toggleForceArrows" checked>Force Arrows</label><br>
-    <label><input type="checkbox" id="toggleNetForce" checked>Net Force</label><br>
-    <label><input type="checkbox" id="toggleObservations" checked>Observations</label><br>
-    <label><input type="checkbox" id="toggleNodeLines" checked>Obs. Lines</label><br>
-    <label><input type="checkbox" id="toggleBackground" checked>Background</label><br>
-    <br>
-    <label><input type="checkbox" id="toggleTerminal" checked>Log</label><br>
     </div>
     <hr>
     <h2>Spawn</h2>
     <div id="spawnButtonContainer">
     <button id="spawnOneButton">+1 Random</button>
-    <!--br>
-    <button id="spawnButtonSet1">Set 'Fixed'</button>
-    <br>
-    <button id="spawnButtonSet2">Set 'Twins'</button>
-    <br>
-    <button id="spawnButtonSet3">Set 'Banana'</button>
-    <br>
-    <button id="spawnButtonSet4">Set 'Banana2'</button>
-    <br>
-    <button id="spawnButtonSetMask" style="color: blue">Set 'Mask'</button>
-    <br> -->
     </div>
     <br>
     <button id="removeAllButton" style="color: darkred">Delete All</button>
@@ -152,7 +28,7 @@
     <label for="weightSignificance">Significance</label><br>
     <input type="radio" name="weightMethod" id="weightPriority" value="prio" disabled>
     <label for="weightPriority">Priority</label><br> -->
-</div>
+  </div>
 
 </body>
 </html>

@@ -477,3 +477,24 @@ function onResize() {
     // 4) You can redraw axes or call `ticked()` if needed
     //redrawAxes(); // if you have an axis you want to keep consistent
 }
+
+// ======== Keyboard ==================================================
+
+addEventListener('keydown', function(event) {
+  let inputs = document.getElementById("UIContainer").getElementsByTagName("input");
+  if (event.code.startsWith('Digit')) {
+    const index = parseInt(event.code.replace('Digit', ''), 10)-1;
+    if (inputs[index]) {
+      inputs[index].click();
+    }
+    return;
+  } 
+  switch (event.code) {
+    case "Backquote":
+      document.getElementById("spawnOneButton").click();
+      break;
+    case "Backspace":
+      document.getElementById("removeAllButton").click();
+      break;
+  }
+});
