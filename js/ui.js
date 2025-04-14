@@ -53,7 +53,7 @@ export function setupUI(/* references if needed: svg, etc. */) {
     setting.boolState = URLWatchdog(setting.defaultState, setting.URLParamString);
     // create a checkbox in UI
     const UIElement = document.createElement("label");
-    UIElementInput = document.createElement("input");
+    let UIElementInput = document.createElement("input");
     UIElementInput.id = setting.ToggleObjectString;
     UIElementInput.type = "checkbox";
     UIElement.appendChild(UIElementInput);
