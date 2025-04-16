@@ -17,4 +17,6 @@ COPY . .
 EXPOSE 1234
 
 # Run Parcel with the correct options
-CMD ["parcel", "index.html", "--port", "1234", "--host", "0.0.0.0"]
+#CMD ["parcel", "index.html", "--port", "1234", "--host", "0.0.0.0"]
+CMD ["npm", "run", "dev"]
+

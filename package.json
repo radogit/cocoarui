@@ -4,7 +4,8 @@
   "_main": "index.js",
   "scripts": {
     "start": "parcel *.html --open",
-    "build": "parcel build index.html --dist-dir dist",
+    "dev": "parcel serve index.html --dist-dir dist-dev --port 1234 --host 0.0.0.0",
+    "build": "parcel build index.html --dist-dir dist --public-url /cocoarui/",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist && echo \"deployed to: https://radogit.github.io/cocoarui/\""
   },
