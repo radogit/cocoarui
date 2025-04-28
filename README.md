@@ -1,6 +1,6 @@
 **Restarting the Setup After a Reboot**
     ```
-    open -a Docker && sleep 5 && docker-compose up -w
+    open -a Docker && sleep 10 && docker-compose up -w
     ```
 
 **Restarting the Setup After a Reboot**
