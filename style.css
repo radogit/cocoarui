@@ -48,6 +48,9 @@ div, .force-arrows, .node-relations, .coord-label, .id-label, .hotspot-group {
     border-radius: 5px;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
 }
+#debug-panel input[type="checkbox"]:checked + span {
+  font-weight: bold;
+}
 span.todo {
   opacity: 0.5;
 }

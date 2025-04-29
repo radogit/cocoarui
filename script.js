@@ -8,6 +8,7 @@ import * as Backgrounds from "./js/backgrounds.js";
 //import { dragging, dragEnd, dragStart, toggleFixed } from "./js/nodeInteraction.js";
 import { setupLogger } from './js/logger.js';
 //import { dripSpawnNodes } from "./js/dripSpawnNodes.js";
+//import { addNodeWithMultistartVisual } from './js/spawnHelpers.js';
 
 // Set up the logger
 setupLogger();
@@ -22,6 +23,9 @@ const colours = ['red', 'green', 'blue', 'orange', 'purple', 'cyan', 'magenta', 
 
 // 1) Create the SVG, container
 const { svg, container, nodeLayer, hotspotLayer, width, height, minDim, scaleUnit } = Drawing.createSvgAndContainer();
+const windLayer = container.append("g")
+  .attr("class", "wind-layer");     // will hold all trial breadcrumbs
+
 
 // 2) Draw axes
 const { xScale, yScale, xAxis, yAxis } = Drawing.createAxes(container, width, height, minDim);
@@ -37,7 +41,7 @@ Drawing.createArrowheads(svg);
 Heatmaps.createHeatmapGradients(defs, Datasets.nodes, colours);
 
 // 5) Then build the hotspot rects, also from the new function
-Heatmaps.buildHeatspotRects(hotspotLayer, Datasets.nodes);
+Heatmaps.buildHeatspotRects(hotspotLayer, Datasets.nodes, defs);
 
 // 6) Set up UI toggles
 AppUI.setupUI();
@@ -51,7 +55,6 @@ let nodeGroup;
 
 function buildOrUpdateNodes(container, nodes) {
   
-    // The key is re-joining with the 'node-group' class
     nodeGroup = container.selectAll(".node-group")
       .data(nodes, d => d.id)      // key by node id
       .join(
@@ -59,7 +62,7 @@ function buildOrUpdateNodes(container, nodes) {
           // For newly entered node(s):
           const g = enter.append("g")
             .attr("class", "node-group")
-            .on("dblclick", toggleFixed) // so new nodes also get toggleFixed
+            .on("dblclick", toggleFixed)
             .call(d3.drag()
               .on("start", dragStart)
               .on("drag", dragging)
@@ -97,6 +100,10 @@ function buildOrUpdateNodes(container, nodes) {
           g.append("g")
             .attr("class", "node-relations");
             
+          // Node relations container
+          g.append("g")
+            .attr("class", "wind-force");
+            
           // Log the id of each newly spawned node
           g.each(function(d) {
               console.log('spawned: ' + d.id);
@@ -113,6 +120,7 @@ function buildOrUpdateNodes(container, nodes) {
   
     // Optionally, we can set the initial position for all nodes
     nodeGroup.attr("transform", d => `translate(${d.x}, ${d.y})`);
+    
   
     return nodeGroup; // return the selection if you want
   }
@@ -128,24 +136,12 @@ function addOne() {
     radius: 20+30 * Math.random(),
     isFixed: false,
     significance: 1,
-    hotspots: []
+    hotspots: randomHotspots(1+Math.floor(Math.random()*4))
   };
-  for (let i = 0, iterations = Math.floor(Math.random() * 4) + 1; i < iterations; i++) {
-    newNode.hotspots.push(
-      { 
-        x: (width-200) * (Math.random() - 0.5), 
-        y: (height-200) * (Math.random() - 0.5), 
-        intensityFactor: 1.0, 
-        width: 40+160 * Math.random(), 
-        height: 40+160 * Math.random(), 
-        forceType: "attract"  
-      }
-    );
-  }
   
   Datasets.nodes.push(newNode);
   // (A) Re-run hotspot data-join to create rects for newNode.hotspots
-  Heatmaps.buildHeatspotRects(hotspotLayer, Datasets.nodes);
+  Heatmaps.buildHeatspotRects(hotspotLayer, Datasets.nodes, defs);
 
   // (B) Re-run node data-join to create circles, labels, etc.
   buildOrUpdateNodes(nodeLayer, Datasets.nodes);
@@ -155,6 +151,165 @@ function addOne() {
   simulation.alpha(1).restart(); 
 }
 
+function randomHotspots(n=1){
+  const arr = [];
+  for (let i = 0; i < n; i++){
+    arr.push({
+      x : (width  - 200) * (Math.random() - 0.5),
+      y : (height - 200) * (Math.random() - 0.5),
+      intensityFactor : 1.0,
+      width  : 40 + 160 * Math.random(),
+      height : 40 + 160 * Math.random(),
+      forceType : "attract"
+    });
+  }
+  return arr;
+}
+
+// async function addOneSmart(){
+//   const template = {
+//     id: "spawn-" + Date.now().toString(36).slice(-4),
+//     color: colours[Math.floor(Math.random()*colours.length)],
+//     radius: 25,
+//     isFixed:false,
+//     significance:1,
+//     hotspots: randomHotspots( Math.floor(Math.random()*4)+1 )
+//   };
+
+  
+//   await addNodeWithMultistart(
+//         Datasets.nodes, template, simulation, defs, width, height,
+//         36,          // k = 6 random starts
+//         30);        // 30 mini-ticks each
+
+//   // redraw DOM
+//   Heatmaps.buildHeatspotRects(hotspotLayer, Datasets.nodes, defs);
+//   buildOrUpdateNodes(nodeLayer,      Datasets.nodes);
+//   //simulation.nodes(Datasets.nodes).alpha(1).restart();
+//   simulation.alpha(1).restart();
+// }
+
+
+// document.getElementById("addOneSmartVisButton").onclick = async () => {
+//   const tmpl = {
+//     id  : "spawn-" + Date.now().toString(36).slice(-4),
+//     color: colours[ Math.floor(Math.random()*colours.length) ],
+//     radius: 25,
+//     isFixed:false,
+//     significance:1,
+//     hotspots: randomHotspots(1+Math.floor(Math.random()*4))
+//   };
+
+//   await addNodeWithMultistartVisual(
+//       Datasets.nodes, tmpl, simulation,
+//       nodeLayer, hotspotLayer, defs, width, height,
+//       36,   // k trials
+//       30);  // ticks each
+// };
+
+async function addOneSmart(){
+  const template = {
+    id   : "spawn-"+Date.now().toString(36).slice(-4),
+    color: colours[Math.floor(Math.random()*colours.length)],
+    radius: 25,
+    isFixed:false,
+    significance:1,
+    hotspots: randomHotspots(Math.floor(Math.random()*4)+1)
+  };
+
+  await addNodeWithMultistartVisual(
+      Datasets.nodes,
+      template,
+      simulation,
+      width,height,defs,
+      windLayer,        // <— pass the debug layer
+      12,               // k
+      30);              // ticks
+}
+
+/**
+ * Spawn a node by trying k random starts, keep the lowest Σ|F| candidate,
+ * and leave every trial breadcrumb in windLayer.
+ */
+export async function addNodeWithMultistartVisual(
+  nodes,            // main data array
+  template,         // node blueprint (id, colour, radius, hotspots …)
+  simulation,
+  width,height,defs,
+  windLayer,        // the global <g> we added in §1
+  k      = 12,      // number of random trials
+  ticks  = 30       // mini-ticks per trial
+){
+  let bestStress =  Infinity;
+  let bestClone  =  null;
+
+  for (let i = 0; i < k; i++) {
+
+    // ---- 1 · clone & randomise position ------------------------------------
+    const cand = structuredClone(template);
+    cand.x = (Math.random() - .5) * width;
+    cand.y = (Math.random() - .5) * height;
+    cand.id += `-try${i}`;
+
+    // ---- 2 · make sure its hotspots have a gradient ------------------------
+    cand.hotspots.forEach(h => Heatmaps.ensureColourGradient(defs, cand.color));
+
+    // ---- 3 · push as a *ghost* and tick a few steps ------------------------
+    nodes.push(cand);
+    buildOrUpdateNodes(nodeLayer, nodes);
+    simulation.nodes(nodes);
+    for (let t = 0; t < ticks; t++) simulation.tick();
+
+    // ---- 4 · compute Σ|F| --------------------------------------------------
+    const stress = cand.forces.reduce((s, f) => s + Math.hypot(f.fx, f.fy), 0);
+
+    // ---- 5 · breadcrumb in the windLayer ----------------------------------
+    const windG = windLayer.append("g")
+    .attr("transform", d => `translate(${cand.x}, ${cand.y})`);
+    windG.append("circle")
+    .attr("cx", 0)
+    .attr("cy", 0)
+    .attr("r", 6)
+    .attr("fill", cand.color)
+    .attr("fill-opacity", .25)
+    .attr("stroke", "#000")
+    .attr("stroke-width", 0.5);
+    windG.append("text")
+    .text(`trial ${i}  Σ|F| = ${stress.toFixed(1)}`)
+    .attr("class","id-label")
+    .attr("dx", 0)
+    .attr("dy","20px")
+    ;
+    // windLayer.append("circle")
+    //   .attr("cx", cand.x)
+    //   .attr("cy", cand.y)
+    //   .attr("r", 6)
+    //   .attr("fill", cand.color)
+    //   .attr("fill-opacity", .25)
+    //   .attr("stroke", "#000")
+    //   .attr("stroke-width", 0.5)
+    //   .append("title")
+    //   .text(`trial ${i}  Σ|F| = ${stress.toFixed(1)}`);
+
+    // ---- 6 · keep best so far ---------------------------------------------
+    if (stress < bestStress) {
+      bestStress = stress;
+      bestClone  = structuredClone(cand);   // deep copy of the winner
+    }
+
+    // ---- 7 · pop ghost -----------------------------------------------------
+    nodes.pop();
+    nodeLayer.selectAll(".node-group")      // remove its DOM
+      .filter(d => d.id === cand.id)
+      .remove();
+  }
+
+  // ---- 8 · final winner gets real id & stays ------------------------------
+  bestClone.id = template.id;
+  nodes.push(bestClone);
+  buildOrUpdateNodes(nodeLayer, nodes);
+  simulation.nodes(nodes).alpha(1).restart();
+}
 
 // ======= DRIP =========================================================================================================
 let nodesQueue = [];
@@ -218,7 +373,7 @@ export function dripSpawnNodes(
     nodes.push(newNode);
 
     // Re-run the hotspot data-join so new hotspots appear
-    Heatmaps.buildHeatspotRects(hotspotLayer, nodes);
+    Heatmaps.buildHeatspotRects(hotspotLayer, nodes, defs);
 
     // Re-run the node data-join so new node circles/labels appear
     buildOrUpdateNodes(nodeLayer, nodes);
@@ -238,7 +393,7 @@ function removeAllNodes() {
 
   // 2) Re-run the data join for nodes and hotspots
   buildOrUpdateNodes(nodeLayer, Datasets.nodes);
-  Heatmaps.buildHeatspotRects(hotspotLayer, Datasets.nodes);
+  Heatmaps.buildHeatspotRects(hotspotLayer, Datasets.nodes, defs);
 
   // 3) Notify the simulation we have no nodes
   simulation.nodes(Datasets.nodes);
@@ -439,6 +594,7 @@ function ticked() {
 
 document.getElementById("spawnOneButton").addEventListener("click", addOne);
 document.getElementById("removeAllButton").addEventListener("click", removeAllNodes);
+document.getElementById("addOneSmartButton").onclick = addOneSmart; 
 
 const spawnButtonContainer = document.getElementById("spawnButtonContainer");
 

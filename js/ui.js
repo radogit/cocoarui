@@ -48,7 +48,7 @@ function URLWatchdog(bool, param, ){
 export function setupUI(/* references if needed: svg, etc. */) {
   const UIContainer = document.getElementById("UIContainer");
   
-  showSettings.forEach(setting => {
+  showSettings.forEach((setting, index) => {
     // check URL params
     setting.boolState = URLWatchdog(setting.defaultState, setting.URLParamString);
     // create a checkbox in UI
@@ -57,7 +57,10 @@ export function setupUI(/* references if needed: svg, etc. */) {
     UIElementInput.id = setting.ToggleObjectString;
     UIElementInput.type = "checkbox";
     UIElement.appendChild(UIElementInput);
-    UIElement.appendChild(document.createTextNode(setting.UILabelString));
+    //UIElement.appendChild(document.createTextNode(' [ ' + (index+1) + ' ] ' + setting.UILabelString));
+    const span = document.createElement("span");
+    span.textContent = ' [ ' + (index + 1) + ' ] ' + setting.UILabelString;
+    UIElement.appendChild(span);
     UIContainer.appendChild(UIElement);
     // update the checkbox in UI
     document.getElementById(setting.ToggleObjectString).checked = setting.boolState;
