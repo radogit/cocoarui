@@ -22,10 +22,7 @@ const colours = ['red', 'green', 'blue', 'orange', 'purple', 'cyan', 'magenta', 
 // ================================================================================================================
 
 // 1) Create the SVG, container
-const { svg, container, nodeLayer, hotspotLayer, width, height, minDim, scaleUnit } = Drawing.createSvgAndContainer();
-const windLayer = container.append("g")
-  .attr("class", "wind-layer");     // will hold all trial breadcrumbs
-
+const { svg, container, nodeLayer, hotspotLayer, windLayer, windLayerStress, width, height, minDim, scaleUnit } = Drawing.createSvgAndContainer();
 
 // 2) Draw axes
 const { xScale, yScale, xAxis, yAxis } = Drawing.createAxes(container, width, height, minDim);
@@ -75,8 +72,26 @@ function buildOrUpdateNodes(container, nodes) {
             .attr("opacity", 0.6)
             .attr("r", d => d.radius)
             .attr("stroke", d => d.isFixed ? "black" : "none")
-            .attr("stroke-width", d => d.isFixed ? 3 : 0);
-  
+            .attr("stroke-width", d => d.isFixed ? 3 : 0)
+            .on("mouseover", function(event, d) {
+              // Use d.id to construct the ID string
+              const elementId = "spawn-cand-" + d.id;
+              const targetElement = document.getElementById(elementId);
+              if (targetElement) {
+                  targetElement.setAttribute("opacity", 1); // Change opacity
+              }
+            })
+            .on("mouseout", function(event, d) {
+                // Reset the opacity on mouseout
+                const elementId = "spawn-cand-" + d.id;
+                console.log("searched for: "+ elementId);
+                const targetElement = document.getElementById(elementId);
+                if (targetElement) {
+                    console.log("found: "+ elementId);
+                    targetElement.setAttribute("opacity", "0.2"); // Reset opacity
+                }
+            });
+    
           // append ID label
           g.append("text")
             .attr("class", AppUI.showNodeLabel.boolState? AppUI.showNodeLabel.DOMObjectString : AppUI.showNodeLabel.DOMObjectString + " hidden")
@@ -219,99 +234,141 @@ async function addOneSmart(){
 
   await addNodeWithMultistartVisual(
       Datasets.nodes,
-      template,
+      template,          // the node blueprint
       simulation,
-      width,height,defs,
-      windLayer,        // <— pass the debug layer
-      12,               // k
-      30);              // ticks
+      width, height, defs,
+      windLayer,windLayerStress,
+      /* ticks   */ 40,
+      /* cols    */ 20,
+      /* rows    */ 10,
+      /* jitter? */ false
+  );
+  // redraw DOM
+  Heatmaps.buildHeatspotRects(hotspotLayer, Datasets.nodes, defs);
+  buildOrUpdateNodes(nodeLayer,      Datasets.nodes);
+  //simulation.nodes(Datasets.nodes).alpha(1).restart();
+  simulation.alpha(1).restart();
 }
 
 /**
- * Spawn a node by trying k random starts, keep the lowest Σ|F| candidate,
- * and leave every trial breadcrumb in windLayer.
+ * Try every point of a grid, keep the location with the highest
+ * “cancellation” score  (  Σ|Fi| − |ΣFi|  ).
+ * A small marker + label is left in windLayer for every trial.
+ *
+ * @param {Array} nodes          main data array (is mutated)
+ * @param {Object} template      blueprint of the new node (is cloned)
+ * @param {d3.Simulation} simulation  your running force simulation
+ * @param {Number} width,height  current canvas extent
+ * @param {d3.Selection} defs    <defs> where gradients live
+ * @param {d3.Selection} windLayer  <g> used for debug crumbs
+ * @param {d3.Selection} windLayerStress  <g> used for debug crumbs
+ * @param {Number} ticks         mini–ticks per candidate   (default 30)
+ * @param {Number} gridCols      lattice columns            (default 5)
+ * @param {Number} gridRows      lattice rows               (default 5)
+ * @param {Boolean} jitter       true → random offset inside each cell
  */
 export async function addNodeWithMultistartVisual(
-  nodes,            // main data array
-  template,         // node blueprint (id, colour, radius, hotspots …)
-  simulation,
-  width,height,defs,
-  windLayer,        // the global <g> we added in §1
-  k      = 12,      // number of random trials
-  ticks  = 30       // mini-ticks per trial
+  nodes, template, simulation,
+  width, height, defs, windLayer, windLayerStress,
+  ticks      = 30,
+  gridCols   = 5,
+  gridRows   = 5,
+  jitter     = false
 ){
-  //let bestStress =  Infinity;
-  let bestStress =  -1;
-  let bestClone  =  null;
+  let bestStress = -Infinity;      // we *maximise* the cancellation score
+  let bestClone  = null;
 
-  for (let i = 0; i < k; i++) {
+  // ───────────────────────────────────────────────────────────── grid loop
+  const dx = width  / gridCols;
+  const dy = height / gridRows;
+  let trial = 0;
+  const g = windLayer.append("g").attr("id","spawn-cand-"+template.id).attr("opacity","0.2");
+  const gStress = windLayerStress.append("g").attr("id","spawn-cand-"+template.id).attr("opacity","0.2");
 
-    // ---- 1 · clone & randomise position ------------------------------------
-    const cand = structuredClone(template);
-    cand.x = (Math.random() - .5) * width;
-    cand.y = (Math.random() - .5) * height;
-    cand.id += `-try${i}`;
+  for (let gy = 0; gy < gridRows; gy++){
+    for (let gx = 0; gx < gridCols; gx++){
 
-    // ---- 2 · make sure its hotspots have a gradient ------------------------
-    cand.hotspots.forEach(h => Heatmaps.ensureColourGradient(defs, cand.color));
+      // centre of the current grid cell (0,0) in canvas centre
+      let cx = (gx + 0.5) * dx - width  / 2;
+      let cy = (gy + 0.5) * dy - height / 2;
+      if (jitter){
+        cx += (Math.random()-0.5)*dx*0.8;
+        cy += (Math.random()-0.5)*dy*0.8;
+      }
 
-    // ---- 3 · push as a *ghost* and tick a few steps ------------------------
-    nodes.push(cand);
-    buildOrUpdateNodes(nodeLayer, nodes);
-    simulation.nodes(nodes);
-    for (let t = 0; t < ticks; t++) simulation.tick();
+      // 1 ‧ clone template & position ---------------------------------------
+      const cand = structuredClone(template);
+      cand.x = cx;
+      cand.y = cy;
+      cand.id += `-g${gx}-${gy}`;
 
-    // ---- 4 · compute Σ|F| --------------------------------------------------
-    // const stress = cand.forces.reduce((s, f) => s + Math.hypot(f.fx, f.fy), 0);
-    // ---- 4 · compute “cancellation” score -------------------------------
-    const totMag = cand.forces.reduce((s,f)=>s + Math.hypot(f.fx, f.fy), 0);
-    const netX   = cand.forces.reduce((s,f)=>s + f.fx, 0);
-    const netY   = cand.forces.reduce((s,f)=>s + f.fy, 0);
-    const netMag = Math.hypot(netX, netY);
-    const cancellation = totMag - netMag;            //  our new score
+      // 2 ‧ ensure gradients -------------------------------------------------
+      cand.hotspots.forEach(h=>Heatmaps.ensureColourGradient(defs,cand.color));
 
-    // ---- 5 · breadcrumb in the windLayer ----------------------------------
-    const windG = windLayer.append("g")
-    .attr("transform", d => `translate(${cand.x}, ${cand.y})`);
-    windG.append("circle")
-    .attr("cx", 0)
-    .attr("cy", 0)
-    .attr("r", 6)
-    .attr("fill", cand.color)
-    .attr("fill-opacity", .25)
-    .attr("stroke", "#000")
-    .attr("stroke-width", 0.5);
-    windG.append("text")
-    //.text(`trial ${i}  Σ|F| = ${stress.toFixed(1)}`)
-    .text(`trial ${i}  C = ${cancellation.toFixed(1)}`)
-    .attr("class","id-label")
-    .attr("dx", 0)
-    .attr("dy","20px")
-    ;
+      // 3 ‧ push ghost & run a few ticks ------------------------------------
+      nodes.push(cand);
+      buildOrUpdateNodes(nodeLayer, nodes);
+      simulation.nodes(nodes);
+      for (let t=0; t<ticks; t++) simulation.tick();
 
-    // ---- 6 · keep best so far ---------------------------------------------
-    // if (stress < bestStress) {
-    //   bestStress = stress;
-    //   bestClone  = structuredClone(cand);   // deep copy of the winner
-    // }
-    if (cancellation > bestStress) {      // maximise, not minimise
-      bestStress = cancellation;
-      bestClone  = structuredClone(cand);
+      // 4 ‧ cancellation score  Σ|Fi| − |ΣFi| ------------------------------
+      const stress = cand.forces.reduce((s, f) => s + Math.hypot(f.fx, f.fy), 0); // old metric
+      const totMag = cand.forces.reduce((s,f)=>s+Math.hypot(f.fx,f.fy),0);
+      const sx     = cand.forces.reduce((s,f)=>s+f.fx,0);
+      const sy     = cand.forces.reduce((s,f)=>s+f.fy,0);
+      const netMag = Math.hypot(sx,sy);
+      const cancel = totMag - netMag;
+
+      // 5 ‧ breadcrumb ------------------------------------------------------
+      const trialG = g.append("g")
+        .attr("transform",`translate(${cand.x},${cand.y})`);
+      const trialGStress = gStress.append("g")
+        .attr("transform",`translate(${cand.x},${cand.y})`);
+
+      trialG.append("circle")
+        .attr("r",cancel)
+        .attr("fill",cand.color).attr("fill-opacity",.125)
+        .attr("stroke","#000").attr("stroke-width",0.5);
+      trialG.append("circle")
+        .attr("r",stress/10)
+        .attr("fill",cand.color).attr("fill-opacity",.125)
+        .attr("stroke","#000").attr("stroke-width",0.5);
+
+      const gText = trialG.append("text")
+        .attr("class","id-label")
+        .attr("x",0).attr("dy","20px").style("opacity",0);
+        gText.append("tspan").text(`t${trial++}`).attr("dy","-1.2em");
+      const gText2 = trialG.append("text")
+        .attr("class","id-label")
+        .attr("x",0).attr("dy","20px");
+        gText2.append("tspan").text(`C=${cancel.toFixed(1)}`).attr("dy","0em");
+      const gText3 = trialG.append("text")
+        .attr("class","id-label")
+        .attr("x",0).attr("dy","20px");
+        gText3.append("tspan").text(`S=${stress.toFixed(1)}`).attr("dy","1.2em");
+
+
+      // 6 ‧ keep best --------------------------------------------------------
+      if (cancel > bestStress){
+        bestStress = cancel;
+        bestClone  = structuredClone(cand);
+      }
+
+      // 7 ‧ pop ghost -------------------------------------------------------
+      nodes.pop();
+      nodeLayer.selectAll(".node-group")
+        .filter(d=>d.id===cand.id)
+        .remove();
     }
-  
-    // ---- 7 · pop ghost -----------------------------------------------------
-    nodes.pop();
-    nodeLayer.selectAll(".node-group")      // remove its DOM
-      .filter(d => d.id === cand.id)
-      .remove();
   }
 
-  // ---- 8 · final winner gets real id & stays ------------------------------
+  // 8 ‧ commit winner -------------------------------------------------------
   bestClone.id = template.id;
   nodes.push(bestClone);
   buildOrUpdateNodes(nodeLayer, nodes);
   simulation.nodes(nodes).alpha(1).restart();
 }
+
 
 // ======= DRIP =========================================================================================================
 let nodesQueue = [];

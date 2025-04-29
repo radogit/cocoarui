@@ -108,6 +108,10 @@ button {
   font-weight: normal;
   margin-top: 0;
 }
+
+/* .wind-layer > g {opacity: 0.2;} */
+.wind-layer > g {  transition: all ease-in-out 0.2s;}
+
 /* #background-layer, #background-layer > pattern {x: -50vw; y: -50vh; width: 100vw; height:100vh; fill: blue;} */
 /* #background-bottom {fill: url('./img/background-bottom-base.png');}
 #background-top-uphill {fill: url('./img/background-top-uphill.jpg');}

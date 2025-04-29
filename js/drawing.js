@@ -50,10 +50,15 @@ export function createSvgAndContainer() {
   const hotspotLayer = container.append("g")
   .attr("class", "hotspot-layer");
   
+  const windLayer = container.append("g")
+  .attr("class", "wind-layer");
+  const windLayerStress = container.append("g")
+  .attr("class", "wind-layer-stress");
+
   const nodeLayer = container.append("g")
   .attr("class", "node-layer");
 
-  return { svg, container, nodeLayer, hotspotLayer, width, height, minDim, scaleUnit };
+  return { svg, container, nodeLayer, hotspotLayer, windLayer, windLayerStress, width, height, minDim, scaleUnit };
 }
 
 export function createAxes(container, width, height, minDim) {
