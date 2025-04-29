@@ -240,7 +240,8 @@ export async function addNodeWithMultistartVisual(
   k      = 12,      // number of random trials
   ticks  = 30       // mini-ticks per trial
 ){
-  let bestStress =  Infinity;
+  //let bestStress =  Infinity;
+  let bestStress =  -1;
   let bestClone  =  null;
 
   for (let i = 0; i < k; i++) {
@@ -261,7 +262,13 @@ export async function addNodeWithMultistartVisual(
     for (let t = 0; t < ticks; t++) simulation.tick();
 
     // ---- 4 · compute Σ|F| --------------------------------------------------
-    const stress = cand.forces.reduce((s, f) => s + Math.hypot(f.fx, f.fy), 0);
+    // const stress = cand.forces.reduce((s, f) => s + Math.hypot(f.fx, f.fy), 0);
+    // ---- 4 · compute “cancellation” score -------------------------------
+    const totMag = cand.forces.reduce((s,f)=>s + Math.hypot(f.fx, f.fy), 0);
+    const netX   = cand.forces.reduce((s,f)=>s + f.fx, 0);
+    const netY   = cand.forces.reduce((s,f)=>s + f.fy, 0);
+    const netMag = Math.hypot(netX, netY);
+    const cancellation = totMag - netMag;            //  our new score
 
     // ---- 5 · breadcrumb in the windLayer ----------------------------------
     const windG = windLayer.append("g")
@@ -275,28 +282,23 @@ export async function addNodeWithMultistartVisual(
     .attr("stroke", "#000")
     .attr("stroke-width", 0.5);
     windG.append("text")
-    .text(`trial ${i}  Σ|F| = ${stress.toFixed(1)}`)
+    //.text(`trial ${i}  Σ|F| = ${stress.toFixed(1)}`)
+    .text(`trial ${i}  C = ${cancellation.toFixed(1)}`)
     .attr("class","id-label")
     .attr("dx", 0)
     .attr("dy","20px")
     ;
-    // windLayer.append("circle")
-    //   .attr("cx", cand.x)
-    //   .attr("cy", cand.y)
-    //   .attr("r", 6)
-    //   .attr("fill", cand.color)
-    //   .attr("fill-opacity", .25)
-    //   .attr("stroke", "#000")
-    //   .attr("stroke-width", 0.5)
-    //   .append("title")
-    //   .text(`trial ${i}  Σ|F| = ${stress.toFixed(1)}`);
 
     // ---- 6 · keep best so far ---------------------------------------------
-    if (stress < bestStress) {
-      bestStress = stress;
-      bestClone  = structuredClone(cand);   // deep copy of the winner
+    // if (stress < bestStress) {
+    //   bestStress = stress;
+    //   bestClone  = structuredClone(cand);   // deep copy of the winner
+    // }
+    if (cancellation > bestStress) {      // maximise, not minimise
+      bestStress = cancellation;
+      bestClone  = structuredClone(cand);
     }
-
+  
     // ---- 7 · pop ghost -----------------------------------------------------
     nodes.pop();
     nodeLayer.selectAll(".node-group")      // remove its DOM
