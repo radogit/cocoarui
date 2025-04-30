@@ -22,7 +22,7 @@ const colours = ['red', 'green', 'blue', 'orange', 'purple', 'cyan', 'magenta', 
 // ================================================================================================================
 
 // 1) Create the SVG, container
-const { svg, container, nodeLayer, hotspotLayer, windLayer, windLayerStress, width, height, minDim, scaleUnit } = Drawing.createSvgAndContainer();
+const { svg, container, nodeLayer, hotspotLayer, windLayerCancel, windLayerStress, width, height, minDim, scaleUnit } = Drawing.createSvgAndContainer();
 
 // 2) Draw axes
 const { xScale, yScale, xAxis, yAxis } = Drawing.createAxes(container, width, height, minDim);
@@ -74,21 +74,27 @@ function buildOrUpdateNodes(container, nodes) {
             .attr("stroke", d => d.isFixed ? "black" : "none")
             .attr("stroke-width", d => d.isFixed ? 3 : 0)
             .on("mouseover", function(event, d) {
-              // Use d.id to construct the ID string
-              const elementId = "spawn-cand-" + d.id;
-              const targetElement = document.getElementById(elementId);
+              let elementId = "spawn-cand-stress-" + d.id;
+              let targetElement = document.getElementById(elementId);
               if (targetElement) {
-                  targetElement.setAttribute("opacity", 1); // Change opacity
+                  targetElement.setAttribute("opacity", 1);
+              }
+              elementId = "spawn-cand-cancel-" + d.id;
+              targetElement = document.getElementById(elementId);
+              if (targetElement) {
+                  targetElement.setAttribute("opacity", 1);
               }
             })
             .on("mouseout", function(event, d) {
-                // Reset the opacity on mouseout
-                const elementId = "spawn-cand-" + d.id;
-                console.log("searched for: "+ elementId);
-                const targetElement = document.getElementById(elementId);
+                let elementId = "spawn-cand-stress-" + d.id;
+                let targetElement = document.getElementById(elementId);
                 if (targetElement) {
-                    console.log("found: "+ elementId);
-                    targetElement.setAttribute("opacity", "0.2"); // Reset opacity
+                    targetElement.setAttribute("opacity", "0.2");
+                }
+                elementId = "spawn-cand-cancel-" + d.id;
+                targetElement = document.getElementById(elementId);
+                if (targetElement) {
+                    targetElement.setAttribute("opacity", "0.2");
                 }
             });
     
@@ -229,7 +235,7 @@ async function addOneSmart(){
     radius: 25,
     isFixed:false,
     significance:1,
-    hotspots: randomHotspots(Math.floor(Math.random()*4)+1)
+    hotspots: randomHotspots(Math.floor(Math.random()*4)+2)
   };
 
   await addNodeWithMultistartVisual(
@@ -237,8 +243,8 @@ async function addOneSmart(){
       template,          // the node blueprint
       simulation,
       width, height, defs,
-      windLayer,windLayerStress,
-      /* ticks   */ 40,
+      windLayerCancel,windLayerStress,
+      /* ticks   */ 140,
       /* cols    */ 20,
       /* rows    */ 10,
       /* jitter? */ false
@@ -253,14 +259,14 @@ async function addOneSmart(){
 /**
  * Try every point of a grid, keep the location with the highest
  * “cancellation” score  (  Σ|Fi| − |ΣFi|  ).
- * A small marker + label is left in windLayer for every trial.
+ * A small marker + label is left in windLayerCancel for every trial.
  *
  * @param {Array} nodes          main data array (is mutated)
  * @param {Object} template      blueprint of the new node (is cloned)
  * @param {d3.Simulation} simulation  your running force simulation
  * @param {Number} width,height  current canvas extent
  * @param {d3.Selection} defs    <defs> where gradients live
- * @param {d3.Selection} windLayer  <g> used for debug crumbs
+ * @param {d3.Selection} windLayerCancel  <g> used for debug crumbs
  * @param {d3.Selection} windLayerStress  <g> used for debug crumbs
  * @param {Number} ticks         mini–ticks per candidate   (default 30)
  * @param {Number} gridCols      lattice columns            (default 5)
@@ -269,7 +275,7 @@ async function addOneSmart(){
  */
 export async function addNodeWithMultistartVisual(
   nodes, template, simulation,
-  width, height, defs, windLayer, windLayerStress,
+  width, height, defs, windLayerCancel, windLayerStress,
   ticks      = 30,
   gridCols   = 5,
   gridRows   = 5,
@@ -282,8 +288,16 @@ export async function addNodeWithMultistartVisual(
   const dx = width  / gridCols;
   const dy = height / gridRows;
   let trial = 0;
-  const g = windLayer.append("g").attr("id","spawn-cand-"+template.id).attr("opacity","0.2");
-  const gStress = windLayerStress.append("g").attr("id","spawn-cand-"+template.id).attr("opacity","0.2");
+  const gCancel = windLayerCancel.append("g")
+    .attr("id","spawn-cand-cancel-"+template.id)
+    .attr("class", AppUI.showWindCancel.boolState? AppUI.showWindCancel.DOMObjectString : AppUI.showWindCancel.DOMObjectString + " hidden")
+    .attr("opacity","0.2")
+    ;
+  const gStress = windLayerStress.append("g")
+    .attr("id","spawn-cand-stress-"+template.id)
+    .attr("class", AppUI.showWindStress.boolState? AppUI.showWindStress.DOMObjectString : AppUI.showWindStress.DOMObjectString + " hidden")
+    .attr("opacity","0.2")
+    ;
 
   for (let gy = 0; gy < gridRows; gy++){
     for (let gx = 0; gx < gridCols; gx++){
@@ -320,32 +334,37 @@ export async function addNodeWithMultistartVisual(
       const cancel = totMag - netMag;
 
       // 5 ‧ breadcrumb ------------------------------------------------------
-      const trialG = g.append("g")
+      const trialGCancel = gCancel.append("g")
         .attr("transform",`translate(${cand.x},${cand.y})`);
       const trialGStress = gStress.append("g")
         .attr("transform",`translate(${cand.x},${cand.y})`);
 
-      trialG.append("circle")
+      trialGCancel.append("circle")
         .attr("r",cancel)
         .attr("fill",cand.color).attr("fill-opacity",.125)
-        .attr("stroke","#000").attr("stroke-width",0.5);
-      trialG.append("circle")
-        .attr("r",stress/10)
-        .attr("fill",cand.color).attr("fill-opacity",.125)
-        .attr("stroke","#000").attr("stroke-width",0.5);
+        //.attr("stroke","#000").attr("stroke-width",0.5)
+        ;
+      trialGStress.append("rect")
+        .attr("width",stress/10)
+        .attr("height",stress/10)
+        .attr("x",-stress/10/2)
+        .attr("y",-stress/10/2)
+        .attr("fill",cand.color).attr("fill-opacity",0.125)
+        //.attr("stroke",cand.color).attr("stroke-width",1)
+        ;
 
-      const gText = trialG.append("text")
-        .attr("class","id-label")
-        .attr("x",0).attr("dy","20px").style("opacity",0);
-        gText.append("tspan").text(`t${trial++}`).attr("dy","-1.2em");
-      const gText2 = trialG.append("text")
-        .attr("class","id-label")
+      // const gText = trialGCancel.append("text")
+      //   .attr("class","id-label")
+      //   .attr("x",0).attr("dy","20px").style("opacity",0);
+      //   gText.append("tspan").text(`t${trial++}`).attr("dy","-1.2em");
+      const gTextCancel = trialGCancel.append("text")
+        .attr("class", AppUI.showNodeLabel.boolState? AppUI.showNodeLabel.DOMObjectString : AppUI.showNodeLabel.DOMObjectString + " hidden")
         .attr("x",0).attr("dy","20px");
-        gText2.append("tspan").text(`C=${cancel.toFixed(1)}`).attr("dy","0em");
-      const gText3 = trialG.append("text")
-        .attr("class","id-label")
+        gTextCancel.append("tspan").text(`C=${cancel.toFixed(1)}`).attr("dy","0em");
+      const gTextStress = trialGStress.append("text")
+        .attr("class", AppUI.showNodeLabel.boolState? AppUI.showNodeLabel.DOMObjectString : AppUI.showNodeLabel.DOMObjectString + " hidden")
         .attr("x",0).attr("dy","20px");
-        gText3.append("tspan").text(`S=${stress.toFixed(1)}`).attr("dy","1.2em");
+        gTextStress.append("tspan").text(`S=${stress.toFixed(1)}`).attr("dy","1.2em");
 
 
       // 6 ‧ keep best --------------------------------------------------------

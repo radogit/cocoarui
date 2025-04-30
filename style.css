@@ -110,7 +110,7 @@ button {
 }
 
 /* .wind-layer > g {opacity: 0.2;} */
-.wind-layer > g {  transition: all ease-in-out 0.2s;}
+.wind-layer-stress > g, .wind-layer-cancel > g {  transition: all ease-in-out 0.2s;}
 
 /* #background-layer, #background-layer > pattern {x: -50vw; y: -50vh; width: 100vw; height:100vh; fill: blue;} */
 /* #background-bottom {fill: url('./img/background-bottom-base.png');}
