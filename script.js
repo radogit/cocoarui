@@ -123,7 +123,7 @@ function buildOrUpdateNodes(container, nodes) {
             
           // Log the id of each newly spawned node
           g.each(function(d) {
-              console.log('spawned: ' + d.id);
+              //console.log('spawned: ' + d.id);
           });
           return g;
         },
@@ -242,7 +242,7 @@ async function addOneSmart(){
       simulation,
       width, height, defs,
       windLayerCancel,windLayerStress,
-      /* ticks   */ 140,
+      /* ticks   */ 1,
       /* cols    */ 20,
       /* rows    */ 10,
       /* jitter? */ false
@@ -322,7 +322,7 @@ export async function addNodeWithMultistartVisual(
       buildOrUpdateNodes(nodeLayer, nodes);
       simulation.nodes(nodes);
       for (let t=0; t<ticks; t++) simulation.tick();
-
+      
       // 4 ‧ cancellation score  Σ|Fi| − |ΣFi| ------------------------------
       const stress = cand.forces.reduce((s, f) => s + Math.hypot(f.fx, f.fy), 0); // old metric
       const totMag = cand.forces.reduce((s,f)=>s+Math.hypot(f.fx,f.fy),0);
@@ -338,18 +338,50 @@ export async function addNodeWithMultistartVisual(
         .attr("transform",`translate(${cand.x},${cand.y})`);
 
       trialGCancel.append("circle")
+        .attr("cancel",cancel)
         .attr("r",cancel)
         .attr("fill",cand.color).attr("fill-opacity",.125)
         //.attr("stroke","#000").attr("stroke-width",0.5)
         ;
-      trialGStress.append("rect")
-        .attr("width",stress/10)
-        .attr("height",stress/10)
-        .attr("x",-stress/10/2)
-        .attr("y",-stress/10/2)
-        .attr("fill",cand.color).attr("fill-opacity",0.125)
+      
+        // trialGStress.append("rect")
+        // .attr("width",stress/10)
+        // .attr("height",stress/10)
+        // .attr("x",-stress/10/2)
+        // .attr("y",-stress/10/2)
+        // .attr("fill",cand.color).attr("fill-opacity",0.125)
+        // //.attr("stroke",cand.color).attr("stroke-width",1)
+        // ;
+        trialGStress.append("rect")
+        .attr("stress",stress)
+        .attr("width",dx)
+        .attr("height",dy)
+        .attr("x",-dx/2)
+        .attr("y",-dy/2)
+        .attr("fill",cand.color).attr("fill-opacity",0.125*stress/10)
         //.attr("stroke",cand.color).attr("stroke-width",1)
         ;
+
+      const netForceX = cand.vx;
+      const netForceY = cand.vy;
+      const netForceMagnitude = Math.sqrt(netForceX ** 2 + netForceY ** 2);
+
+      if (netForceMagnitude > 0.1) {
+        const netLength = Math.min(netForceMagnitude * 5, 1000);
+        const netAngle = Math.atan2(netForceY, netForceX);
+
+        trialGCancel.append("line")
+            //.attr("class", (AppUI.showNetForce.boolState) ? AppUI.showForceArrows.DOMObjectSingleString+" net-force-arrow" : AppUI.showForceArrows.DOMObjectSingleString+" net-force-arrow hidden")
+            .attr("x1", 0)
+            .attr("y1", 0)
+            .attr("x2", netLength * Math.cos(netAngle))
+            .attr("y2", netLength * Math.sin(netAngle))
+            .attr("stroke", "red")
+            .attr("stroke-width", 3)
+            .attr("marker-end", "url(#arrowhead)")
+            .style("opacity", netForceMagnitude > 0.9 ? 0.8 : 0.5);
+      }
+
 
       // const gText = trialGCancel.append("text")
       //   .attr("class","id-label")
@@ -379,6 +411,10 @@ export async function addNodeWithMultistartVisual(
     }
   }
 
+  // adjust the sizes and opacities of circles, rectangles and lines
+  console.log("bestStress " + bestStress);
+  console.log(document.getElementById("spawn-cand-cancel-"+template.id).childNodes.length);
+   
   // 8 ‧ commit winner -------------------------------------------------------
   bestClone.id = template.id;
   nodes.push(bestClone);
