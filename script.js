@@ -121,10 +121,6 @@ function buildOrUpdateNodes(container, nodes) {
           g.append("g")
             .attr("class", "node-relations");
             
-          // Node relations container
-          g.append("g")
-            .attr("class", "wind-force");
-            
           // Log the id of each newly spawned node
           g.each(function(d) {
               console.log('spawned: ' + d.id);
@@ -136,7 +132,9 @@ function buildOrUpdateNodes(container, nodes) {
           // e.g., update.attr(...).transition(...) 
           return update;
         },
-        exit => exit.remove()
+        exit => {
+          exit.remove();
+        }
       );
   
     // Optionally, we can set the initial position for all nodes
@@ -469,6 +467,10 @@ function removeAllNodes() {
   // 1) Clear the array
   Datasets.nodes.splice(0, Datasets.nodes.length);
 
+  // clear the wind-force groups
+  document.getElementById('wind-layer-stress').innerHTML='';
+  document.getElementById('wind-layer-cancel').innerHTML='';
+
   // 2) Re-run the data join for nodes and hotspots
   buildOrUpdateNodes(nodeLayer, Datasets.nodes);
   Heatmaps.buildHeatspotRects(hotspotLayer, Datasets.nodes, defs);
@@ -717,7 +719,8 @@ function onResize() {
 addEventListener('keydown', function(event) {
   let inputs = document.getElementById("UIContainer").getElementsByTagName("input");
   if (event.code.startsWith('Digit')) {
-    const index = parseInt(event.code.replace('Digit', ''), 10)-1;
+    let index = parseInt(event.code.replace('Digit', ''), 10)-1;
+    if(index==-1){index=9;} // fix for Digit0
     if (inputs[index]) {
       inputs[index].click();
     }
@@ -725,7 +728,8 @@ addEventListener('keydown', function(event) {
   } 
   switch (event.code) {
     case "Backquote":
-      document.getElementById("spawnOneButton").click();
+      //document.getElementById("spawnOneButton").click();
+      document.getElementById("addOneSmartButton").click();
       break;
     case "Backspace":
       document.getElementById("removeAllButton").click();

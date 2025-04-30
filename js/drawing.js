@@ -51,9 +51,11 @@ export function createSvgAndContainer() {
   .attr("class", "hotspot-layer");
   
   const windLayerCancel = container.append("g")
-  .attr("class", "wind-layer-cancel");
+  .attr("class", "wind-layer-cancel")
+  .attr("id", "wind-layer-cancel");
   const windLayerStress = container.append("g")
-  .attr("class", "wind-layer-stress");
+  .attr("class", "wind-layer-stress")
+  .attr("id", "wind-layer-stress");
 
   const nodeLayer = container.append("g")
   .attr("class", "node-layer");
