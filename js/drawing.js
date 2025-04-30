@@ -106,7 +106,7 @@ export function createArrowheads(svg) {
     .attr("d", "M0,0 L10,5 L0,10 Z")
     .attr("fill", "white");
 
-  arrowsContainer.append("marker")
+    arrowsContainer.append("marker")
     .attr("id", "arrowhead-orange")
     .attr("viewBox", "0 0 10 10")
     .attr("refX", 0)
@@ -117,4 +117,16 @@ export function createArrowheads(svg) {
     .append("path")
     .attr("d", "M0,0 L10,5 L0,10 Z")
     .attr("fill", "orange");
+
+    arrowsContainer.append("marker")
+    .attr("id", "arrowhead-red")
+    .attr("viewBox", "0 0 10 10")
+    .attr("refX", 0)
+    .attr("refY", 5)
+    .attr("markerWidth", 4)
+    .attr("markerHeight", 4)
+    .attr("orient", "auto")
+    .append("path")
+    .attr("d", "M0,0 L10,5 L0,10 Z")
+    .attr("fill", "red");
 }

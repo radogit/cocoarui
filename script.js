@@ -244,7 +244,7 @@ async function addOneSmart(){
       windLayerCancel, windLayerStress, windLayerNetForceArrows,
       /* ticks   */ 1,
       /* cols    */ 20,
-      /* rows    */ 10,
+      /* rows    */ 20,
       /* jitter? */ false
   );
   // redraw DOM
@@ -284,6 +284,7 @@ export async function addNodeWithMultistartVisual(
   let highestStress = -Infinity;
   let lowestStress = Infinity;
   let highestCancel = -Infinity;
+  let longestArrow = -Infinity;
   let bestClone  = null;
 
   // ───────────────────────────────────────────────────────────── grid loop
@@ -320,6 +321,7 @@ export async function addNodeWithMultistartVisual(
       const cand = structuredClone(template);
       cand.x = cx;
       cand.y = cy;
+      console.log(cand.y);
       cand.id += `-g${gx}-${gy}`;
 
       // 2 ‧ ensure gradients -------------------------------------------------
@@ -330,6 +332,9 @@ export async function addNodeWithMultistartVisual(
       buildOrUpdateNodes(nodeLayer, nodes);
       simulation.nodes(nodes);
       for (let t=0; t<ticks; t++) simulation.tick();
+
+      cand.x = cx;
+      cand.y = cy;
       
       // 4 ‧ cancellation score  Σ|Fi| − |ΣFi| ------------------------------
       const stress = cand.forces.reduce((s, f) => s + Math.hypot(f.fx, f.fy), 0); // old metric
@@ -386,9 +391,10 @@ export async function addNodeWithMultistartVisual(
             .attr("y1", 0)
             .attr("x2", netLength * Math.cos(netAngle))
             .attr("y2", netLength * Math.sin(netAngle))
+            .attr("netForceMagnitude", netForceMagnitude)
             .attr("stroke", "red")
             .attr("stroke-width", 3)
-            .attr("marker-end", "url(#arrowhead)")
+            .attr("marker-end", "url(#arrowhead-red)")
             .style("opacity", netForceMagnitude > 0.9 ? 0.8 : 0.5);
       }
 
@@ -420,6 +426,9 @@ export async function addNodeWithMultistartVisual(
         highestStress = stress;
         // bestClone  = structuredClone(cand);
       }
+      if (netForceMagnitude > longestArrow){
+        longestArrow = netForceMagnitude;
+      }
 
       // 7 ‧ pop ghost -------------------------------------------------------
       nodes.pop();
@@ -432,6 +441,7 @@ export async function addNodeWithMultistartVisual(
   // adjust the sizes and opacities of circles, rectangles and lines
   console.log("highestStress " + highestStress);
   console.log("highestCancel " + highestCancel);
+  console.log("longestArrow " + longestArrow);
   const spawnCandCancel = document.getElementById("spawn-cand-cancel-"+template.id).childNodes;
   spawnCandCancel.forEach((child, index) => {
     child.firstChild.setAttribute("fill-opacity",0.5*child.firstChild.getAttribute("cancel")/highestCancel);
@@ -441,6 +451,11 @@ export async function addNodeWithMultistartVisual(
   spawnCandStress.forEach((child, index) => {
     child.firstChild.setAttribute("fill-opacity",0.5*child.firstChild.getAttribute("stress")/highestStress);
   });
+  // const spawnCandNetForceArrow = document.getElementById("spawn-cand-netForceArrow-"+template.id).childNodes;
+  // spawnCandNetForceArrow.forEach((child, index) => {
+  //   child.firstChild.setAttribute("x2", child.firstChild.getAttribute("x2") * child.firstChild.getAttribute("netForceMagnitude")/longestArrow);
+  //   child.firstChild.setAttribute("y2", child.firstChild.getAttribute("y2") * child.firstChild.getAttribute("netForceMagnitude")/longestArrow);
+  // });
    
   // 8 ‧ commit winner -------------------------------------------------------
   bestClone.id = template.id;
@@ -533,6 +548,7 @@ function removeAllNodes() {
   // clear the wind-force groups
   document.getElementById('wind-layer-stress').innerHTML='';
   document.getElementById('wind-layer-cancel').innerHTML='';
+  document.getElementById('wind-layer-netForceArrows').innerHTML='';
 
   // 2) Re-run the data join for nodes and hotspots
   buildOrUpdateNodes(nodeLayer, Datasets.nodes);
@@ -678,7 +694,7 @@ function ticked() {
                     .attr("y2", netLength * Math.sin(netAngle))
                     .attr("stroke", "red")
                     .attr("stroke-width", 3)
-                    .attr("marker-end", "url(#arrowhead)")
+                    .attr("marker-end", "url(#arrowhead-red)")
                     .style("opacity", netForceMagnitude > 0.9 ? 0.8 : 0.5);
             }
         }
