@@ -22,7 +22,7 @@ const colours = ['red', 'green', 'blue', 'orange', 'purple', 'cyan', 'magenta', 
 // ================================================================================================================
 
 // 1) Create the SVG, container
-const { svg, container, nodeLayer, hotspotLayer, windLayerCancel, windLayerStress, width, height, minDim, scaleUnit } = Drawing.createSvgAndContainer();
+const { svg, container, nodeLayer, hotspotLayer, windLayerCancel, windLayerStress, windLayerNetForceArrows, width, height, minDim, scaleUnit } = Drawing.createSvgAndContainer();
 
 // 2) Draw axes
 const { xScale, yScale, xAxis, yAxis } = Drawing.createAxes(container, width, height, minDim);
@@ -241,7 +241,7 @@ async function addOneSmart(){
       template,          // the node blueprint
       simulation,
       width, height, defs,
-      windLayerCancel,windLayerStress,
+      windLayerCancel, windLayerStress, windLayerNetForceArrows,
       /* ticks   */ 1,
       /* cols    */ 20,
       /* rows    */ 10,
@@ -266,6 +266,7 @@ async function addOneSmart(){
  * @param {d3.Selection} defs    <defs> where gradients live
  * @param {d3.Selection} windLayerCancel  <g> used for debug crumbs
  * @param {d3.Selection} windLayerStress  <g> used for debug crumbs
+ * @param {d3.Selection} windLayerNetForceArrows  <g> used for debug crumbs
  * @param {Number} ticks         mini–ticks per candidate   (default 30)
  * @param {Number} gridCols      lattice columns            (default 5)
  * @param {Number} gridRows      lattice rows               (default 5)
@@ -273,13 +274,16 @@ async function addOneSmart(){
  */
 export async function addNodeWithMultistartVisual(
   nodes, template, simulation,
-  width, height, defs, windLayerCancel, windLayerStress,
+  width, height, defs, windLayerCancel, windLayerStress, windLayerNetForceArrows,
   ticks      = 30,
   gridCols   = 5,
   gridRows   = 5,
   jitter     = false
 ){
-  let bestStress = -Infinity;      // we *maximise* the cancellation score
+  
+  let highestStress = -Infinity;
+  let lowestStress = Infinity;
+  let highestCancel = -Infinity;
   let bestClone  = null;
 
   // ───────────────────────────────────────────────────────────── grid loop
@@ -296,10 +300,14 @@ export async function addNodeWithMultistartVisual(
     .attr("class", AppUI.showWindStress.boolState? AppUI.showWindStress.DOMObjectString : AppUI.showWindStress.DOMObjectString + " hidden")
     .attr("opacity","0.2")
     ;
-
+  const gNetForceArrows = windLayerNetForceArrows.append("g")
+    .attr("id","spawn-cand-netForceArrows-"+template.id)
+    .attr("class", AppUI.showWindNetForceArrows.boolState? AppUI.showWindNetForceArrows.DOMObjectString : AppUI.showWindNetForceArrows.DOMObjectString + " hidden")
+    .attr("opacity","0.2")
+    ;
+    
   for (let gy = 0; gy < gridRows; gy++){
     for (let gx = 0; gx < gridCols; gx++){
-
       // centre of the current grid cell (0,0) in canvas centre
       let cx = (gx + 0.5) * dx - width  / 2;
       let cy = (gy + 0.5) * dy - height / 2;
@@ -334,12 +342,14 @@ export async function addNodeWithMultistartVisual(
       // 5 ‧ breadcrumb ------------------------------------------------------
       const trialGCancel = gCancel.append("g")
         .attr("transform",`translate(${cand.x},${cand.y})`);
-      const trialGStress = gStress.append("g")
+        const trialGStress = gStress.append("g")
+        .attr("transform",`translate(${cand.x},${cand.y})`);
+        const trialGNetForceArrows = gNetForceArrows.append("g")
         .attr("transform",`translate(${cand.x},${cand.y})`);
 
       trialGCancel.append("circle")
         .attr("cancel",cancel)
-        .attr("r",cancel)
+        .attr("r",dx/2)
         .attr("fill",cand.color).attr("fill-opacity",.125)
         //.attr("stroke","#000").attr("stroke-width",0.5)
         ;
@@ -370,7 +380,7 @@ export async function addNodeWithMultistartVisual(
         const netLength = Math.min(netForceMagnitude * 5, 1000);
         const netAngle = Math.atan2(netForceY, netForceX);
 
-        trialGCancel.append("line")
+        trialGNetForceArrows.append("line")
             //.attr("class", (AppUI.showNetForce.boolState) ? AppUI.showForceArrows.DOMObjectSingleString+" net-force-arrow" : AppUI.showForceArrows.DOMObjectSingleString+" net-force-arrow hidden")
             .attr("x1", 0)
             .attr("y1", 0)
@@ -398,9 +408,17 @@ export async function addNodeWithMultistartVisual(
 
 
       // 6 ‧ keep best --------------------------------------------------------
-      if (cancel > bestStress){
-        bestStress = cancel;
+      if (cancel > highestCancel){
+        highestCancel = cancel;
         bestClone  = structuredClone(cand);
+      }
+      if (stress < lowestStress){
+        lowestStress = stress;
+        // bestClone  = structuredClone(cand);
+      }
+      if (stress > highestStress){
+        highestStress = stress;
+        // bestClone  = structuredClone(cand);
       }
 
       // 7 ‧ pop ghost -------------------------------------------------------
@@ -412,8 +430,17 @@ export async function addNodeWithMultistartVisual(
   }
 
   // adjust the sizes and opacities of circles, rectangles and lines
-  console.log("bestStress " + bestStress);
-  console.log(document.getElementById("spawn-cand-cancel-"+template.id).childNodes.length);
+  console.log("highestStress " + highestStress);
+  console.log("highestCancel " + highestCancel);
+  const spawnCandCancel = document.getElementById("spawn-cand-cancel-"+template.id).childNodes;
+  spawnCandCancel.forEach((child, index) => {
+    child.firstChild.setAttribute("fill-opacity",0.5*child.firstChild.getAttribute("cancel")/highestCancel);
+    child.firstChild.setAttribute("r",dx/2*child.firstChild.getAttribute("cancel")/highestCancel);
+  });
+  const spawnCandStress = document.getElementById("spawn-cand-stress-"+template.id).childNodes;
+  spawnCandStress.forEach((child, index) => {
+    child.firstChild.setAttribute("fill-opacity",0.5*child.firstChild.getAttribute("stress")/highestStress);
+  });
    
   // 8 ‧ commit winner -------------------------------------------------------
   bestClone.id = template.id;

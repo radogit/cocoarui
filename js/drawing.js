@@ -56,11 +56,14 @@ export function createSvgAndContainer() {
   const windLayerStress = container.append("g")
   .attr("class", "wind-layer-stress")
   .attr("id", "wind-layer-stress");
+  const windLayerNetForceArrows = container.append("g")
+  .attr("class", "wind-layer-netForceArrows")
+  .attr("id", "wind-layer-netForceArrows");
 
   const nodeLayer = container.append("g")
   .attr("class", "node-layer");
 
-  return { svg, container, nodeLayer, hotspotLayer, windLayerCancel, windLayerStress, width, height, minDim, scaleUnit };
+  return { svg, container, nodeLayer, hotspotLayer, windLayerCancel, windLayerStress, windLayerNetForceArrows, width, height, minDim, scaleUnit };
 }
 
 export function createAxes(container, width, height, minDim) {
