@@ -8,7 +8,7 @@ export let showObservations =         { defaultState: true, boolState: true, UIL
 export let showBackground =           { defaultState: false, boolState: false, UILabelString: 'Background', shorthandString: 'background', ToggleObjectString: 'toggleBackground', DOMObjectString: 'background-layer', URLParamString: 'bg'};
 export let showWindStress =           { defaultState: true, boolState: true, UILabelString: 'Wind Stress', shorthandString: 'wind stress', ToggleObjectString: 'windStress', DOMObjectString: 'wind-layer-stress', URLParamString: 'windStress'};
 export let showWindCancel =           { defaultState: true, boolState: true, UILabelString: 'Wind Cancel', shorthandString: 'wind cancel', ToggleObjectString: 'windCancel', DOMObjectString: 'wind-layer-cancel', URLParamString: 'windCancel'};
-export let showWindNetForceArrows =   { defaultState: true, boolState: true, UILabelString: 'Wind Net Force', shorthandString: 'wind net force', ToggleObjectString: 'windNetForce', DOMObjectString: 'wind-layer-netForceArrows', URLParamString: 'windNetForce'};
+export let showWindNetForceArrows =   { defaultState: true, boolState: true, UILabelString: 'Wind Net Force', shorthandString: 'wind net force', ToggleObjectString: 'windNetForce', DOMObjectString: 'wind-layer-netForceArrow', URLParamString: 'windNetForce'};
 export let showTerminal =             { defaultState: false, boolState: false, UILabelString: 'Log', shorthandString: 'terminal', ToggleObjectString: 'toggleTerminal', DOMObjectString: 'logContainer', URLParamString: 'cmd'};
 
 const url = new URL(window.location.href);

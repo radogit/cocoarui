@@ -127,6 +127,6 @@ export function createArrowheads(svg) {
     .attr("markerHeight", 4)
     .attr("orient", "auto")
     .append("path")
-    .attr("d", "M0,0 L10,5 L0,10 Z")
+    .attr("d", "M0,0 L10,5 L0,10 L2,5 Z")
     .attr("fill", "red");
 }

@@ -84,6 +84,11 @@ function buildOrUpdateNodes(container, nodes) {
               if (targetElement) {
                   targetElement.setAttribute("opacity", 1);
               }
+              elementId = "spawn-cand-netForceArrow-" + d.id;
+              targetElement = document.getElementById(elementId);
+              if (targetElement) {
+                  targetElement.setAttribute("opacity", 1);
+              }
             })
             .on("mouseout", function(event, d) {
                 let elementId = "spawn-cand-stress-" + d.id;
@@ -92,6 +97,11 @@ function buildOrUpdateNodes(container, nodes) {
                     targetElement.setAttribute("opacity", "0.2");
                 }
                 elementId = "spawn-cand-cancel-" + d.id;
+                targetElement = document.getElementById(elementId);
+                if (targetElement) {
+                    targetElement.setAttribute("opacity", "0.2");
+                }
+                elementId = "spawn-cand-netForceArrow-" + d.id;
                 targetElement = document.getElementById(elementId);
                 if (targetElement) {
                     targetElement.setAttribute("opacity", "0.2");
@@ -302,7 +312,7 @@ export async function addNodeWithMultistartVisual(
     .attr("opacity","0.2")
     ;
   const gNetForceArrows = windLayerNetForceArrows.append("g")
-    .attr("id","spawn-cand-netForceArrows-"+template.id)
+    .attr("id","spawn-cand-netForceArrow-"+template.id)
     .attr("class", AppUI.showWindNetForceArrows.boolState? AppUI.showWindNetForceArrows.DOMObjectString : AppUI.showWindNetForceArrows.DOMObjectString + " hidden")
     .attr("opacity","0.2")
     ;
@@ -318,150 +328,136 @@ export async function addNodeWithMultistartVisual(
       }
 
       // 1 ‧ clone template & position ---------------------------------------
-      const cand = structuredClone(template);
-      cand.x = cx;
-      cand.y = cy;
-      console.log(cand.y);
-      cand.id += `-g${gx}-${gy}`;
+        const cand = structuredClone(template);
+        cand.x = cx;
+        cand.y = cy;
+        console.log(cand.y);
+        cand.id += `-g${gx}-${gy}`;
 
       // 2 ‧ ensure gradients -------------------------------------------------
-      cand.hotspots.forEach(h=>Heatmaps.ensureColourGradient(defs,cand.color));
+        cand.hotspots.forEach(h=>Heatmaps.ensureColourGradient(defs,cand.color));
 
-      // 3 ‧ push ghost & run a few ticks ------------------------------------
-      nodes.push(cand);
-      buildOrUpdateNodes(nodeLayer, nodes);
-      simulation.nodes(nodes);
-      for (let t=0; t<ticks; t++) simulation.tick();
+        // 3 ‧ push ghost & run a few ticks ------------------------------------
+        nodes.push(cand);
+        buildOrUpdateNodes(nodeLayer, nodes);
+        simulation.nodes(nodes);
+        for (let t=0; t<ticks; t++) simulation.tick();
 
-      cand.x = cx;
-      cand.y = cy;
-      
+        cand.x = cx;
+        cand.y = cy;
+        
       // 4 ‧ cancellation score  Σ|Fi| − |ΣFi| ------------------------------
-      const stress = cand.forces.reduce((s, f) => s + Math.hypot(f.fx, f.fy), 0); // old metric
-      const totMag = cand.forces.reduce((s,f)=>s+Math.hypot(f.fx,f.fy),0);
-      const sx     = cand.forces.reduce((s,f)=>s+f.fx,0);
-      const sy     = cand.forces.reduce((s,f)=>s+f.fy,0);
-      const netMag = Math.hypot(sx,sy);
-      const cancel = totMag - netMag;
+        const stress = cand.forces.reduce((s, f) => s + Math.hypot(f.fx, f.fy), 0); // old metric
+        const totMag = cand.forces.reduce((s,f)=>s+Math.hypot(f.fx,f.fy),0);
+        const sx     = cand.forces.reduce((s,f)=>s+f.fx,0);
+        const sy     = cand.forces.reduce((s,f)=>s+f.fy,0);
+        const netMag = Math.hypot(sx,sy);
+        const cancel = totMag - netMag;
 
       // 5 ‧ breadcrumb ------------------------------------------------------
-      const trialGCancel = gCancel.append("g")
-        .attr("transform",`translate(${cand.x},${cand.y})`);
-        const trialGStress = gStress.append("g")
-        .attr("transform",`translate(${cand.x},${cand.y})`);
-        const trialGNetForceArrows = gNetForceArrows.append("g")
-        .attr("transform",`translate(${cand.x},${cand.y})`);
-
-      trialGCancel.append("circle")
-        .attr("cancel",cancel)
-        .attr("r",dx/2)
-        .attr("fill",cand.color).attr("fill-opacity",.125)
-        //.attr("stroke","#000").attr("stroke-width",0.5)
-        ;
-      
-        // trialGStress.append("rect")
-        // .attr("width",stress/10)
-        // .attr("height",stress/10)
-        // .attr("x",-stress/10/2)
-        // .attr("y",-stress/10/2)
-        // .attr("fill",cand.color).attr("fill-opacity",0.125)
-        // //.attr("stroke",cand.color).attr("stroke-width",1)
-        // ;
-        trialGStress.append("rect")
-        .attr("stress",stress)
-        .attr("width",dx)
-        .attr("height",dy)
-        .attr("x",-dx/2)
-        .attr("y",-dy/2)
-        .attr("fill",cand.color).attr("fill-opacity",0.125*stress/10)
-        //.attr("stroke",cand.color).attr("stroke-width",1)
-        ;
-
-      const netForceX = cand.vx;
-      const netForceY = cand.vy;
-      const netForceMagnitude = Math.sqrt(netForceX ** 2 + netForceY ** 2);
-
-      if (netForceMagnitude > 0.1) {
-        const netLength = Math.min(netForceMagnitude * 5, 1000);
-        const netAngle = Math.atan2(netForceY, netForceX);
-
-        trialGNetForceArrows.append("line")
-            //.attr("class", (AppUI.showNetForce.boolState) ? AppUI.showForceArrows.DOMObjectSingleString+" net-force-arrow" : AppUI.showForceArrows.DOMObjectSingleString+" net-force-arrow hidden")
-            .attr("x1", 0)
-            .attr("y1", 0)
-            .attr("x2", netLength * Math.cos(netAngle))
-            .attr("y2", netLength * Math.sin(netAngle))
-            .attr("netForceMagnitude", netForceMagnitude)
-            .attr("stroke", "red")
-            .attr("stroke-width", 3)
-            .attr("marker-end", "url(#arrowhead-red)")
-            .style("opacity", netForceMagnitude > 0.9 ? 0.8 : 0.5);
-      }
-
-
-      // const gText = trialGCancel.append("text")
-      //   .attr("class","id-label")
-      //   .attr("x",0).attr("dy","20px").style("opacity",0);
-      //   gText.append("tspan").text(`t${trial++}`).attr("dy","-1.2em");
-      const gTextCancel = trialGCancel.append("text")
-        .attr("class", AppUI.showNodeLabel.boolState? AppUI.showNodeLabel.DOMObjectString : AppUI.showNodeLabel.DOMObjectString + " hidden")
-        .attr("x",0).attr("dy","20px");
+      // 5.1 breadcrumb cancel
+        const trialGCancel = gCancel.append("g")
+          .attr("transform",`translate(${cand.x},${cand.y})`);
+        trialGCancel.append("rect")
+          .attr("cancel",cancel)
+          .attr("width",dx)
+          .attr("height",dy)
+          .attr("x",-dx/2)
+          .attr("y",-dy/2)
+          .attr("fill",cand.color).attr("fill-opacity",0.125*cancel/10)
+          ;
+        const gTextCancel = trialGCancel.append("text")
+          .attr("class", AppUI.showNodeLabel.boolState? AppUI.showNodeLabel.DOMObjectString : AppUI.showNodeLabel.DOMObjectString + " hidden")
+          .attr("x",0).attr("dy","20px");
         gTextCancel.append("tspan").text(`C=${cancel.toFixed(1)}`).attr("dy","0em");
-      const gTextStress = trialGStress.append("text")
-        .attr("class", AppUI.showNodeLabel.boolState? AppUI.showNodeLabel.DOMObjectString : AppUI.showNodeLabel.DOMObjectString + " hidden")
-        .attr("x",0).attr("dy","20px");
+      
+      // 5.2 breadcrumb stress
+        const trialGStress = gStress.append("g")
+          .attr("transform",`translate(${cand.x},${cand.y})`);
+        trialGStress.append("rect")
+          .attr("stress",stress)
+          .attr("width",dx)
+          .attr("height",dy)
+          .attr("x",-dx/2)
+          .attr("y",-dy/2)
+          .attr("fill",cand.color).attr("fill-opacity",0.125*stress/10)
+          ;
+        const gTextStress = trialGStress.append("text")
+          .attr("class", AppUI.showNodeLabel.boolState? AppUI.showNodeLabel.DOMObjectString : AppUI.showNodeLabel.DOMObjectString + " hidden")
+          .attr("x",0).attr("dy","20px");
         gTextStress.append("tspan").text(`S=${stress.toFixed(1)}`).attr("dy","1.2em");
 
+      // 5.3 breadcrumb netForceArrow
+        const trialGNetForceArrows = gNetForceArrows.append("g")
+        .attr("transform",`translate(${cand.x},${cand.y})`);
+        const netForceX = cand.vx;
+        const netForceY = cand.vy;
+        const netForceMagnitude = Math.sqrt(netForceX ** 2 + netForceY ** 2);
+
+        //if (netForceMagnitude > 0.1) {
+          const netLength = Math.min(netForceMagnitude * 5, 1000);
+          const netAngle = Math.atan2(netForceY, netForceX);
+
+          trialGNetForceArrows.append("line")
+              //.attr("class", (AppUI.showNetForce.boolState) ? AppUI.showForceArrows.DOMObjectSingleString+" net-force-arrow" : AppUI.showForceArrows.DOMObjectSingleString+" net-force-arrow hidden")
+              .attr("x1", 0)
+              .attr("y1", 0)
+              .attr("x2", netLength * Math.cos(netAngle))
+              .attr("y2", netLength * Math.sin(netAngle))
+              .attr("netForceMagnitude", netForceMagnitude)
+              .attr("stroke", "red")
+              .attr("stroke-width", 3)
+              .attr("marker-end", "url(#arrowhead-red)")
+              .style("opacity", netForceMagnitude > 0.9 ? 0.8 : 0.5);
+        //}
 
       // 6 ‧ keep best --------------------------------------------------------
-      if (cancel > highestCancel){
-        highestCancel = cancel;
-        bestClone  = structuredClone(cand);
-      }
-      if (stress < lowestStress){
-        lowestStress = stress;
-        // bestClone  = structuredClone(cand);
-      }
-      if (stress > highestStress){
-        highestStress = stress;
-        // bestClone  = structuredClone(cand);
-      }
-      if (netForceMagnitude > longestArrow){
-        longestArrow = netForceMagnitude;
-      }
+        if (cancel > highestCancel){
+          highestCancel = cancel;
+          bestClone  = structuredClone(cand);
+        }
+        if (stress < lowestStress){
+          lowestStress = stress;
+          // bestClone  = structuredClone(cand);
+        }
+        if (stress > highestStress){
+          highestStress = stress;
+          // bestClone  = structuredClone(cand);
+        }
+        if (netForceMagnitude > longestArrow){
+          longestArrow = netForceMagnitude;
+        }
 
       // 7 ‧ pop ghost -------------------------------------------------------
-      nodes.pop();
-      nodeLayer.selectAll(".node-group")
-        .filter(d=>d.id===cand.id)
-        .remove();
+        nodes.pop();
+        nodeLayer.selectAll(".node-group")
+          .filter(d=>d.id===cand.id)
+          .remove();
     }
   }
 
   // adjust the sizes and opacities of circles, rectangles and lines
-  console.log("highestStress " + highestStress);
-  console.log("highestCancel " + highestCancel);
-  console.log("longestArrow " + longestArrow);
   const spawnCandCancel = document.getElementById("spawn-cand-cancel-"+template.id).childNodes;
-  spawnCandCancel.forEach((child, index) => {
-    child.firstChild.setAttribute("fill-opacity",0.5*child.firstChild.getAttribute("cancel")/highestCancel);
-    child.firstChild.setAttribute("r",dx/2*child.firstChild.getAttribute("cancel")/highestCancel);
-  });
+    spawnCandCancel.forEach((child, index) => {
+      child.firstChild.setAttribute("fill-opacity",0.5*child.firstChild.getAttribute("cancel")/highestCancel);
+      child.firstChild.setAttribute("r",dx/2*child.firstChild.getAttribute("cancel")/highestCancel);
+    });
   const spawnCandStress = document.getElementById("spawn-cand-stress-"+template.id).childNodes;
-  spawnCandStress.forEach((child, index) => {
-    child.firstChild.setAttribute("fill-opacity",0.5*child.firstChild.getAttribute("stress")/highestStress);
-  });
-  // const spawnCandNetForceArrow = document.getElementById("spawn-cand-netForceArrow-"+template.id).childNodes;
-  // spawnCandNetForceArrow.forEach((child, index) => {
-  //   child.firstChild.setAttribute("x2", child.firstChild.getAttribute("x2") * child.firstChild.getAttribute("netForceMagnitude")/longestArrow);
-  //   child.firstChild.setAttribute("y2", child.firstChild.getAttribute("y2") * child.firstChild.getAttribute("netForceMagnitude")/longestArrow);
-  // });
+    spawnCandStress.forEach((child, index) => {
+      child.firstChild.setAttribute("fill-opacity",0.5*child.firstChild.getAttribute("stress")/highestStress);
+    });
+    // console.log("longestArrow " + longestArrow);
+    // const spawnCandNetForceArrow = document.getElementById("spawn-cand-netForceArrow-"+template.id).childNodes;
+    // spawnCandNetForceArrow.forEach((child, index) => {
+    //   child.firstChild.setAttribute("x2", child.firstChild.getAttribute("x2") * child.firstChild.getAttribute("netForceMagnitude")/longestArrow);
+    //   child.firstChild.setAttribute("y2", child.firstChild.getAttribute("y2") * child.firstChild.getAttribute("netForceMagnitude")/longestArrow);
+    // });
    
   // 8 ‧ commit winner -------------------------------------------------------
-  bestClone.id = template.id;
-  nodes.push(bestClone);
-  buildOrUpdateNodes(nodeLayer, nodes);
-  simulation.nodes(nodes).alpha(1).restart();
+    bestClone.id = template.id;
+    nodes.push(bestClone);
+    buildOrUpdateNodes(nodeLayer, nodes);
+    simulation.nodes(nodes).alpha(1).restart();
 }
 
 
