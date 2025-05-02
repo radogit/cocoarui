@@ -173,6 +173,7 @@ function addOne() {
   };
   
   Datasets.nodes.push(newNode);
+  console.log(Datasets.nodes);
   // (A) Re-run hotspot data-join to create rects for newNode.hotspots
   Heatmaps.buildHeatspotRects(hotspotLayer, Datasets.nodes, defs);
 
@@ -199,47 +200,6 @@ function randomHotspots(n=1){
   return arr;
 }
 
-// async function addOneSmart(){
-//   const template = {
-//     id: "spawn-" + Date.now().toString(36).slice(-4),
-//     color: colours[Math.floor(Math.random()*colours.length)],
-//     radius: 25,
-//     isFixed:false,
-//     significance:1,
-//     hotspots: randomHotspots( Math.floor(Math.random()*4)+1 )
-//   };
-
-  
-//   await addNodeWithMultistart(
-//         Datasets.nodes, template, simulation, defs, width, height,
-//         36,          // k = 6 random starts
-//         30);        // 30 mini-ticks each
-
-//   // redraw DOM
-//   Heatmaps.buildHeatspotRects(hotspotLayer, Datasets.nodes, defs);
-//   buildOrUpdateNodes(nodeLayer,      Datasets.nodes);
-//   //simulation.nodes(Datasets.nodes).alpha(1).restart();
-//   simulation.alpha(1).restart();
-// }
-
-
-// document.getElementById("addOneSmartVisButton").onclick = async () => {
-//   const tmpl = {
-//     id  : "spawn-" + Date.now().toString(36).slice(-4),
-//     color: colours[ Math.floor(Math.random()*colours.length) ],
-//     radius: 25,
-//     isFixed:false,
-//     significance:1,
-//     hotspots: randomHotspots(1+Math.floor(Math.random()*4))
-//   };
-
-//   await addNodeWithMultistartVisual(
-//       Datasets.nodes, tmpl, simulation,
-//       nodeLayer, hotspotLayer, defs, width, height,
-//       36,   // k trials
-//       30);  // ticks each
-// };
-
 async function addOneSmart(){
   const template = {
     id   : "spawn-"+Date.now().toString(36).slice(-4),
@@ -257,7 +217,7 @@ async function addOneSmart(){
       width, height, defs,
       windLayerCancel, windLayerStress, windLayerNetForceArrows,
       /* ticks   */ 1,
-      /* cols    */ 30,
+      /* cols    */ 20,
       /* rows    */ 20,
       /* jitter? */ false
   );
@@ -265,6 +225,7 @@ async function addOneSmart(){
   Heatmaps.buildHeatspotRects(hotspotLayer, Datasets.nodes, defs);
   buildOrUpdateNodes(nodeLayer,      Datasets.nodes);
   //simulation.nodes(Datasets.nodes).alpha(1).restart();
+  simulation.nodes(Datasets.nodes);
   simulation.alpha(1).restart();
 }
 
@@ -295,14 +256,14 @@ export async function addNodeWithMultistartVisual(
   gridRows   = 20,
   jitter     = false
 ){
-  
+
+  console.log(simulation);
+  const nodesBeforeMiniSim = nodes;
   let highestStress = -Infinity;
   let lowestStress = Infinity;
   let highestCancel = -Infinity;
   let longestArrow = -Infinity;
   let bestClone  = null;
-
-  // ───────────────────────────────────────────────────────────── grid loop
   const dx = minDim  / gridCols;
   const dy = minDim / gridRows;
   
@@ -324,7 +285,7 @@ export async function addNodeWithMultistartVisual(
     
   for (let gy = 0; gy < gridRows; gy++){
     for (let gx = 0; gx < gridCols; gx++){
-      // centre of the current grid cell (0,0) in canvas centre
+      // cx,cy is the centre of the current grid cell (0,0) in canvas centre
       let cx = (gx + 0.5) * dx - minDim  / 2;
       let cy = (gy + 0.5) * dy - minDim / 2;
       if (jitter){
@@ -333,7 +294,7 @@ export async function addNodeWithMultistartVisual(
       }
 
       // 1 ‧ clone template & position ---------------------------------------
-        const cand = structuredClone(template);
+        let cand = structuredClone(template);
         cand.x = cx;
         cand.y = cy;
         cand.id += `-g${gx}-${gy}`;
@@ -342,14 +303,15 @@ export async function addNodeWithMultistartVisual(
         cand.hotspots.forEach(h=>Heatmaps.ensureColourGradient(defs,cand.color));
 
       // 3 ‧ push ghost & run a few ticks ------------------------------------
+        nodes = nodesBeforeMiniSim;
         nodes.push(cand);
-        buildOrUpdateNodes(nodeLayer, nodes);
+        //buildOrUpdateNodes(nodeLayer, nodes);
         simulation.nodes(nodes);
         for (let t=0; t<ticks; t++) simulation.tick();
 
       // reposition the <g>s back to their original position as they may have moved in the few ticks just now
-        cand.x = cx;
-        cand.y = cy;
+        // cand.x = cx;
+        // cand.y = cy;
         
       // 4 ‧ scores and metrics  ------------------------------
         const stress = cand.forces.reduce((s, f) => s + Math.hypot(f.fx, f.fy), 0); // old metric
@@ -362,7 +324,7 @@ export async function addNodeWithMultistartVisual(
       // 5 ‧ breadcrumb ------------------------------------------------------
       // 5.1 breadcrumb cancel
         const trialGCancel = gCancel.append("g")
-          .attr("transform",`translate(${cand.x},${cand.y})`);
+          .attr("transform",`translate(${cx},${cy})`);
         trialGCancel.append("rect")
           .attr("cancel",cancel)
           .attr("width",dx)
@@ -378,7 +340,7 @@ export async function addNodeWithMultistartVisual(
       
       // 5.2 breadcrumb stress
         const trialGStress = gStress.append("g")
-          .attr("transform",`translate(${cand.x},${cand.y})`);
+          .attr("transform",`translate(${cx},${cy})`);
         trialGStress.append("rect")
           .attr("stress",stress)
           .attr("width",dx)
@@ -394,7 +356,7 @@ export async function addNodeWithMultistartVisual(
 
       // 5.3 breadcrumb netForceArrow
         const trialGNetForceArrows = gNetForceArrows.append("g")
-        .attr("transform",`translate(${cand.x},${cand.y})`);
+        .attr("transform",`translate(${cx},${cy})`);
         const netForceX = cand.vx;
         const netForceY = cand.vy;
         const netForceMagnitude = Math.sqrt(netForceX ** 2 + netForceY ** 2);
@@ -464,9 +426,11 @@ export async function addNodeWithMultistartVisual(
   
   // 8 ‧ commit winner -------------------------------------------------------
     bestClone.id = template.id;
+    nodes = nodesBeforeMiniSim;
     nodes.push(bestClone);
-    buildOrUpdateNodes(nodeLayer, nodes);
-    simulation.nodes(nodes).alpha(1).restart();
+    console.log(nodes);
+    //buildOrUpdateNodes(nodeLayer, nodes);
+    //simulation.nodes(nodes).alpha(1).restart();
 }
 
 
