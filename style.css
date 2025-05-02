@@ -70,6 +70,7 @@ span.todo::after {
   clear: both;
   margin-bottom: 5px;
 }
+#logContainer:hover > div {opacity: 1 !important;}
 #logContainer {
   position: fixed;
   bottom: 0;

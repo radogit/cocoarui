@@ -23,6 +23,10 @@ const colours = ['red', 'green', 'blue', 'orange', 'purple', 'cyan', 'magenta', 
 
 // 1) Create the SVG, container
 const { svg, container, nodeLayer, hotspotLayer, windLayerCancel, windLayerStress, windLayerNetForceArrows, width, height, minDim, scaleUnit } = Drawing.createSvgAndContainer();
+console.log("minDim " + minDim, "lime");
+console.log("scaleUnit " + scaleUnit, "lime");
+console.log("width " + width, "lime");
+console.log("height " + height, "lime");
 
 // 2) Draw axes
 const { xScale, yScale, xAxis, yAxis } = Drawing.createAxes(container, width, height, minDim);
@@ -159,10 +163,10 @@ function buildOrUpdateNodes(container, nodes) {
 function addOne() {
   const newNode = {
     id: "spawn-"+Date.now().toString(36).substring(2, 8),
-    x: width * (Math.random() - 0.5),
-    y: height * (Math.random() - 0.5),
+    x : minDim * (Math.random() - 0.5),
+    y : minDim * (Math.random() - 0.5),
     color: colours[Math.floor(Math.random() * colours.length)],
-    radius: 20+30 * Math.random(),
+    radius: 10+30 * Math.random(),
     isFixed: false,
     significance: 1,
     hotspots: randomHotspots(1+Math.floor(Math.random()*4))
@@ -184,8 +188,8 @@ function randomHotspots(n=1){
   const arr = [];
   for (let i = 0; i < n; i++){
     arr.push({
-      x : (width  - 200) * (Math.random() - 0.5),
-      y : (height - 200) * (Math.random() - 0.5),
+      x : minDim * (Math.random() - 0.5),
+      y : minDim * (Math.random() - 0.5),
       intensityFactor : 1.0,
       width  : 40 + 160 * Math.random(),
       height : 40 + 160 * Math.random(),
@@ -253,7 +257,7 @@ async function addOneSmart(){
       width, height, defs,
       windLayerCancel, windLayerStress, windLayerNetForceArrows,
       /* ticks   */ 1,
-      /* cols    */ 20,
+      /* cols    */ 30,
       /* rows    */ 20,
       /* jitter? */ false
   );
@@ -284,10 +288,11 @@ async function addOneSmart(){
  */
 export async function addNodeWithMultistartVisual(
   nodes, template, simulation,
-  width, height, defs, windLayerCancel, windLayerStress, windLayerNetForceArrows,
+  width, height, defs, 
+  windLayerCancel, windLayerStress, windLayerNetForceArrows,
   ticks      = 30,
-  gridCols   = 5,
-  gridRows   = 5,
+  gridCols   = 20,
+  gridRows   = 20,
   jitter     = false
 ){
   
@@ -298,9 +303,9 @@ export async function addNodeWithMultistartVisual(
   let bestClone  = null;
 
   // ───────────────────────────────────────────────────────────── grid loop
-  const dx = width  / gridCols;
-  const dy = height / gridRows;
-  let trial = 0;
+  const dx = minDim  / gridCols;
+  const dy = minDim / gridRows;
+  
   const gCancel = windLayerCancel.append("g")
     .attr("id","spawn-cand-cancel-"+template.id)
     .attr("class", AppUI.showWindCancel.boolState? AppUI.showWindCancel.DOMObjectString : AppUI.showWindCancel.DOMObjectString + " hidden")
@@ -320,8 +325,8 @@ export async function addNodeWithMultistartVisual(
   for (let gy = 0; gy < gridRows; gy++){
     for (let gx = 0; gx < gridCols; gx++){
       // centre of the current grid cell (0,0) in canvas centre
-      let cx = (gx + 0.5) * dx - width  / 2;
-      let cy = (gy + 0.5) * dy - height / 2;
+      let cx = (gx + 0.5) * dx - minDim  / 2;
+      let cy = (gy + 0.5) * dy - minDim / 2;
       if (jitter){
         cx += (Math.random()-0.5)*dx*0.8;
         cy += (Math.random()-0.5)*dy*0.8;
@@ -331,28 +336,28 @@ export async function addNodeWithMultistartVisual(
         const cand = structuredClone(template);
         cand.x = cx;
         cand.y = cy;
-        console.log(cand.y);
         cand.id += `-g${gx}-${gy}`;
 
       // 2 ‧ ensure gradients -------------------------------------------------
         cand.hotspots.forEach(h=>Heatmaps.ensureColourGradient(defs,cand.color));
 
-        // 3 ‧ push ghost & run a few ticks ------------------------------------
+      // 3 ‧ push ghost & run a few ticks ------------------------------------
         nodes.push(cand);
         buildOrUpdateNodes(nodeLayer, nodes);
         simulation.nodes(nodes);
         for (let t=0; t<ticks; t++) simulation.tick();
 
+      // reposition the <g>s back to their original position as they may have moved in the few ticks just now
         cand.x = cx;
         cand.y = cy;
         
-      // 4 ‧ cancellation score  Σ|Fi| − |ΣFi| ------------------------------
+      // 4 ‧ scores and metrics  ------------------------------
         const stress = cand.forces.reduce((s, f) => s + Math.hypot(f.fx, f.fy), 0); // old metric
-        const totMag = cand.forces.reduce((s,f)=>s+Math.hypot(f.fx,f.fy),0);
+        //const totMag = cand.forces.reduce((s,f)=>s+Math.hypot(f.fx,f.fy),0);
         const sx     = cand.forces.reduce((s,f)=>s+f.fx,0);
         const sy     = cand.forces.reduce((s,f)=>s+f.fy,0);
         const netMag = Math.hypot(sx,sy);
-        const cancel = totMag - netMag;
+        const cancel = stress - netMag; // Σ|Fi| − |ΣFi|
 
       // 5 ‧ breadcrumb ------------------------------------------------------
       // 5.1 breadcrumb cancel
@@ -414,7 +419,7 @@ export async function addNodeWithMultistartVisual(
       // 6 ‧ keep best --------------------------------------------------------
         if (cancel > highestCancel){
           highestCancel = cancel;
-          bestClone  = structuredClone(cand);
+          //bestClone  = structuredClone(cand);
         }
         if (stress < lowestStress){
           lowestStress = stress;
@@ -422,7 +427,7 @@ export async function addNodeWithMultistartVisual(
         }
         if (stress > highestStress){
           highestStress = stress;
-          // bestClone  = structuredClone(cand);
+          bestClone  = structuredClone(cand);
         }
         if (netForceMagnitude > longestArrow){
           longestArrow = netForceMagnitude;
@@ -446,13 +451,17 @@ export async function addNodeWithMultistartVisual(
     spawnCandStress.forEach((child, index) => {
       child.firstChild.setAttribute("fill-opacity",0.5*child.firstChild.getAttribute("stress")/highestStress);
     });
-    // console.log("longestArrow " + longestArrow);
-    // const spawnCandNetForceArrow = document.getElementById("spawn-cand-netForceArrow-"+template.id).childNodes;
-    // spawnCandNetForceArrow.forEach((child, index) => {
-    //   child.firstChild.setAttribute("x2", child.firstChild.getAttribute("x2") * child.firstChild.getAttribute("netForceMagnitude")/longestArrow);
-    //   child.firstChild.setAttribute("y2", child.firstChild.getAttribute("y2") * child.firstChild.getAttribute("netForceMagnitude")/longestArrow);
-    // });
-   
+  // console.log("longestArrow " + longestArrow, "pink");
+  // const spawnCandNetForceArrow = document.getElementById("spawn-cand-netForceArrow-"+template.id).childNodes;
+  // const smallerDimension = (dx>dy)?dy:dx;
+  // console.log("smallerDimension " + smallerDimension, "pink");
+  // const scalingFactor = longestArrow / smallerDimension;
+  // console.log("scalingFactor " + scalingFactor, "pink");
+  // spawnCandNetForceArrow.forEach((child, index) => {
+  //   child.firstChild.setAttribute("x2", child.firstChild.getAttribute("x2") * scalingFactor);
+  //   child.firstChild.setAttribute("y2", child.firstChild.getAttribute("y2") * scalingFactor);
+  // });
+  
   // 8 ‧ commit winner -------------------------------------------------------
     bestClone.id = template.id;
     nodes.push(bestClone);
