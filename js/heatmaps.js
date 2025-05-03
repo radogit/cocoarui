@@ -49,7 +49,10 @@ export function buildHeatspotRects(container, nodes, defs){
     const hotspotGroups = container.selectAll("."+showObservations.DOMObjectString)
         .data(nodes, d => d.id)
         .join("g")
-        .attr("class", showObservations.boolState ? showObservations.DOMObjectString : showObservations.DOMObjectString+" hidden");
+        .attr("class", showObservations.boolState ? showObservations.DOMObjectString : showObservations.DOMObjectString+" hidden")
+        .attr("id", d=> showObservations.boolState ? showObservations.DOMObjectString+"-"+d.id : showObservations.DOMObjectString+"-"+d.id+" hidden")
+        .attr("opacity",0.3)
+        ;
     
     hotspotGroups.selectAll(".hotspot")
         .data(d => d.hotspots)
@@ -64,9 +67,7 @@ export function buildHeatspotRects(container, nodes, defs){
               r.each(function(h) {
                 const nodeData = d3.select(this.parentNode).datum(); 
                 // (the node that owns these hotspots)
-                console.log(
-                  `New hotspot for node '${nodeData.id}' — size: ${h.width.toFixed(0)}x${h.height.toFixed(0)}, position: (${h.x.toFixed(0)}, ${h.y.toFixed(0)})`
-                );
+                //console.log(`New hotspot for node '${nodeData.id}' — size: ${h.width.toFixed(0)}x${h.height.toFixed(0)}, position: (${h.x.toFixed(0)}, ${h.y.toFixed(0)})`);
               });
       
               // Return the newly created selection so D3 can handle update logic
@@ -91,7 +92,7 @@ export function buildHeatspotRects(container, nodes, defs){
         .style("stroke", d=>d.color)        // Thin black border
         .style("stroke-width", 1)        // Border thickness
         .style("stroke-dasharray", "4,2") // Dashed border (4px dash, 2px space)    
-        .style("opacity", 0.3)
+        //.style("opacity", 0.3)
     ;
     
 }

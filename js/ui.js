@@ -1,15 +1,15 @@
 // ui.js
-export let showNodeLabel =            { defaultState: true, boolState: true, UILabelString: 'ID Label', shorthandString: 'ID labels', ToggleObjectString: 'toggleNodeLabel', DOMObjectString: 'id-label', URLParamString: 'nodeLabel'};
-export let showCoordinates =          { defaultState: true, boolState: true, UILabelString: 'Coordinates', shorthandString: 'coordinate labels', ToggleObjectString: 'toggleCoordinates', DOMObjectString: 'coord-label', URLParamString: 'coords'};
-export let showForceArrows =          { defaultState: true, boolState: true, UILabelString: 'Force Arrows', shorthandString: 'arrows of forces', ToggleObjectString: 'toggleForceArrows', DOMObjectString: 'force-arrows', DOMObjectSingleString: 'force-arrow', URLParamString: 'forceArrows'};
-export let showNetForce =             { defaultState: true, boolState: true, UILabelString: 'Net Force', shorthandString: 'net force arrows', ToggleObjectString: 'toggleNetForce', DOMObjectString: 'force-arrow-netForce', URLParamString: 'netForceArrows'};
-export let showObservations =         { defaultState: true, boolState: true, UILabelString: 'Observations', shorthandString: 'observations', ToggleObjectString: 'toggleObservations', DOMObjectString: 'hotspot-group', URLParamString: 'obs'};
-export let showNodeLines =            { defaultState: true, boolState: true, UILabelString: 'Obs. Lines', shorthandString: 'dotted lines to observations', ToggleObjectString: 'toggleNodeLines', DOMObjectString: 'node-relations', DOMObjectSingleString: 'node-relation', URLParamString: 'obsLines'};
-export let showBackground =           { defaultState: false, boolState: false, UILabelString: 'Background', shorthandString: 'background', ToggleObjectString: 'toggleBackground', DOMObjectString: 'background-layer', URLParamString: 'bg'};
-export let showWindStress =           { defaultState: true, boolState: true, UILabelString: 'Wind Stress', shorthandString: 'wind stress', ToggleObjectString: 'windStress', DOMObjectString: 'wind-layer-stress', URLParamString: 'windStress'};
-export let showWindCancel =           { defaultState: true, boolState: true, UILabelString: 'Wind Cancel', shorthandString: 'wind cancel', ToggleObjectString: 'windCancel', DOMObjectString: 'wind-layer-cancel', URLParamString: 'windCancel'};
-export let showWindNetForceArrows =   { defaultState: true, boolState: true, UILabelString: 'Wind Net Force', shorthandString: 'wind net force', ToggleObjectString: 'windNetForce', DOMObjectString: 'wind-layer-netForceArrow', URLParamString: 'windNetForce'};
-export let showTerminal =             { defaultState: false, boolState: false, UILabelString: 'Log', shorthandString: 'terminal', ToggleObjectString: 'toggleTerminal', DOMObjectString: 'logContainer', URLParamString: 'cmd'};
+export let showNodeLabel =            { keyboardShortcut: 'Digit1', keyboardShortcutLetter: '1', defaultState: true, boolState: true, UILabelString: 'ID Label', shorthandString: 'ID labels', ToggleObjectString: 'toggleNodeLabel', DOMObjectString: 'id-label', URLParamString: 'nodeLabel'};
+export let showCoordinates =          { keyboardShortcut: 'Digit2', keyboardShortcutLetter: '2', defaultState: true, boolState: true, UILabelString: 'Coordinates', shorthandString: 'coordinate labels', ToggleObjectString: 'toggleCoordinates', DOMObjectString: 'coord-label', URLParamString: 'coords'};
+export let showForceArrows =          { keyboardShortcut: 'Digit3', keyboardShortcutLetter: '3', defaultState: true, boolState: true, UILabelString: 'Force Arrows', shorthandString: 'arrows of forces', ToggleObjectString: 'toggleForceArrows', DOMObjectString: 'force-arrows', DOMObjectSingleString: 'force-arrow', URLParamString: 'forceArrows'};
+export let showNetForce =             { keyboardShortcut: 'Digit4', keyboardShortcutLetter: '4', defaultState: true, boolState: true, UILabelString: 'Net Force', shorthandString: 'net force arrows', ToggleObjectString: 'toggleNetForce', DOMObjectString: 'force-arrow-netForce', URLParamString: 'netForceArrows'};
+export let showObservations =         { keyboardShortcut: 'Digit5', keyboardShortcutLetter: '5', defaultState: true, boolState: true, UILabelString: 'Observations', shorthandString: 'observations', ToggleObjectString: 'toggleObservations', DOMObjectString: 'hotspot-group', URLParamString: 'obs'};
+export let showNodeLines =            { keyboardShortcut: 'Digit6', keyboardShortcutLetter: '6', defaultState: true, boolState: true, UILabelString: 'Obs. Lines', shorthandString: 'dotted lines to observations', ToggleObjectString: 'toggleNodeLines', DOMObjectString: 'node-relations', DOMObjectSingleString: 'node-relation', URLParamString: 'obsLines'};
+export let showBackground =           { keyboardShortcut: 'Digit7', keyboardShortcutLetter: '7', defaultState: false, boolState: false, UILabelString: 'Background', shorthandString: 'background', ToggleObjectString: 'toggleBackground', DOMObjectString: 'background-layer', URLParamString: 'bg'};
+export let showWindStress =           { keyboardShortcut: 'Digit8', keyboardShortcutLetter: '8', defaultState: true, boolState: true, UILabelString: 'Wind Stress', shorthandString: 'wind stress', ToggleObjectString: 'windStress', DOMObjectString: 'wind-layer-stress', URLParamString: 'windStress'};
+export let showWindCancel =           { keyboardShortcut: 'Digit9', keyboardShortcutLetter: '9', defaultState: true, boolState: true, UILabelString: 'Wind Cancel', shorthandString: 'wind cancel', ToggleObjectString: 'windCancel', DOMObjectString: 'wind-layer-cancel', URLParamString: 'windCancel'};
+export let showWindNetForceArrows =   { keyboardShortcut: 'Digit0', keyboardShortcutLetter: '0', defaultState: true, boolState: true, UILabelString: 'Wind Net Force', shorthandString: 'wind net force', ToggleObjectString: 'windNetForce', DOMObjectString: 'wind-layer-netForceArrow', URLParamString: 'windNetForce'};
+export let showTerminal =             { keyboardShortcut: 'KeyL',   keyboardShortcutLetter: 'L', defaultState: false, boolState: false, UILabelString: 'Log', shorthandString: 'terminal', ToggleObjectString: 'toggleTerminal', DOMObjectString: 'logContainer', URLParamString: 'cmd'};
 
 const url = new URL(window.location.href);
 const params = new URLSearchParams(url.search);
@@ -62,10 +62,11 @@ export function setupUI(/* references if needed: svg, etc. */) {
     let UIElementInput = document.createElement("input");
     UIElementInput.id = setting.ToggleObjectString;
     UIElementInput.type = "checkbox";
+    UIElementInput.setAttribute("keyboardShortcut", setting.keyboardShortcut);
     UIElement.appendChild(UIElementInput);
     //UIElement.appendChild(document.createTextNode(' [ ' + (index+1) + ' ] ' + setting.UILabelString));
     const span = document.createElement("span");
-    span.textContent = ' [ ' + (index + 1) + ' ] ' + setting.UILabelString;
+    span.textContent = ' [ ' + setting.keyboardShortcutLetter + ' ] ' + setting.UILabelString;
     UIElement.appendChild(span);
     UIContainer.appendChild(UIElement);
     // update the checkbox in UI

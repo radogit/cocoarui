@@ -93,19 +93,29 @@ function buildOrUpdateNodes(container, nodes) {
               if (targetElement) {
                   targetElement.setAttribute("opacity", 1);
               }
+              elementId = "hotspot-group-" + d.id;
+              targetElement = document.getElementById(elementId);
+              if (targetElement) {
+                  targetElement.setAttribute("opacity", 1);
+              }
             })
             .on("mouseout", function(event, d) {
                 let elementId = "spawn-cand-stress-" + d.id;
                 let targetElement = document.getElementById(elementId);
                 if (targetElement) {
-                    targetElement.setAttribute("opacity", "0.2");
+                    targetElement.setAttribute("opacity", "0");
                 }
                 elementId = "spawn-cand-cancel-" + d.id;
                 targetElement = document.getElementById(elementId);
                 if (targetElement) {
-                    targetElement.setAttribute("opacity", "0.2");
+                    targetElement.setAttribute("opacity", "0");
                 }
                 elementId = "spawn-cand-netForceArrow-" + d.id;
+                targetElement = document.getElementById(elementId);
+                if (targetElement) {
+                    targetElement.setAttribute("opacity", "0");
+                }
+                elementId = "hotspot-group-" + d.id;
                 targetElement = document.getElementById(elementId);
                 if (targetElement) {
                     targetElement.setAttribute("opacity", "0.2");
@@ -265,20 +275,34 @@ export async function addNodeWithMultistartVisual(
   const dx = minDim  / gridCols;
   const dy = minDim / gridRows;
   
+  // hide other heatmaps
+  const windLayerCancelChildren = document.getElementById("wind-layer-cancel").childNodes;
+  if(windLayerCancelChildren){
+    windLayerCancelChildren.forEach((child) => {
+      child.setAttribute("opacity",0);
+    });
+  }
+  const windLayerStressChildren = document.getElementById("wind-layer-stress").childNodes;
+  if(windLayerStressChildren){
+    windLayerStressChildren.forEach((child) => {
+      child.setAttribute("opacity",0);
+    });
+  }
+  
   const gCancel = windLayerCancel.append("g")
     .attr("id","spawn-cand-cancel-"+template.id)
     .attr("class", AppUI.showWindCancel.boolState? AppUI.showWindCancel.DOMObjectString : AppUI.showWindCancel.DOMObjectString + " hidden")
-    .attr("opacity","0.2")
+    .attr("opacity","0.5")
     ;
   const gStress = windLayerStress.append("g")
     .attr("id","spawn-cand-stress-"+template.id)
     .attr("class", AppUI.showWindStress.boolState? AppUI.showWindStress.DOMObjectString : AppUI.showWindStress.DOMObjectString + " hidden")
-    .attr("opacity","0.2")
+    .attr("opacity","0.5")
     ;
   const gNetForceArrows = windLayerNetForceArrows.append("g")
     .attr("id","spawn-cand-netForceArrow-"+template.id)
     .attr("class", AppUI.showWindNetForceArrows.boolState? AppUI.showWindNetForceArrows.DOMObjectString : AppUI.showWindNetForceArrows.DOMObjectString + " hidden")
-    .attr("opacity","0.2")
+    .attr("opacity","0.5")
     ;
     
   for (let gy = 0; gy < gridRows; gy++){
@@ -362,8 +386,8 @@ export async function addNodeWithMultistartVisual(
               //.attr("class", (AppUI.showNetForce.boolState) ? AppUI.showForceArrows.DOMObjectSingleString+" net-force-arrow" : AppUI.showForceArrows.DOMObjectSingleString+" net-force-arrow hidden")
               .attr("x1", 0)
               .attr("y1", 0)
-              .attr("x2", netLength * Math.cos(netAngle))
-              .attr("y2", netLength * Math.sin(netAngle))
+              .attr("x2", 0)//netLength * Math.cos(netAngle))
+              .attr("y2", 0)//netLength * Math.sin(netAngle))
               .attr("netForceMagnitude", netForceMagnitude)
               .attr("stroke", "red")
               .attr("stroke-width", 3)
@@ -383,7 +407,6 @@ export async function addNodeWithMultistartVisual(
         if (stress > highestStress){
           highestStress = stress;
           bestClone  = structuredClone(cand);
-          console.log(bestClone);
         }
         if (netForceMagnitude > longestArrow){
           longestArrow = netForceMagnitude;
@@ -420,8 +443,6 @@ export async function addNodeWithMultistartVisual(
   
   // 8 ‧ commit winner -------------------------------------------------------
     bestClone.id = template.id;
-    //console.log("spawn candidaate chosen at (" + bestClone.x + ", " + bestClone.y + ")", "red");
-    console.log(bestClone, "red");
     snapshot.forEach((p,i)=>Object.assign(nodes[i],p));
     nodes.push(bestClone);
     //buildOrUpdateNodes(nodeLayer, nodes);
@@ -761,21 +782,20 @@ function onResize() {
 
 addEventListener('keydown', function(event) {
   let inputs = document.getElementById("UIContainer").getElementsByTagName("input");
-  if (event.code.startsWith('Digit')) {
-    let index = parseInt(event.code.replace('Digit', ''), 10)-1;
-    if(index==-1){index=9;} // fix for Digit0
-    if (inputs[index]) {
-      inputs[index].click();
-    }
-    return;
-  } 
-  switch (event.code) {
-    case "Backquote":
-      //document.getElementById("spawnOneButton").click();
-      document.getElementById("addOneSmartButton").click();
-      break;
-    case "Backspace":
-      document.getElementById("removeAllButton").click();
-      break;
+  for (let input of inputs) {
+      let shortcut = input.getAttribute("keyboardShortcut");
+      if (event.code === shortcut) {
+          input.checked = !input.checked;
+          input.dispatchEvent(new Event('change'));
+          break;
+      }
+  }
+  let buttons = document.getElementById("debug-panel").getElementsByTagName("button");
+  for (let button of buttons) {
+      let shortcut = button.getAttribute("keyboardShortcut");
+      if (event.code === shortcut) {
+          button.click();
+          break;
+      }
   }
 });
