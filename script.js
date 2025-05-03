@@ -160,6 +160,22 @@ function buildOrUpdateNodes(container, nodes) {
 
 // ====== ADD ONE ==========================================================================================================
 
+
+function randomHotspots(n=1){
+  const arr = [];
+  for (let i = 0; i < n; i++){
+    arr.push({
+      x : minDim * (Math.random() - 0.5),
+      y : minDim * (Math.random() - 0.5),
+      intensityFactor : 1.0,
+      width  : 40 + 160 * Math.random(),
+      height : 40 + 160 * Math.random(),
+      forceType : "attract"
+    });
+  }
+  return arr;
+}
+
 function addOne() {
   const newNode = {
     id: "spawn-"+Date.now().toString(36).substring(2, 8),
@@ -185,21 +201,6 @@ function addOne() {
   simulation.alpha(1).restart(); 
 }
 
-function randomHotspots(n=1){
-  const arr = [];
-  for (let i = 0; i < n; i++){
-    arr.push({
-      x : minDim * (Math.random() - 0.5),
-      y : minDim * (Math.random() - 0.5),
-      intensityFactor : 1.0,
-      width  : 40 + 160 * Math.random(),
-      height : 40 + 160 * Math.random(),
-      forceType : "attract"
-    });
-  }
-  return arr;
-}
-
 async function addOneSmart(){
   const template = {
     id   : "spawn-"+Date.now().toString(36).slice(-4),
@@ -218,8 +219,7 @@ async function addOneSmart(){
       windLayerCancel, windLayerStress, windLayerNetForceArrows,
       /* ticks   */ 1,
       /* cols    */ 20,
-      /* rows    */ 20,
-      /* jitter? */ false
+      /* rows    */ 20
   );
   // redraw DOM
   Heatmaps.buildHeatspotRects(hotspotLayer, Datasets.nodes, defs);
@@ -237,7 +237,8 @@ async function addOneSmart(){
  * @param {Array} nodes          main data array (is mutated)
  * @param {Object} template      blueprint of the new node (is cloned)
  * @param {d3.Simulation} simulation  your running force simulation
- * @param {Number} width,height  current canvas extent
+ * @param {Number} width  current canvas extent
+ * @param {Number} height  current canvas extent
  * @param {d3.Selection} defs    <defs> where gradients live
  * @param {d3.Selection} windLayerCancel  <g> used for debug crumbs
  * @param {d3.Selection} windLayerStress  <g> used for debug crumbs
@@ -245,7 +246,6 @@ async function addOneSmart(){
  * @param {Number} ticks         mini–ticks per candidate   (default 30)
  * @param {Number} gridCols      lattice columns            (default 5)
  * @param {Number} gridRows      lattice rows               (default 5)
- * @param {Boolean} jitter       true → random offset inside each cell
  */
 export async function addNodeWithMultistartVisual(
   nodes, template, simulation,
@@ -253,12 +253,10 @@ export async function addNodeWithMultistartVisual(
   windLayerCancel, windLayerStress, windLayerNetForceArrows,
   ticks      = 30,
   gridCols   = 20,
-  gridRows   = 20,
-  jitter     = false
+  gridRows   = 20
 ){
 
-  console.log(simulation);
-  const nodesBeforeMiniSim = nodes;
+  const snapshot = nodes.map(n=>({x:n.x,y:n.y,vx:n.vx,vy:n.vy}));
   let highestStress = -Infinity;
   let lowestStress = Infinity;
   let highestCancel = -Infinity;
@@ -288,10 +286,6 @@ export async function addNodeWithMultistartVisual(
       // cx,cy is the centre of the current grid cell (0,0) in canvas centre
       let cx = (gx + 0.5) * dx - minDim  / 2;
       let cy = (gy + 0.5) * dy - minDim / 2;
-      if (jitter){
-        cx += (Math.random()-0.5)*dx*0.8;
-        cy += (Math.random()-0.5)*dy*0.8;
-      }
 
       // 1 ‧ clone template & position ---------------------------------------
         let cand = structuredClone(template);
@@ -303,15 +297,14 @@ export async function addNodeWithMultistartVisual(
         cand.hotspots.forEach(h=>Heatmaps.ensureColourGradient(defs,cand.color));
 
       // 3 ‧ push ghost & run a few ticks ------------------------------------
-        nodes = nodesBeforeMiniSim;
         nodes.push(cand);
         //buildOrUpdateNodes(nodeLayer, nodes);
-        simulation.nodes(nodes);
+        //simulation.nodes(nodes); // <- this made everything jump each time
         for (let t=0; t<ticks; t++) simulation.tick();
 
       // reposition the <g>s back to their original position as they may have moved in the few ticks just now
-        // cand.x = cx;
-        // cand.y = cy;
+        cand.x = cx;
+        cand.y = cy;
         
       // 4 ‧ scores and metrics  ------------------------------
         const stress = cand.forces.reduce((s, f) => s + Math.hypot(f.fx, f.fy), 0); // old metric
@@ -390,6 +383,7 @@ export async function addNodeWithMultistartVisual(
         if (stress > highestStress){
           highestStress = stress;
           bestClone  = structuredClone(cand);
+          console.log(bestClone);
         }
         if (netForceMagnitude > longestArrow){
           longestArrow = netForceMagnitude;
@@ -426,11 +420,12 @@ export async function addNodeWithMultistartVisual(
   
   // 8 ‧ commit winner -------------------------------------------------------
     bestClone.id = template.id;
-    nodes = nodesBeforeMiniSim;
+    //console.log("spawn candidaate chosen at (" + bestClone.x + ", " + bestClone.y + ")", "red");
+    console.log(bestClone, "red");
+    snapshot.forEach((p,i)=>Object.assign(nodes[i],p));
     nodes.push(bestClone);
-    console.log(nodes);
     //buildOrUpdateNodes(nodeLayer, nodes);
-    //simulation.nodes(nodes).alpha(1).restart();
+    simulation.nodes(nodes).alpha(1).restart();
 }
 
 
