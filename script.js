@@ -63,6 +63,7 @@ function buildOrUpdateNodes(container, nodes) {
           // For newly entered node(s):
           const g = enter.append("g")
             .attr("class", "node-group")
+            .attr("id", d => "node-group-"+d.id)
             .on("dblclick", toggleFixed)
             .call(d3.drag()
               .on("start", dragStart)
@@ -73,58 +74,70 @@ function buildOrUpdateNodes(container, nodes) {
           // append the circle
           g.append("circle")
             .attr("fill", d => d.color)
+            .attr("id", d => "circle-"+d.id)
             .attr("opacity", 0.6)
             .attr("r", d => d.radius)
             .attr("stroke", d => d.isFixed ? "black" : "none")
             .attr("stroke-width", d => d.isFixed ? 3 : 0)
             .on("mouseover", function(event, d) {
-              let elementId = "spawn-cand-stress-" + d.id;
-              let targetElement = document.getElementById(elementId);
+              
+              let targetElement = document.getElementById("spawn-cand-stress-" + d.id);
               if (targetElement) {
                   targetElement.setAttribute("opacity", 1);
               }
-              elementId = "spawn-cand-cancel-" + d.id;
-              targetElement = document.getElementById(elementId);
+              
+              targetElement = document.getElementById("spawn-cand-cancel-" + d.id);
               if (targetElement) {
                   targetElement.setAttribute("opacity", 1);
               }
-              elementId = "spawn-cand-netForceArrow-" + d.id;
-              targetElement = document.getElementById(elementId);
+              
+              targetElement = document.getElementById("spawn-cand-netForceArrow-" + d.id);
               if (targetElement) {
                   targetElement.setAttribute("opacity", 1);
               }
-              elementId = "hotspot-group-" + d.id;
-              targetElement = document.getElementById(elementId);
+              targetElement = document.getElementById("hotspot-group-" + d.id);
               if (targetElement) {
                   targetElement.setAttribute("opacity", 1);
+              }
+              
+              targetElement = document.getElementById("node-relations-" + d.id);
+              if (targetElement) {
+                targetElement.classList.add("node-relation-hover");
               }
             })
             .on("mouseout", function(event, d) {
-                let elementId = "spawn-cand-stress-" + d.id;
-                let targetElement = document.getElementById(elementId);
+                
+                let targetElement = document.getElementById("spawn-cand-stress-" + d.id);
                 if (targetElement) {
                     targetElement.setAttribute("opacity", "0");
                 }
-                elementId = "spawn-cand-cancel-" + d.id;
-                targetElement = document.getElementById(elementId);
+                
+                targetElement = document.getElementById("spawn-cand-cancel-" + d.id);
                 if (targetElement) {
                     targetElement.setAttribute("opacity", "0");
                 }
-                elementId = "spawn-cand-netForceArrow-" + d.id;
-                targetElement = document.getElementById(elementId);
+                
+                targetElement = document.getElementById("spawn-cand-netForceArrow-" + d.id);
                 if (targetElement) {
                     targetElement.setAttribute("opacity", "0");
                 }
-                elementId = "hotspot-group-" + d.id;
-                targetElement = document.getElementById(elementId);
+                
+                targetElement = document.getElementById("hotspot-group-" + d.id);
                 if (targetElement) {
                     targetElement.setAttribute("opacity", "0.2");
                 }
+
+                targetElement = document.getElementById("node-relations-" + d.id);
+                if (targetElement) {
+                  targetElement.classList.remove("node-relation-hover");
+                }
+  
             });
     
           // append ID label
           g.append("text")
             .attr("class", AppUI.showNodeLabel.boolState? AppUI.showNodeLabel.DOMObjectString : AppUI.showNodeLabel.DOMObjectString + " hidden")
+            .attr("id", d => AppUI.showNodeLabel.boolState? AppUI.showNodeLabel.DOMObjectString+"-"+d.id : AppUI.showNodeLabel.DOMObjectString+"-"+d.id + " hidden")
             .attr("dx", 0)
             .attr("dy", d => -d.radius - 2)
             .text(d => d.id)
@@ -133,17 +146,22 @@ function buildOrUpdateNodes(container, nodes) {
           // append coords label (if you want)
           g.append("text")
             .attr("class", "coord-label")
+            .attr("id", d => "coord-label-"+d.id)
             .attr("dx", 0)
             .attr("dy", d => d.radius + 15)
             ;
 
           // Force arrows container
           g.append("g")
-            .attr("class", "force-arrows");
+            .attr("class", "force-arrows")
+            .attr("id", d => "force-arrows-"+d.id)
+            ;
 
           // Node relations container
           g.append("g")
-            .attr("class", "node-relations");
+            .attr("class", "node-relations")
+            .attr("id", d => "node-relations-" + d.id)
+            ;
             
           // Log the id of each newly spawned node
           g.each(function(d) {
@@ -415,7 +433,7 @@ export async function addNodeWithMultistartVisual(
       // 7 ‧ pop ghost -------------------------------------------------------
         nodes.pop();
         nodeLayer.selectAll(".node-group")
-          .filter(d=>d.id===cand.id)
+          .filter(d => d.id === cand.id)
           .remove();
     }
   }
@@ -430,16 +448,6 @@ export async function addNodeWithMultistartVisual(
     spawnCandStress.forEach((child, index) => {
       child.firstChild.setAttribute("fill-opacity",0.5*child.firstChild.getAttribute("stress")/highestStress);
     });
-  // console.log("longestArrow " + longestArrow, "pink");
-  // const spawnCandNetForceArrow = document.getElementById("spawn-cand-netForceArrow-"+template.id).childNodes;
-  // const smallerDimension = (dx>dy)?dy:dx;
-  // console.log("smallerDimension " + smallerDimension, "pink");
-  // const scalingFactor = longestArrow / smallerDimension;
-  // console.log("scalingFactor " + scalingFactor, "pink");
-  // spawnCandNetForceArrow.forEach((child, index) => {
-  //   child.firstChild.setAttribute("x2", child.firstChild.getAttribute("x2") * scalingFactor);
-  //   child.firstChild.setAttribute("y2", child.firstChild.getAttribute("y2") * scalingFactor);
-  // });
   
   // 8 ‧ commit winner -------------------------------------------------------
     bestClone.id = template.id;

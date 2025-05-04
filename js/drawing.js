@@ -62,7 +62,8 @@ export function createSvgAndContainer() {
   .attr("id", "wind-layer-netForceArrows");
 
   const nodeLayer = container.append("g")
-  .attr("class", "node-layer");
+  .attr("class", "node-layer")
+  .attr("id", "node-layer");
 
   return { svg, container, nodeLayer, hotspotLayer, windLayerCancel, windLayerStress, windLayerNetForceArrows, width, height, minDim, scaleUnit };
 }
