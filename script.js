@@ -15,7 +15,28 @@ setupLogger();
 
 // ========= parameters =========
 
-const colours = ['red', 'green', 'blue', 'orange', 'purple', 'cyan', 'magenta', 'yellow', 'darkblue', 'darkgreen', 'lightblue', 'lightgreen', 'coral', 'gold', 'salmon', 'slateblue', 'teal', 'olive', 'brown', 'darkorange'];
+const colours = [
+  'red', 
+  'green', 
+  'blue', 
+  'orange', 
+  'purple', 
+  'cyan', 
+  'magenta', 
+//  'yellow', 
+  'darkblue', 
+  'darkgreen', 
+//  'lightblue', 
+//  'lightgreen', 
+  'coral', 
+//  'gold', 
+  'salmon', 
+  'slateblue', 
+  'teal', 
+  'olive', 
+  'brown', 
+  'darkorange'
+];
 
 // ================================================================================================================
 // =============== ONE TIME =======================================================================================
@@ -233,7 +254,7 @@ async function addOneSmart(){
   const template = {
     id   : "spawn-"+Date.now().toString(36).slice(-4),
     color: colours[Math.floor(Math.random()*colours.length)],
-    radius: 25,
+    radius: 10+30 * Math.random(),
     isFixed:false,
     significance:1,
     hotspots: randomHotspots(Math.floor(Math.random()*4)+2)
@@ -245,7 +266,7 @@ async function addOneSmart(){
       simulation,
       width, height, defs,
       windLayerCancel, windLayerStress, windLayerNetForceArrows,
-      /* ticks   */ 1,
+      /* ticks   */ 80,
       /* cols    */ 20,
       /* rows    */ 20
   );
@@ -342,11 +363,18 @@ export async function addNodeWithMultistartVisual(
         nodes.push(cand);
         //buildOrUpdateNodes(nodeLayer, nodes);
         //simulation.nodes(nodes); // <- this made everything jump each time
-        for (let t=0; t<ticks; t++) simulation.tick();
+        // A.before the mini–ticks
+        const mini = d3.forceSimulation(nodes.concat(cand))
+          .force("gauss", Forces.forceGaussianPreferredArea(1.5))
+          .force("coll", Forces.forceCustomCollision)
+          ;
+        for (let t=0; t<ticks; t++) mini.tick();
+        mini.stop(); // dispose
+        //B for (let t=0; t<ticks; t++) simulation.tick();
 
       // reposition the <g>s back to their original position as they may have moved in the few ticks just now
-        cand.x = cx;
-        cand.y = cy;
+        // cand.x = cx;
+        // cand.y = cy;
         
       // 4 ‧ scores and metrics  ------------------------------
         const stress = cand.forces.reduce((s, f) => s + Math.hypot(f.fx, f.fy), 0); // old metric
@@ -451,8 +479,9 @@ export async function addNodeWithMultistartVisual(
   
   // 8 ‧ commit winner -------------------------------------------------------
     bestClone.id = template.id;
-    snapshot.forEach((p,i)=>Object.assign(nodes[i],p));
-    nodes.push(bestClone);
+    //B snapshot.forEach((p,i)=>Object.assign(nodes[i],p));
+    //nodes.push(bestClone);
+    nodes.splice(nodes.length, 0, bestClone);   // push on the real array
     //buildOrUpdateNodes(nodeLayer, nodes);
     simulation.nodes(nodes).alpha(1).restart();
 }
