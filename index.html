@@ -10,27 +10,32 @@
 </head>
 <body>
   <script type="module" src="script.js"></script>
-  <div id="debug-panel">
-    <h2>View</h2>
-    <div id="UIContainer">
+  <div id="debug-panel" class="ui-panel">
+    <div id="view-panel" class="ui-panel-box">
+      <h2>View</h2>
+      <div id="UIContainer">
+      </div>
     </div>
-    <hr>
-    <h2>Spawn</h2>
-    <div id="spawnButtonContainer">
-    <button id="spawnOneButton" keyboardShortcut="Tab">+1 Random</button>
+    <div id="spawn-panel" class="ui-panel-box">
+      <h2>Spawn</h2>
+      <div id="spawnButtonContainer">
+      <button id="spawnOneButton" keyboardShortcut="Tab">+1 Random</button>
+      </div>
+      
+      <button id="removeAllButton" keyboardShortcut="KeyD" style="color: darkred">Delete All [D]</button>
+      <button id="addOneSmartButton" keyboardShortcut="KeyS" style="color: darkgreen">+1 Smart [S]</button>
+      
+      <!-- <span class="todo">weighing:</span><br>
+      <input type="radio" name="weightMethod" id="weightSize" value="size" checked disabled>
+      <label for="weightSize">Size</label><br>
+      <input type="radio" name="weightMethod" id="weightSignificance" value="signi" disabled>
+      <label for="weightSignificance">Significance</label><br>
+      <input type="radio" name="weightMethod" id="weightPriority" value="prio" disabled>
+      <label for="weightPriority">Priority</label><br> -->
     </div>
-    
-    <button id="removeAllButton" keyboardShortcut="KeyD" style="color: darkred">Delete All [D]</button>
-    <button id="addOneSmartButton" keyboardShortcut="KeyS" style="color: darkgreen">+1 Smart [S]</button>
-    
-    <!-- <span class="todo">weighing:</span><br>
-    <input type="radio" name="weightMethod" id="weightSize" value="size" checked disabled>
-    <label for="weightSize">Size</label><br>
-    <input type="radio" name="weightMethod" id="weightSignificance" value="signi" disabled>
-    <label for="weightSignificance">Significance</label><br>
-    <input type="radio" name="weightMethod" id="weightPriority" value="prio" disabled>
-    <label for="weightPriority">Priority</label><br> -->
   </div>
-
+  <div id="detail-panel" class="ui-panel ui-panel-box">
+    <h2>Details</h2>
+  </div>
 </body>
 </html>
