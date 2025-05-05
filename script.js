@@ -7,8 +7,6 @@ import * as AppUI from "./js/ui.js";
 import * as Backgrounds from "./js/backgrounds.js";
 //import { dragging, dragEnd, dragStart, toggleFixed } from "./js/nodeInteraction.js";
 import { setupLogger } from './js/logger.js';
-//import { dripSpawnNodes } from "./js/dripSpawnNodes.js";
-//import { addNodeWithMultistartVisual } from './js/spawnHelpers.js';
 
 // Set up the logger
 setupLogger();
@@ -478,75 +476,134 @@ export async function addNodeWithMultistartVisual(
 // ======= DRIP =========================================================================================================
 let nodesQueue = [];
 
-// Then define a function to handle a button click or something:
-function spawnOneByOne(someDataArray) {
-  console.log('spawning set: ', "green");
-  // 1) Clear the array
-  nodesQueue.splice(0, nodesQueue.length);
+// // Then define a function to handle a button click or something:
+// function spawnOneByOne(someDataArray) {
+//   console.log('spawning set: ', "green");
+//   // 1) Clear the array
+//   nodesQueue.splice(0, nodesQueue.length);
 
-  // 2) put the items from someDataArray to the queue
-  nodesQueue = structuredClone(someDataArray);
+//   // 2) put the items from someDataArray to the queue
+//   nodesQueue = structuredClone(someDataArray);
 
-  // 3) Flip Y to treat up as positive
-  Datasets.flipYCoordinates(nodesQueue);
+//   // 3) Flip Y to treat up as positive
+//   Datasets.flipYCoordinates(nodesQueue);
 
-  // 4) Fix initial nodes that are isFixed
-  Datasets.fixInitially(nodesQueue);
+//   // 4) Fix initial nodes that are isFixed
+//   Datasets.fixInitially(nodesQueue);
 
-  // 5) let it drip 
-  dripSpawnNodes(
-    nodesQueue,
-    Datasets.nodes,
-    hotspotLayer,
-    nodeLayer,
-    simulation,
-    1000 // 1 second between spawns
-  );
-}
+//   // 5) let it drip 
+//   dripSpawnNodes(
+//     nodesQueue,
+//     Datasets.nodes,
+//     hotspotLayer,
+//     nodeLayer,
+//     simulation,
+//     1000 // 1 second between spawns
+//   );
+// }
+
+// /**
+//  * Timed "drip" approach to spawn nodes from a queue one at a time.
+//  * @param {Array} nodesQueue     The array of node data to spawn over time.
+//  * @param {Array} nodes          The main node array in the simulation.
+//  * @param {d3.Selection} hotspotLayer The <g> container for hotspot rects.
+//  * @param {d3.Selection} nodeLayer    The <g> container for node groups.
+//  * @param {d3.Simulation} simulation  The d3 force simulation.
+//  * @param {number} intervalMs    How many milliseconds between spawns, default 1000.
+//  */
+// export function dripSpawnNodes(
+//   nodesQueue,
+//   nodes,
+//   hotspotLayer,
+//   nodeLayer,
+//   simulation,
+//   intervalMs = 1000
+// ) {
+//   let i = 0; 
+//   const intervalId = setInterval(() => {
+//     if (i >= nodesQueue.length) {
+//       clearInterval(intervalId);
+//       return;
+//     }
+
+//     // Take the next node from the queue
+//     const newNode = nodesQueue[i];
+//     i++;
+//     newNode.id = newNode.id + '-' + Date.now().toString(36).substring(2, 8);
+
+//     // Add to the main node array
+//     nodes.push(newNode);
+
+//     // Re-run the hotspot data-join so new hotspots appear
+//     Heatmaps.buildHeatspotRects(hotspotLayer, nodes, defs);
+
+//     // Re-run the node data-join so new node circles/labels appear
+//     buildOrUpdateNodes(nodeLayer, nodes);
+
+//     // Let the simulation know about the new array
+//     simulation.nodes(nodes);
+//     simulation.alpha(1).restart();
+
+//   }, intervalMs);
+// }
 
 /**
- * Timed "drip" approach to spawn nodes from a queue one at a time.
- * @param {Array} nodesQueue     The array of node data to spawn over time.
- * @param {Array} nodes          The main node array in the simulation.
- * @param {d3.Selection} hotspotLayer The <g> container for hotspot rects.
- * @param {d3.Selection} nodeLayer    The <g> container for node groups.
- * @param {d3.Simulation} simulation  The d3 force simulation.
- * @param {number} intervalMs    How many milliseconds between spawns, default 1000.
+ * Spawn every node in `queue` one–by–one.
+ * Each node is positioned with addNodeWithMultistartVisual, waiting
+ * `intervalMs` between completions so you see them appear sequentially.
+ *
+ * @param {Object[]} queue           array of *raw* node objects
+ * @param {Object[]} modelNodes      the real nodes array that drives D3
+ * @param {d3.Simulation} simulation your running force simulation
+ * @param {Number} width,height      canvas extent (needed by smart placer)
+ * @param {d3.Selection} defs        <defs> for gradients
+ * @param {d3.Selection} hotspotLayer  <g>   – already created in main file
+ * @param {d3.Selection} nodeLayer      <g>
+ * @param {d3.Selection} windCancelLayer   <g> debug
+ * @param {d3.Selection} windStressLayer   <g> debug
+ * @param {d3.Selection} windNetLayer      <g> debug
+ * @param {Number} intervalMs         delay **after** each spawn (default 1 s)
  */
-export function dripSpawnNodes(
-  nodesQueue,
-  nodes,
-  hotspotLayer,
-  nodeLayer,
+export async function dripSpawnSmart(
+  queue,
+  modelNodes,
   simulation,
+  width, height, defs,
+  hotspotLayer, nodeLayer,
+  windCancelLayer, windStressLayer, windNetLayer,
   intervalMs = 1000
-) {
-  let i = 0; 
-  const intervalId = setInterval(() => {
-    if (i >= nodesQueue.length) {
-      clearInterval(intervalId);
-      return;
-    }
+){
+  // make a shallow clone so we can shift() without mutating the original
+  const todo = queue.slice();
 
-    // Take the next node from the queue
-    const newNode = nodesQueue[i];
-    i++;
-    newNode.id = newNode.id + '-' + Date.now().toString(36).substring(2, 8);
+  async function next () {
+    if (todo.length === 0) return;
 
-    // Add to the main node array
-    nodes.push(newNode);
+    const raw = structuredClone(todo.shift());           // fresh copy
+    raw.id += '-' + Date.now().toString(36).slice(-4);   // unique-ify id
+    Datasets.flipYCoordinates([raw]);                    // keep y-up
+    Datasets.fixInitially([raw]);
 
-    // Re-run the hotspot data-join so new hotspots appear
-    Heatmaps.buildHeatspotRects(hotspotLayer, nodes, defs);
+    // --- run the lattice search ------------------------------------------
+    await addNodeWithMultistartVisual(
+      modelNodes, raw, simulation,
+      width, height, defs,
+      windCancelLayer, windStressLayer, windNetLayer,
+      /* ticks  */ 80,
+      /* cols   */ 20,
+      /* rows   */ 20
+    );
 
-    // Re-run the node data-join so new node circles/labels appear
-    buildOrUpdateNodes(nodeLayer, nodes);
+    // --- refresh DOM / forces --------------------------------------------
+    Heatmaps.buildHeatspotRects(hotspotLayer, modelNodes, defs);
+    buildOrUpdateNodes(nodeLayer,      modelNodes);
+    simulation.nodes(modelNodes).alpha(1).restart();
 
-    // Let the simulation know about the new array
-    simulation.nodes(nodes);
-    simulation.alpha(1).restart();
+    // --- wait, then spawn the next one ------------------------------------
+    setTimeout(next, intervalMs);
+  }
 
-  }, intervalMs);
+  next();    // kick-off
 }
 
 // ======== REMOVE ========================================================================================================
@@ -773,12 +830,19 @@ if(spawnButtonContainer){
     spawnButton.textContent = 'Set \'' + name + '\'';
     spawnButton.id = 'spawnButton-'+name;
     spawnButton.addEventListener("click", () => {
-      spawnOneByOne(nodes);
+      //spawnOneByOne(nodes);
+      dripSpawnSmart(
+        nodes,                             // queue
+        Datasets.nodes, simulation,
+        width, height, defs,
+        hotspotLayer, nodeLayer,
+        windLayerCancel, windLayerStress, windLayerNetForceArrows,
+        1000                               // 1 s between nodes
+      );      
     });
     spawnButtonContainer.append(spawnButton);
   });  
 }
-
 
 // ======== Browser window resize ================================
 
