@@ -42,10 +42,30 @@ const colours = [
 
 // 1) Create the SVG, container
 const { svg, container, nodeLayer, hotspotLayer, windLayerCancel, windLayerStress, windLayerNetForceArrows, width, height, minDim, scaleUnit } = Drawing.createSvgAndContainer();
-console.log("minDim " + minDim, "lime");
+// console.log("minDim " + minDim, "lime");
 console.log("scaleUnit " + scaleUnit, "lime");
-console.log("width " + width, "lime");
-console.log("height " + height, "lime");
+// console.log("width " + width, "lime");
+// console.log("height " + height, "lime");
+const metricsBody = d3.select("#metrics-panel tbody");
+const COLS = [
+  { key:"id",     fmt:d=>d.id                     },
+  { key:"sum",    fmt:d=>d._sumF.toFixed(1)       },
+  { key:"net",    fmt:d=>d._netF.toFixed(1)       },
+  { key:"cancel", fmt:d=>d._cancel.toFixed(1)     },
+  { key:"vx",     fmt:d=>d.vx.toFixed(1)          },
+  { key:"vy",     fmt:d=>d.vy.toFixed(1)          }
+];
+// build the metrics panel once ──────────────────────────────────────────
+const metPanel = d3.select("#metrics-panel")
+                   .append("table")
+                   .attr("class", "metrics");
+
+metPanel.append("thead").append("tr").selectAll("th")
+        .data(["id", "x", "y", "Σ|F|", "|ΣF|", "cancel", "vx", "vy"])
+        .enter().append("th")
+        .text(d => d);
+
+const tbody = metPanel.append("tbody");
 
 // 2) Draw axes
 const { xScale, yScale, xAxis, yAxis } = Drawing.createAxes(container, width, height, minDim);
@@ -206,7 +226,6 @@ function addOne() {
   };
   
   Datasets.nodes.push(newNode);
-  console.log(Datasets.nodes);
   // (A) Re-run hotspot data-join to create rects for newNode.hotspots
   Heatmaps.buildHeatspotRects(hotspotLayer, Datasets.nodes, defs);
 
@@ -455,7 +474,6 @@ export async function addNodeWithMultistartVisual(
     spawnCandStress.forEach((child, index) => {
       child.firstChild.setAttribute("fill-opacity",0.5*child.firstChild.getAttribute("stress")/highestStress);
     });
-  console.log(longestArrow);
   const spawnCandNetForce = document.getElementById("spawn-cand-netForceArrow-"+template.id).childNodes;
     spawnCandNetForce.forEach((child, index) => {
       netForceArrowRank = child.firstChild.getAttribute("netLength")/longestArrow;
@@ -648,7 +666,8 @@ function ticked() {
     // Update coordinates label
     if (AppUI.showCoordinates.boolState) {
         nodeGroup.select("."+AppUI.showCoordinates.DOMObjectString)
-            .text(d => `(${Math.round(d.x * scaleUnit)}, ${Math.round(-d.y * scaleUnit)})`);
+            //.text(d => `(${Math.round(d.x * scaleUnit)}, ${Math.round(-d.y * scaleUnit)})`);
+            .text(d => `(${Math.round(d.x / scaleUnit)}, ${Math.round(-d.y / scaleUnit)})`);
     }
     
     // Clear previous arrows before drawing new ones
@@ -766,8 +785,44 @@ function ticked() {
             }
         }
     });
+    updateMetrics(Datasets.nodes);   //
 }
     
+let lastMetricsUpdate = 0;
+function updateMetrics(nodes){
+  // join/-update rows ( THIS is the missing “rows” )
+  const rows = tbody.selectAll("tr")
+                    .data(nodes, d => d.id)
+                    .join("tr");
+
+  // compute metrics (add a guard for the very first tick)
+  rows.each(d => {
+    const F = d.forces ?? [];
+    const sum  = F.reduce((s,f)=>s+Math.hypot(f.fx,f.fy),0);
+    const netx = F.reduce((s,f)=>s+f.fx,0);
+    const nety = F.reduce((s,f)=>s+f.fy,0);
+    const net  = Math.hypot(netx,nety);
+    d._sumF   = sum;
+    d._netF   = net;
+    d._cancel = sum - net;
+  });
+
+  // fill / update the 6 columns of every row
+  rows.selectAll("td")
+      .data(d => [
+        d.id,
+        (d.x/scaleUnit).toFixed(1),
+        (-d.y/scaleUnit).toFixed(1),
+        d._sumF   .toFixed(1),
+        d._netF   .toFixed(1),
+        d._cancel .toFixed(1),
+        d.vx.toFixed(1),
+        d.vy.toFixed(1)
+      ])
+      .join("td")
+      .text(t => t);
+}
+
 
 
 // ================================================================================================================
@@ -820,7 +875,7 @@ function ticked() {
 
 document.getElementById("spawnOneButton").addEventListener("click", addOne);
 document.getElementById("removeAllButton").addEventListener("click", removeAllNodes);
-document.getElementById("addOneSmartButton").onclick = addOneSmart; 
+document.getElementById("addOneSmartButton").addEventListener("click", addOneSmart);
 
 const spawnButtonContainer = document.getElementById("spawnButtonContainer");
 
@@ -843,6 +898,41 @@ if(spawnButtonContainer){
     spawnButtonContainer.append(spawnButton);
   });  
 }
+
+
+// ======== Metrics table ========================================
+
+const table = document.querySelector('.metrics');
+
+table.addEventListener('mouseover', (event) => {
+    const cell = event.target;
+    if (cell.tagName === 'TD' || cell.tagName === 'TH') {
+        const index = cell.cellIndex; // Get the index of the hovered cell
+        const rows = table.querySelectorAll('tr');
+
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td, th');
+            if (cells[index]) {
+                cells[index].style.backgroundColor = '#ffffaa'; // Change background color
+            }
+        });
+    }
+});
+
+table.addEventListener('mouseout', (event) => {
+    const cell = event.target;
+    if (cell.tagName === 'TD' || cell.tagName === 'TH') {
+        const index = cell.cellIndex; // Get the index of the hovered cell
+        const rows = table.querySelectorAll('tr');
+
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td, th');
+            if (cells[index]) {
+                cells[index].style.backgroundColor = ''; // Reset background color
+            }
+        });
+    }
+});
 
 // ======== Browser window resize ================================
 
