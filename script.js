@@ -268,7 +268,7 @@ export async function addNodeWithMultistartVisual(
   nodes, template, simulation,
   width, height, defs, 
   windLayerCancel, windLayerStress, windLayerNetForceArrows,
-  ticks      = 30,
+  ticks      = 80,
   gridCols   = 20,
   gridRows   = 20
 ){
@@ -552,8 +552,8 @@ let nodesQueue = [];
  * Each node is positioned with addNodeWithMultistartVisual, waiting
  * `intervalMs` between completions so you see them appear sequentially.
  *
- * @param {Object[]} queue           array of *raw* node objects
- * @param {Object[]} modelNodes      the real nodes array that drives D3
+ * @param {Object[]} nodesQueue           array of *raw* node objects
+ * @param {Object[]} nodes      the real nodes array that drives D3
  * @param {d3.Simulation} simulation your running force simulation
  * @param {Number} width,height      canvas extent (needed by smart placer)
  * @param {d3.Selection} defs        <defs> for gradients
@@ -565,8 +565,8 @@ let nodesQueue = [];
  * @param {Number} intervalMs         delay **after** each spawn (default 1 s)
  */
 export async function dripSpawnSmart(
-  queue,
-  modelNodes,
+  nodesQueue,
+  nodes,
   simulation,
   width, height, defs,
   hotspotLayer, nodeLayer,
@@ -574,7 +574,7 @@ export async function dripSpawnSmart(
   intervalMs = 1000
 ){
   // make a shallow clone so we can shift() without mutating the original
-  const todo = queue.slice();
+  const todo = nodesQueue.slice();
 
   async function next () {
     if (todo.length === 0) return;
@@ -586,7 +586,7 @@ export async function dripSpawnSmart(
 
     // --- run the lattice search ------------------------------------------
     await addNodeWithMultistartVisual(
-      modelNodes, raw, simulation,
+      nodes, raw, simulation,
       width, height, defs,
       windCancelLayer, windStressLayer, windNetLayer,
       /* ticks  */ 80,
@@ -595,9 +595,9 @@ export async function dripSpawnSmart(
     );
 
     // --- refresh DOM / forces --------------------------------------------
-    Heatmaps.buildHeatspotRects(hotspotLayer, modelNodes, defs);
-    buildOrUpdateNodes(nodeLayer,      modelNodes);
-    simulation.nodes(modelNodes).alpha(1).restart();
+    Heatmaps.buildHeatspotRects(hotspotLayer, nodes, defs);
+    buildOrUpdateNodes(nodeLayer,      nodes);
+    simulation.nodes(nodes).alpha(1).restart();
 
     // --- wait, then spawn the next one ------------------------------------
     setTimeout(next, intervalMs);
