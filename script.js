@@ -21,7 +21,7 @@ const colours = [
   'blue', 
   'orange', 
   'purple', 
-  'cyan', 
+//  'cyan', 
   'magenta', 
 //  'yellow', 
   'darkblue', 
@@ -54,7 +54,7 @@ const { xScale, yScale, xAxis, yAxis } = Drawing.createAxes(container, width, he
 
 // 3) Arrowhead artefacts
 const defs = svg.append("defs").attr("id","defs").attr("width",100).attr("height",100);
-Drawing.createArrowheads(svg);
+Drawing.createArrowheads(defs, colours);
 
 // 3+) Backgrounds
 //Backgrounds.createBackgroundDefs(defs, scaleUnit);
@@ -101,58 +101,28 @@ function buildOrUpdateNodes(container, nodes) {
             .attr("stroke", d => d.isFixed ? "black" : "none")
             .attr("stroke-width", d => d.isFixed ? 3 : 0)
             .on("mouseover", function(event, d) {
-              
               let targetElement = document.getElementById("spawn-cand-stress-" + d.id);
-              if (targetElement) {
-                  targetElement.setAttribute("opacity", 1);
-              }
-              
+              if (targetElement) { targetElement.setAttribute("opacity", 1); }
               targetElement = document.getElementById("spawn-cand-cancel-" + d.id);
-              if (targetElement) {
-                  targetElement.setAttribute("opacity", 1);
-              }
-              
+              if (targetElement) { targetElement.setAttribute("opacity", 1); }
               targetElement = document.getElementById("spawn-cand-netForceArrow-" + d.id);
-              if (targetElement) {
-                  targetElement.setAttribute("opacity", 1);
-              }
+              if (targetElement) { targetElement.setAttribute("opacity", 1); }
               targetElement = document.getElementById("hotspot-group-" + d.id);
-              if (targetElement) {
-                  targetElement.setAttribute("opacity", 1);
-              }
-              
+              if (targetElement) { targetElement.setAttribute("opacity", 1); }
               targetElement = document.getElementById("node-relations-" + d.id);
-              if (targetElement) {
-                targetElement.classList.add("node-relation-hover");
-              }
+              if (targetElement) { targetElement.classList.add("node-relation-hover");}
             })
             .on("mouseout", function(event, d) {
-                
-                let targetElement = document.getElementById("spawn-cand-stress-" + d.id);
-                if (targetElement) {
-                    targetElement.setAttribute("opacity", "0");
-                }
-                
-                targetElement = document.getElementById("spawn-cand-cancel-" + d.id);
-                if (targetElement) {
-                    targetElement.setAttribute("opacity", "0");
-                }
-                
-                targetElement = document.getElementById("spawn-cand-netForceArrow-" + d.id);
-                if (targetElement) {
-                    targetElement.setAttribute("opacity", "0");
-                }
-                
-                targetElement = document.getElementById("hotspot-group-" + d.id);
-                if (targetElement) {
-                    targetElement.setAttribute("opacity", "0.2");
-                }
-
-                targetElement = document.getElementById("node-relations-" + d.id);
-                if (targetElement) {
-                  targetElement.classList.remove("node-relation-hover");
-                }
-  
+              let targetElement = document.getElementById("spawn-cand-stress-" + d.id);
+              if (targetElement) { targetElement.setAttribute("opacity", "0"); }
+              targetElement = document.getElementById("spawn-cand-cancel-" + d.id);
+              if (targetElement) { targetElement.setAttribute("opacity", "0"); }
+              targetElement = document.getElementById("spawn-cand-netForceArrow-" + d.id);
+              if (targetElement) { targetElement.setAttribute("opacity", "0"); }
+              targetElement = document.getElementById("hotspot-group-" + d.id);
+              if (targetElement) { targetElement.setAttribute("opacity", "0.2"); }
+              targetElement = document.getElementById("node-relations-" + d.id);
+              if (targetElement) { targetElement.classList.remove("node-relation-hover"); }
             });
     
           // append ID label
@@ -327,6 +297,12 @@ export async function addNodeWithMultistartVisual(
       child.setAttribute("opacity",0);
     });
   }
+  const windLayerNetForceArrowChildren = document.getElementById("wind-layer-netForceArrows").childNodes;
+  if(windLayerNetForceArrowChildren){
+    windLayerNetForceArrowChildren.forEach((child) => {
+      child.setAttribute("opacity",0);
+    });
+  }
   
   const gCancel = windLayerCancel.append("g")
     .attr("id","spawn-cand-cancel-"+template.id)
@@ -363,14 +339,18 @@ export async function addNodeWithMultistartVisual(
         nodes.push(cand);
         //buildOrUpdateNodes(nodeLayer, nodes);
         //simulation.nodes(nodes); // <- this made everything jump each time
-        // A.before the mini–ticks
+        // approach to fix the jumping: A. before the mini–ticks
         const mini = d3.forceSimulation(nodes.concat(cand))
           .force("gauss", Forces.forceGaussianPreferredArea(1.5))
           .force("coll", Forces.forceCustomCollision)
           ;
-        for (let t=0; t<ticks; t++) mini.tick();
+        mini.tick(); // single tick to capture immediate forces, for net arrows
+          const netForceX = cand.vx;
+          const netForceY = cand.vy;
+        for (let t=1; t<ticks; t++) mini.tick(); // and now the rest of the ticks
+        //for (let t=0; t<ticks; t++) mini.tick();
         mini.stop(); // dispose
-        //B for (let t=0; t<ticks; t++) simulation.tick();
+        //approach to fix the jumping: B: for (let t=0; t<ticks; t++) simulation.tick();
 
       // reposition the <g>s back to their original position as they may have moved in the few ticks just now
         // cand.x = cx;
@@ -420,8 +400,8 @@ export async function addNodeWithMultistartVisual(
       // 5.3 breadcrumb netForceArrow
         const trialGNetForceArrows = gNetForceArrows.append("g")
         .attr("transform",`translate(${cx},${cy})`);
-        const netForceX = cand.vx;
-        const netForceY = cand.vy;
+        // const netForceX = cand.vx;
+        // const netForceY = cand.vy;
         const netForceMagnitude = Math.sqrt(netForceX ** 2 + netForceY ** 2);
 
         //if (netForceMagnitude > 0.1) {
@@ -432,12 +412,13 @@ export async function addNodeWithMultistartVisual(
               //.attr("class", (AppUI.showNetForce.boolState) ? AppUI.showForceArrows.DOMObjectSingleString+" net-force-arrow" : AppUI.showForceArrows.DOMObjectSingleString+" net-force-arrow hidden")
               .attr("x1", 0)
               .attr("y1", 0)
-              .attr("x2", 0)//netLength * Math.cos(netAngle))
-              .attr("y2", 0)//netLength * Math.sin(netAngle))
+              .attr("x2", netLength * Math.cos(netAngle))
+              .attr("y2", netLength * Math.sin(netAngle))
               .attr("netForceMagnitude", netForceMagnitude)
-              .attr("stroke", "red")
+              .attr("netLength", netLength)
+              .attr("stroke", cand.color)
               .attr("stroke-width", 3)
-              .attr("marker-end", "url(#arrowhead-red)")
+              .attr("marker-end", "url(#arrowhead-"+cand.color+")")
               .style("opacity", netForceMagnitude > 0.9 ? 0.8 : 0.5);
         //}
 
@@ -454,8 +435,8 @@ export async function addNodeWithMultistartVisual(
           highestStress = stress;
           bestClone  = structuredClone(cand);
         }
-        if (netForceMagnitude > longestArrow){
-          longestArrow = netForceMagnitude;
+        if (netLength > longestArrow){
+          longestArrow = netLength;
         }
 
       // 7 ‧ pop ghost -------------------------------------------------------
@@ -475,6 +456,13 @@ export async function addNodeWithMultistartVisual(
   const spawnCandStress = document.getElementById("spawn-cand-stress-"+template.id).childNodes;
     spawnCandStress.forEach((child, index) => {
       child.firstChild.setAttribute("fill-opacity",0.5*child.firstChild.getAttribute("stress")/highestStress);
+    });
+  console.log(longestArrow);
+  const spawnCandNetForce = document.getElementById("spawn-cand-netForceArrow-"+template.id).childNodes;
+    spawnCandNetForce.forEach((child, index) => {
+      netForceArrowRank = child.firstChild.getAttribute("netLength")/longestArrow;
+      child.firstChild.setAttribute("x2",child.firstChild.getAttribute("x2")/longestArrow * netForceArrowRank * dx/2);
+      child.firstChild.setAttribute("y2",child.firstChild.getAttribute("y2")/longestArrow * netForceArrowRank * dy/2);
     });
   
   // 8 ‧ commit winner -------------------------------------------------------

@@ -3,9 +3,9 @@ import {showObservations} from "./ui.js";
 
 /**
  * Creates radial gradients for each node in `nodes`.
- * 
  * @param {d3.Selection} defs 
  * @param {Array} nodes The array of node objects with .id and .color.
+ * @param {Array} colours The array of colours
  */
 export function createHeatmapGradients(defs, nodes, colours) {
 
@@ -33,7 +33,6 @@ export function createHeatmapGradients(defs, nodes, colours) {
             .style("stop-opacity", 0.1);
     });
 }
-
 
 /**
  * Builds hotspot rectangles for each node, placing them in a `<g.hotspot-group>` 
@@ -90,8 +89,8 @@ export function buildHeatspotRects(container, nodes, defs){
         //.attr("fill", d => `url(#forceGradient-${d.color})`)  // Correctly associate hotspot with node's gradient
         .attr("fill", d => ensureColourGradient(defs, d.color))  // Correctly associate hotspot with node's gradient
         .style("stroke", d=>d.color)        // Thin black border
-        .style("stroke-width", 1)        // Border thickness
-        .style("stroke-dasharray", "4,2") // Dashed border (4px dash, 2px space)    
+        .style("stroke-width", 2)        // Border thickness
+        //.style("stroke-dasharray", "4,2") // Dashed border (4px dash, 2px space)    
         //.style("opacity", 0.3)
     ;
     

@@ -94,8 +94,8 @@ export function createAxes(container, width, height, minDim) {
   return { xScale, yScale, xAxis, yAxis };
 }
 
-export function createArrowheads(svg) {
-  const arrowsContainer = svg.select("#defs").append("g").attr("id","arrows").attr("class","arrows");
+export function createArrowheads(defs, colours) {
+  const arrowsContainer = defs.append("g").attr("id","arrows").attr("class","arrows");
   arrowsContainer.append("marker")
     .attr("id", "arrowhead-white")
     .attr("viewBox", "0 0 10 10")
@@ -108,20 +108,10 @@ export function createArrowheads(svg) {
     .attr("d", "M0,0 L10,5 L0,10 Z")
     .attr("fill", "white");
 
+  // Define gradients for each node's hotspots dynamically
+  colours.forEach(colour => {
     arrowsContainer.append("marker")
-    .attr("id", "arrowhead-orange")
-    .attr("viewBox", "0 0 10 10")
-    .attr("refX", 0)
-    .attr("refY", 5)
-    .attr("markerWidth", 4)
-    .attr("markerHeight", 4)
-    .attr("orient", "auto")
-    .append("path")
-    .attr("d", "M0,0 L10,5 L0,10 Z")
-    .attr("fill", "orange");
-
-    arrowsContainer.append("marker")
-    .attr("id", "arrowhead-red")
+    .attr("id", "arrowhead-"+colour)
     .attr("viewBox", "0 0 10 10")
     .attr("refX", 0)
     .attr("refY", 5)
@@ -130,5 +120,9 @@ export function createArrowheads(svg) {
     .attr("orient", "auto")
     .append("path")
     .attr("d", "M0,0 L10,5 L0,10 L2,5 Z")
-    .attr("fill", "red");
+    .attr("fill", colour);
+
+  });
+
+
 }
