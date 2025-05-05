@@ -50,15 +50,11 @@ div, .force-arrows, .node-relations, .coord-label, .id-label, .hotspot-group {
   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
   margin-bottom: 20px;
 }
-#debug-panel {
-  top: 10px;
-  left: 10px;
-}
-#detail-panel {
-  top: 10px;
-  right: 10px;
-  height: 200px;
-}
+.ui-panel-top { top: 15px;}
+.ui-panel-left { left: 15px;}
+.ui-panel-bottom { bottom: 15px;}
+.ui-panel-right { right: 15px;}
+#detail-panel { height: 200px;}
 .ui-panel input[type="checkbox"]:checked + span {
   font-weight: bold;
 }
