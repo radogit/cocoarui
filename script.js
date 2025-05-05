@@ -477,7 +477,7 @@ export async function addNodeWithMultistartVisual(
     });
   const spawnCandNetForce = document.getElementById("spawn-cand-netForceArrow-"+template.id).childNodes;
     spawnCandNetForce.forEach((child, index) => {
-      netForceArrowRank = child.firstChild.getAttribute("netLength")/longestArrow;
+      const netForceArrowRank = child.firstChild.getAttribute("netLength")/longestArrow;
       child.firstChild.setAttribute("x2",child.firstChild.getAttribute("x2")/longestArrow * netForceArrowRank * dx/2);
       child.firstChild.setAttribute("y2",child.firstChild.getAttribute("y2")/longestArrow * netForceArrowRank * dy/2);
     });
