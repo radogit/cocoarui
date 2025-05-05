@@ -149,3 +149,6 @@ table.metrics thead {
   background: #ffffaa !important;
 }
 
+.metrics tfoot tr:first-child {
+  border-top: 2px solid;
+}

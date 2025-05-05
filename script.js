@@ -66,6 +66,7 @@ metPanel.append("thead").append("tr").selectAll("th")
         .text(d => d);
 
 const tbody = metPanel.append("tbody");
+const tfoot = metPanel.append("tfoot");
 
 // 2) Draw axes
 const { xScale, yScale, xAxis, yAxis } = Drawing.createAxes(container, width, height, minDim);
@@ -811,19 +812,64 @@ function updateMetrics(nodes){
   rows.selectAll("td")
       .data(d => [
         d.id,
-        (d.x/scaleUnit).toFixed(1),
-        (-d.y/scaleUnit).toFixed(1),
-        d._sumF   .toFixed(1),
-        d._netF   .toFixed(1),
-        d._cancel .toFixed(1),
-        d.vx.toFixed(1),
-        d.vy.toFixed(1)
+        (d.x/scaleUnit).toFixed(0),
+        (-d.y/scaleUnit).toFixed(0),
+        d._sumF   .toFixed(0),
+        d._netF   .toFixed(0),
+        d._cancel .toFixed(0),
+        d.vx.toFixed(0),
+        d.vy.toFixed(0)
       ])
       .join("td")
       .text(t => t);
+      const {sum,avg} = summarise(nodes);
+
+      const footData = [
+        ["Σ",
+          null,null,
+          sum.sumF,sum.netF,sum.cancel,
+          sum.vx,sum.vy],
+        ["μ",
+          null,null,
+          avg.sumF,avg.netF,avg.cancel,
+          avg.vx,avg.vy]
+      ];
+    
+  const footRows = tfoot.selectAll("tr")
+      .data(footData)
+      .join("tr");
+
+  footRows.selectAll("td")
+      .data(d=>d)
+      .join("td")
+      .text(d => {
+        if (Number.isFinite(d)) {          // real number → format
+          return d.toFixed(0);
+        }
+        if (typeof d === "string") {       // “Σ” or “μ” → keep
+          return d;
+        }
+        return "";                         // null / undefined → blank
+      });
 }
 
-
+function summarise(nodes){
+  const n = nodes.length || 1;                         // avoid /0
+  const sum = {x:0,y:0,sumF:0,netF:0,cancel:0,vx:0,vy:0};
+  nodes.forEach(d=>{
+    sum.x      += d.x;
+    sum.y      += d.y;
+    sum.sumF   += d._sumF;
+    sum.netF   += d._netF;
+    sum.cancel += d._cancel;
+    sum.vx     += d.vx;
+    sum.vy     += d.vy;
+  });
+  const avg = Object.fromEntries(
+    Object.entries(sum).map(([k,v]) => [k,v/n])
+  );
+  return {sum,avg};
+}
 
 // ================================================================================================================
 // =============== Dragging & Toggling =======================================================================================
