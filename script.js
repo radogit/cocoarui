@@ -484,6 +484,7 @@ export async function addNodeWithMultistartVisual(
   
   // 8 ‧ commit winner -------------------------------------------------------
     bestClone.id = template.id;
+    console.log('spawned '+bestClone.id+' at ' + (bestClone.x/scaleUnit).toFixed(0) + ', '+(-bestClone.y/scaleUnit).toFixed(0));
     //B snapshot.forEach((p,i)=>Object.assign(nodes[i],p));
     //nodes.push(bestClone);
     nodes.splice(nodes.length, 0, bestClone);   // push on the real array
@@ -628,6 +629,8 @@ export async function dripSpawnSmart(
 // ======== REMOVE ========================================================================================================
 
 function removeAllNodes() {
+
+  console.log('removed all nodes.','red');
   // 1) Clear the array
   Datasets.nodes.splice(0, Datasets.nodes.length);
 
@@ -914,12 +917,62 @@ function summarise(nodes){
         simulation.alpha(0.5).restart(); // Restart simulation for immediate effect // 0.5 instead of 1 for a Less aggressive restart
     }
 
+let draggedContainer = null; // Declare draggedContainer outside
+
+function setupDragAndDropForSpawnButtons() {
+  const buttonContainers = document.querySelectorAll('.button-container');
+
+  buttonContainers.forEach(container => {
+      const dragIcon = container.querySelector('.drag-icon');
+
+      dragIcon.addEventListener('dragstart', (e) => {
+          e.stopPropagation(); // Prevent event from bubbling up to the canvas
+          draggedContainer = container; // Store the currently dragged container
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', container.innerHTML); // Store the inner HTML for drop
+          container.classList.add('dragging'); // Optional: Add a class for styling
+      });
+
+      dragIcon.addEventListener('dragend', () => {
+          if (draggedContainer) {
+              draggedContainer.classList.remove('dragging'); // Remove the dragging class
+          }
+      });
+
+      container.addEventListener('dragover', (e) => {
+          e.preventDefault(); // Allow drop
+          e.stopPropagation(); // Prevent event from bubbling up to the canvas
+          container.classList.add('highlight'); // Add highlight class
+      });
+
+      container.addEventListener('dragleave', () => {
+          container.classList.remove('highlight'); // Remove highlight class when leaving
+      });
+
+      container.addEventListener('drop', (e) => {
+          e.stopPropagation(); // Prevent event from bubbling up to the canvas
+          e.preventDefault();
+          if (draggedContainer && draggedContainer !== container) {
+              // Insert the dragged container before or after the current container
+              const bounding = container.getBoundingClientRect();
+              const offset = bounding.y + bounding.height / 2;
+              if (e.clientY - offset > 0) {
+                  container.after(draggedContainer); // Move dragged container after the current one
+              } else {
+                  container.before(draggedContainer); // Move dragged container before the current one
+              }
+          }
+          container.classList.remove('highlight'); // Remove highlight class after drop
+      });
+  });
+}
+
 
 // ================================================================================================================
 // =============== LISTENERS =======================================================================================
 // ================================================================================================================
 
-document.getElementById("spawnOneButton").addEventListener("click", addOne);
+//document.getElementById("spawnOneButton").addEventListener("click", addOne);
 document.getElementById("removeAllButton").addEventListener("click", removeAllNodes);
 document.getElementById("addOneSmartButton").addEventListener("click", addOneSmart);
 
@@ -927,6 +980,9 @@ const spawnButtonContainer = document.getElementById("spawnButtonContainer");
 
 if(spawnButtonContainer){
   Datasets.preppedNodes.forEach(({name, nodes}) => {
+    const spawnButtonWrapper = document.createElement('div');
+    spawnButtonWrapper.setAttribute('class','button-container');
+    //spawnButtonWrapper.setAttribute('draggable','true');
     const spawnButton = document.createElement('button');
     spawnButton.textContent = 'Set \'' + name + '\'';
     spawnButton.id = 'spawnButton-'+name;
@@ -941,8 +997,15 @@ if(spawnButtonContainer){
         1000                               // 1 s between nodes
       );      
     });
-    spawnButtonContainer.append(spawnButton);
-  });  
+    const spawnButtonIcon = document.createElement('span');
+    spawnButtonIcon.setAttribute('class','drag-icon');
+    spawnButtonIcon.setAttribute('draggable','true');
+    spawnButtonIcon.innerHTML='☰';
+    spawnButtonWrapper.append(spawnButton);
+    spawnButtonWrapper.append(spawnButtonIcon);
+    spawnButtonContainer.append(spawnButtonWrapper);
+  });
+  setupDragAndDropForSpawnButtons();  
 }
 
 

@@ -19,11 +19,12 @@
     <div id="spawn-panel" class="ui-panel-box">
       <h2>Spawn</h2>
       <div id="spawnButtonContainer">
-      <button id="spawnOneButton" keyboardShortcut="Tab">+1 Random</button>
+      <!-- <button id="spawnOneButton" keyboardShortcut="Tab">+1 Random</button> -->
       </div>
-      
-      <button id="removeAllButton" keyboardShortcut="KeyD" style="color: darkred">Delete All [D]</button>
-      <button id="addOneSmartButton" keyboardShortcut="KeyS" style="color: darkgreen">+1 Smart [S]</button>
+      <div style="display: inline-block; min-width: 100%; padding-top: 10px;">
+        <button id="removeAllButton" keyboardShortcut="KeyD" style="color: darkred">Delete All [D]</button>
+        <button id="addOneSmartButton" keyboardShortcut="KeyS" style="color: darkgreen">+1 Random [S]</button>
+      </div>
     </div>
     <!-- <div id="weighing-panel" class="ui-panel-box">      
       <h2 class="todo">Weighing</h2>
@@ -32,10 +33,10 @@
       <label for="weightPriority"><input type="radio" name="weightMethod" id="weightPriority" value="prio" disabled>Priority</label>
     </div> -->
   </div>
-  <div id="detail-panel" class="ui-panel ui-panel-right ui-panel-top ui-panel-box">
+  <!-- <div id="detail-panel" class="ui-panel ui-panel-right ui-panel-top ui-panel-box">
     <h2>Details</h2>
-  </div>
-  <div id="metrics-panel" class="ui-panel ui-panel-right ui-panel-bottom ui-panel-box">
+  </div> -->
+  <div id="metrics-panel" class="ui-panel ui-panel-right ui-panel-top ui-panel-box">
     <h2>Metrics</h2>
   </div>
 </body>
