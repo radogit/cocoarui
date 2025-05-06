@@ -9,6 +9,8 @@ export let showBackground =           { keyboardShortcut: 'Digit7', keyboardShor
 export let showWindStress =           { keyboardShortcut: 'Digit8', keyboardShortcutLetter: '8', defaultState: true, boolState: true, UILabelString: 'Wind Stress', shorthandString: 'wind stress', ToggleObjectString: 'windStress', DOMObjectString: 'wind-layer-stress', URLParamString: 'windStress'};
 export let showWindCancel =           { keyboardShortcut: 'Digit9', keyboardShortcutLetter: '9', defaultState: true, boolState: true, UILabelString: 'Wind Cancel', shorthandString: 'wind cancel', ToggleObjectString: 'windCancel', DOMObjectString: 'wind-layer-cancel', URLParamString: 'windCancel'};
 export let showWindNetForceArrows =   { keyboardShortcut: 'Digit0', keyboardShortcutLetter: '0', defaultState: true, boolState: true, UILabelString: 'Wind Net Force', shorthandString: 'wind net force', ToggleObjectString: 'windNetForce', DOMObjectString: 'wind-layer-netForceArrow', URLParamString: 'windNetForce'};
+export let showAxis =                 { keyboardShortcut: 'KeyA',   keyboardShortcutLetter: 'A', defaultState: true, boolState: true, UILabelString: 'Axis', shorthandString: 'axis', ToggleObjectString: 'toggleAxis', DOMObjectString: 'axis', URLParamString: 'axis'};
+export let showMetricsPanel =         { keyboardShortcut: 'KeyM',   keyboardShortcutLetter: 'M', defaultState: false, boolState: false, UILabelString: 'Metrics', shorthandString: 'metrics', ToggleObjectString: 'toggleMetrics', DOMObjectString: 'metrics-panel', URLParamString: 'metrics'};
 export let showTerminal =             { keyboardShortcut: 'KeyL',   keyboardShortcutLetter: 'L', defaultState: false, boolState: false, UILabelString: 'Log', shorthandString: 'terminal', ToggleObjectString: 'toggleTerminal', DOMObjectString: 'logContainer', URLParamString: 'cmd'};
 
 const url = new URL(window.location.href);
@@ -24,6 +26,8 @@ const showSettings = [
   showWindStress,
   showWindCancel,
   showWindNetForceArrows,
+  showAxis,
+  showMetricsPanel,
   showTerminal
 ];
 
