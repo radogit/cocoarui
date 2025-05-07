@@ -20,7 +20,7 @@ svg {
     fill: rgba(0,0,0,0.2)
 }
 .id-label, .coord-label {
-    font-size: 10px;
+    font-size: 8px;
     opacity: 0.5;
     text-anchor: middle;
 }
@@ -34,6 +34,26 @@ div, .force-arrows, .node-relations, .coord-label, .id-label, .hotspot-group {
   */
   user-select: none;  /* Prevent text selection */
 }
+.highlight-circle {
+  stroke-dasharray: 12 6;
+  stroke-width: 5px;
+  stroke: yellowgreen;
+}
+.haloSpin { animation: spinDash 2s linear infinite; } @keyframes spinDash { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -18; } }
+
+.remove-btn{
+  border:none;
+  background:#aaa;
+  color:#fff;
+  font-weight:bold;
+  border-radius:50%;
+  width:1.4em; height:1.4em;
+  cursor:pointer;
+  line-height:1.4em;
+  padding:0;
+  scale: 0.7;
+}
+.remove-btn:hover{ background:#d22; }
 
 .ui-panel {
     text-align: left;
@@ -83,10 +103,12 @@ span.todo::after { content: " (todo)"; }
   z-index: 8888;
   text-align: left;
 }
-button { margin-bottom: 5px; }
+button { margin-bottom: 5px;}
 .button-container {
   display: flex;
   font-size: 14px;
+  transition: scale 0.2s ease-in-out;
+  scale: 1;
 }
 #debug-panel button {
     min-width: 80%;
@@ -103,9 +125,10 @@ button { margin-bottom: 5px; }
 .drag-icon:hover{
   color: #000;
 }
+.dragging { opacity: 0.3; scale: 1.1;}
 .highlight {
-  border-top: 2px dashed #0077ff; /* Change color as needed */
-  padding-top: 5px;
+  /* border-top: 2px dashed #0077ff; */
+  padding-top: 10px;
 }
 .drag-icon:active {
   cursor: grabbing;
@@ -159,7 +182,7 @@ table.metrics thead {
 }
 
 .metrics th:nth-child(1) {
-  width: 80px;
+  width: 120px;
 }
 
 .metrics th:nth-child(n+2) {

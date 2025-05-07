@@ -65,7 +65,7 @@ metPanel.append("thead").append("tr").selectAll("th")
         .enter().append("th")
         .text(d => d);
 
-const tbody = metPanel.append("tbody");
+const tbody = metPanel.append("tbody").attr("id","metrics-body");;
 const tfoot = metPanel.append("tfoot");
 
 // 2) Draw axes
@@ -100,6 +100,7 @@ function buildOrUpdateNodes(container, nodes) {
       .data(nodes, d => d.id)      // key by node id
       .join(
         enter => {
+          
           // For newly entered node(s):
           const g = enter.append("g")
             .attr("class", "node-group")
@@ -110,9 +111,17 @@ function buildOrUpdateNodes(container, nodes) {
               .on("drag", dragging)
               .on("end", dragEnd)
             );
-  
+          // highlight circle
+          g.append("circle")
+            .attr("class", "highlight-circle hidden")
+            .attr("fill","none")
+            .attr("opacity", 0.8)
+            .attr("r",d => (d.radius +10) )
+            ;
+
           // append the circle
           g.append("circle")
+            .attr("class", "node-circle")
             .attr("fill", d => d.color)
             .attr("id", d => "circle-"+d.id)
             .attr("opacity", 0.6)
@@ -121,13 +130,13 @@ function buildOrUpdateNodes(container, nodes) {
             .attr("stroke-width", d => d.isFixed ? 3 : 0)
             .on("mouseover", function(event, d) {
               let targetElement = document.getElementById("spawn-cand-stress-" + d.id);
-              if (targetElement) { targetElement.setAttribute("opacity", 1); }
+              if (targetElement) { targetElement.setAttribute("opacity", 0.6); }
               targetElement = document.getElementById("spawn-cand-cancel-" + d.id);
-              if (targetElement) { targetElement.setAttribute("opacity", 1); }
+              if (targetElement) { targetElement.setAttribute("opacity", 0.6); }
               targetElement = document.getElementById("spawn-cand-netForceArrow-" + d.id);
-              if (targetElement) { targetElement.setAttribute("opacity", 1); }
+              if (targetElement) { targetElement.setAttribute("opacity", 0.6); }
               targetElement = document.getElementById("hotspot-group-" + d.id);
-              if (targetElement) { targetElement.setAttribute("opacity", 1); }
+              if (targetElement) { targetElement.setAttribute("opacity", 0.6); }
               targetElement = document.getElementById("node-relations-" + d.id);
               if (targetElement) { targetElement.classList.add("node-relation-hover");}
             })
@@ -250,7 +259,7 @@ async function addOneSmart(){
 
   await addNodeWithMultistartVisual(
       Datasets.nodes,
-      template,          // the node blueprint
+      template,
       simulation,
       width, height, defs,
       windLayerCancel, windLayerStress, windLayerNetForceArrows,
@@ -601,6 +610,10 @@ export async function dripSpawnSmart(
 
     const raw = structuredClone(todo.shift());           // fresh copy
     raw.id += '-' + Date.now().toString(36).slice(-4);   // unique-ify id
+    
+    if (raw.color === "random") { raw.color = colours[Math.floor(Math.random()*colours.length)]; }
+
+    Datasets.adjustCoordinatesToScale([raw], scaleUnit);
     Datasets.flipYCoordinates([raw]);                    // keep y-up
     Datasets.fixInitially([raw]);
 
@@ -627,6 +640,26 @@ export async function dripSpawnSmart(
 }
 
 // ======== REMOVE ========================================================================================================
+
+function removeNodeById(id){
+  /* 1 ▸ delete from the data array */
+  const idx = Datasets.nodes.findIndex(n => n.id === id);
+  if(idx === -1) return;                       // safety
+  Datasets.nodes.splice(idx,1);
+
+  /* 2 ▸ scrub ALL SVG fragments that carry that id */
+  d3.select(`#node-group-${id}`).remove();       // main glyph
+  d3.select(`#hotspot-group-${id}`).remove();    // its heatmaps
+  d3.select(`#spawn-cand-stress-${id}`).remove();// wind breadcrumbs
+  d3.select(`#spawn-cand-cancel-${id}`).remove();
+  d3.select(`#spawn-cand-netForceArrow-${id}`).remove();
+
+  /* 3 ▸ refresh joins + forces */
+  Heatmaps.buildHeatspotRects(hotspotLayer, Datasets.nodes, defs);
+  buildOrUpdateNodes(nodeLayer,           Datasets.nodes);
+
+  simulation.nodes(Datasets.nodes).alpha(1).restart();
+}
 
 function removeAllNodes() {
 
@@ -656,6 +689,7 @@ function removeAllNodes() {
 // ================================================================================================================
 
 const simulation = d3.forceSimulation(Datasets.nodes)
+    .force('travel', Forces.forceTravel(Datasets.nodes))
     .force("repel", d3.forceManyBody().strength(d => d.isFixed ? 0 : -50)) // Mild repulsion
     .force("collide", d3.forceCollide().radius(d => d.radius + Datasets.collisionMargin).strength(1.2)) // Prevent overlap
     .force("gaussian", Forces.forceGaussianPreferredArea(1.5)) // Gaussian force for hotspots
@@ -669,191 +703,225 @@ function ticked() {
     
     // Update coordinates label
     if (AppUI.showCoordinates.boolState) {
-        nodeGroup.select("."+AppUI.showCoordinates.DOMObjectString)
-            //.text(d => `(${Math.round(d.x * scaleUnit)}, ${Math.round(-d.y * scaleUnit)})`);
-            .text(d => `(${Math.round(d.x / scaleUnit)}, ${Math.round(-d.y / scaleUnit)})`);
+      nodeGroup.select("."+AppUI.showCoordinates.DOMObjectString)
+        //.text(d => `(${Math.round(d.x * scaleUnit)}, ${Math.round(-d.y * scaleUnit)})`);
+        .text(d => `(${Math.round(d.x / scaleUnit)}, ${Math.round(-d.y / scaleUnit)})`);
     }
     
     // Clear previous arrows before drawing new ones
     nodeGroup.selectAll("."+AppUI.showForceArrows.DOMObjectSingleString+", ."+AppUI.showForceArrows.DOMObjectSingleString+"-value, ."+AppUI.showForceArrows.DOMObjectSingleString+"-label-group").remove();  
     nodeGroup.selectAll("."+AppUI.showNodeLines.DOMObjectSingleString+", ."+AppUI.showNodeLines.DOMObjectSingleString+"-value, ."+AppUI.showNodeLines.DOMObjectSingleString+"-label-group").remove();  
 
-    nodeGroup.select("circle")
-        .attr("stroke", d => d.isFixed ? "black" : "none")
-        .attr("stroke-width", d => d.isFixed ? 3 : 0);
-
+    nodeGroup.select(".node-circle")
+      .attr("r",      d => d.radius)
+      .attr("stroke", d => d.isFixed ? "black" : "none")
+      .attr("stroke-width", d => d.isFixed ? 3 : 0);
+      nodeGroup.select(".highlight-circle")
+      .attr("r",      d => d.radius+10)
+      ;
 
     // Add arrows and lines based on the calculated forces
     nodeGroup.each(function(d) {
-        const arrowGroup = d3.select(this).select("."+AppUI.showForceArrows.DOMObjectString);
-        const nodeRelationsGroup = d3.select(this).select("."+AppUI.showNodeLines.DOMObjectString);
+      const arrowGroup = d3.select(this).select("."+AppUI.showForceArrows.DOMObjectString);
+      const nodeRelationsGroup = d3.select(this).select("."+AppUI.showNodeLines.DOMObjectString);
 
-        d.hotspots.forEach((hotspot, index) => {
-            nodeRelationsGroup.append("line")
-            .attr("class",AppUI.showNodeLines.boolState ? AppUI.showNodeLines.DOMObjectSingleString : AppUI.showNodeLines.DOMObjectSingleString+" hidden")
+      d.hotspots.forEach((hotspot, index) => {
+        nodeRelationsGroup.append("line")
+          .attr("class",AppUI.showNodeLines.boolState ? AppUI.showNodeLines.DOMObjectSingleString : AppUI.showNodeLines.DOMObjectSingleString+" hidden")
+          .attr("x1", 0)
+          .attr("y1", 0)
+          .attr("x2", (-d.x+hotspot.x))
+          .attr("y2", (-d.y+hotspot.y))
+          .attr("stroke", d.color)
+          .attr("stroke-width", 4)
+          .attr("stroke-dasharray", "0,20")
+          .attr("stroke-linecap", "round")
+          .style("opacity", 0.2);
+      });
+
+      // Draw individual force arrows (e.g., from hotspots)
+      d.forces.forEach((force, index) => {          
+
+        // If toggle is off, no need to draw arrows.
+        //if (!AppUI.showForceArrows) return;
+
+        const length = Math.min(Math.sqrt(force.fx ** 2 + force.fy ** 2) * 2, 1000);
+        const angle = Math.atan2(force.fy, force.fx);
+        const labelAngle = ( ((angle + Math.PI / 2)/Math.PI) * 180 ) %180;
+        // a little bit of magic to keep labels from ever perfectly overlapping each other
+        const labelPosX = (1.0 * length + 35) * Math.cos(angle) + index*2 - d.forces.length/2;
+        const labelPosY = (1.0 * length + 35) * Math.sin(angle) + index*2 - d.forces.length/2;
+
+        // 1) The arrow line
+        arrowGroup.append("line")
+          .attr("class", force.source.includes("collision") ? 
+            (AppUI.showForceArrows.boolState ? AppUI.showForceArrows.DOMObjectSingleString+" "+AppUI.showForceArrows.DOMObjectSingleString+"-orange" : AppUI.showForceArrows.DOMObjectSingleString+" "+AppUI.showForceArrows.DOMObjectSingleString+"-orange hidden") 
+            : 
+            (AppUI.showForceArrows.boolState ? AppUI.showForceArrows.DOMObjectSingleString+" "+AppUI.showForceArrows.DOMObjectSingleString+"-white" : AppUI.showForceArrows.DOMObjectSingleString+" "+AppUI.showForceArrows.DOMObjectSingleString+"-white hidden")
+          )
+          .attr("x1", 0)
+          .attr("y1", 0)
+          .attr("x2", length * Math.cos(angle))
+          .attr("y2", length * Math.sin(angle))
+          .attr("stroke", force.source.includes("collision") ? "orange" : "white")
+          .attr("stroke-width", 5)
+          .attr("marker-end", "url(#arrowhead-"+(force.source.includes("collision") ? "orange" : "white")+")")
+          .style("opacity", 0.5);
+        // 2) The arrow magnitude text, Append a group to hold the label & background
+        const labelGroup = arrowGroup.append("g")
+          .attr("class", AppUI.showForceArrows.boolState? AppUI.showForceArrows.DOMObjectSingleString+"-label-group" : AppUI.showForceArrows.DOMObjectSingleString+"-label-group hidden")
+          .attr("transform", `translate(${labelPosX},${labelPosY})`)
+          .attr("opacity", 0.3)
+          ;
+        const bgRect = labelGroup.append("rect")
+          .attr("class", AppUI.showForceArrows.DOMObjectSingleString+"-label-bg")
+          .attr("x", -20) // we’ll adjust this once we know the text width
+          .attr("y", -10)
+          .attr("width", 40) // default guess
+          .attr("height", 20)
+          .attr("rx", 4) // rounded corners
+          .attr("fill", "rgba(0,0,0)")
+          .attr("transform", `rotate(${labelAngle>90? labelAngle-180 : labelAngle})`)
+          ; // a semi-transparent black background
+        const labelText = labelGroup.append("text")
+          .attr("class", AppUI.showForceArrows.DOMObjectSingleString+"-label-text")
+          .attr("x", 0)
+          .attr("y", 0)
+          .attr("text-anchor", "middle")
+          .attr("dominant-baseline", "middle")
+          .attr("fill", "white")
+          .attr("font-size", 12)
+          .text(length.toFixed(0) + ' ∠' + labelAngle.toFixed(0) + '°')
+          .attr("transform", `rotate(${labelAngle>90? labelAngle-180 : labelAngle})`) 
+          ;
+        const bbox = labelText.node().getBBox();  // e.g. { x, y, width, height } of the text
+
+        bgRect
+          .attr("x", bbox.x - 4)
+          .attr("y", bbox.y - 2)
+          .attr("width", bbox.width + 8)
+          .attr("height", bbox.height + 4);
+      });
+
+      if (AppUI.showNetForce.boolState) {
+        const netForceX = d.vx;
+        const netForceY = d.vy;
+        const netForceMagnitude = Math.sqrt(netForceX ** 2 + netForceY ** 2);
+
+        if (netForceMagnitude > 0.1) {
+          const netLength = Math.min(netForceMagnitude * 5, 1000);
+          const netAngle = Math.atan2(netForceY, netForceX);
+
+          arrowGroup.append("line")
+            //.attr("class", (AppUI.showNetForce.boolState) ? AppUI.showForceArrows.DOMObjectSingleString+" net-force-arrow" : AppUI.showForceArrows.DOMObjectSingleString+" net-force-arrow hidden")
+            .attr("class", (AppUI.showForceArrows.boolState) ? AppUI.showForceArrows.DOMObjectSingleString+" net-force-arrow" : AppUI.showForceArrows.DOMObjectSingleString+" net-force-arrow hidden")
             .attr("x1", 0)
             .attr("y1", 0)
-            .attr("x2", (-d.x+hotspot.x))
-            .attr("y2", (-d.y+hotspot.y))
-            .attr("stroke", d.color)
-            .attr("stroke-width", 4)
-            .attr("stroke-dasharray", "0,20")
-            .attr("stroke-linecap", "round")
-            .style("opacity", 0.2);
-        });
-
-        // Draw individual force arrows (e.g., from hotspots)
-        d.forces.forEach((force, index) => {          
-
-            // If toggle is off, no need to draw arrows.
-            //if (!AppUI.showForceArrows) return;
-
-            const length = Math.min(Math.sqrt(force.fx ** 2 + force.fy ** 2) * 2, 1000);
-            const angle = Math.atan2(force.fy, force.fx);
-            const labelAngle = ( ((angle + Math.PI / 2)/Math.PI) * 180 ) %180;
-            // a little bit of magic to keep labels from ever perfectly overlapping each other
-            const labelPosX = (1.0 * length + 35) * Math.cos(angle) + index*2 - d.forces.length/2;
-            const labelPosY = (1.0 * length + 35) * Math.sin(angle) + index*2 - d.forces.length/2;
-
-            // 1) The arrow line
-            arrowGroup.append("line")
-                //.attr("class", "force-arrow")
-                .attr("class", force.source.includes("collision") ? 
-                  (AppUI.showForceArrows.boolState ? AppUI.showForceArrows.DOMObjectSingleString+" "+AppUI.showForceArrows.DOMObjectSingleString+"-orange" : AppUI.showForceArrows.DOMObjectSingleString+" "+AppUI.showForceArrows.DOMObjectSingleString+"-orange hidden") 
-                  : 
-                  (AppUI.showForceArrows.boolState ? AppUI.showForceArrows.DOMObjectSingleString+" "+AppUI.showForceArrows.DOMObjectSingleString+"-white" : AppUI.showForceArrows.DOMObjectSingleString+" "+AppUI.showForceArrows.DOMObjectSingleString+"-white hidden")
-                )
-                .attr("x1", 0)
-                .attr("y1", 0)
-                .attr("x2", length * Math.cos(angle))
-                .attr("y2", length * Math.sin(angle))
-                .attr("stroke", force.source.includes("collision") ? "orange" : "white")
-                .attr("stroke-width", 5)
-                .attr("marker-end", "url(#arrowhead-"+(force.source.includes("collision") ? "orange" : "white")+")")
-                .style("opacity", 0.5);
-            // 2) The arrow magnitude text, Append a group to hold the label & background
-            const labelGroup = arrowGroup.append("g")
-                .attr("class", AppUI.showForceArrows.boolState? AppUI.showForceArrows.DOMObjectSingleString+"-label-group" : AppUI.showForceArrows.DOMObjectSingleString+"-label-group hidden")
-                .attr("transform", `translate(${labelPosX},${labelPosY})`)
-                .attr("opacity", 0.3)
-                ;
-            const bgRect = labelGroup.append("rect")
-                .attr("class", AppUI.showForceArrows.DOMObjectSingleString+"-label-bg")
-                .attr("x", -20) // we’ll adjust this once we know the text width
-                .attr("y", -10)
-                .attr("width", 40) // default guess
-                .attr("height", 20)
-                .attr("rx", 4) // rounded corners
-                .attr("fill", "rgba(0,0,0)")
-                .attr("transform", `rotate(${labelAngle>90? labelAngle-180 : labelAngle})`)
-                ; // a semi-transparent black background
-            const labelText = labelGroup.append("text")
-                .attr("class", AppUI.showForceArrows.DOMObjectSingleString+"-label-text")
-                .attr("x", 0)
-                .attr("y", 0)
-                .attr("text-anchor", "middle")
-                .attr("dominant-baseline", "middle")
-                .attr("fill", "white")
-                .attr("font-size", 12)
-                .text(length.toFixed(0) + ' ∠' + labelAngle.toFixed(0) + '°')
-                .attr("transform", `rotate(${labelAngle>90? labelAngle-180 : labelAngle})`) 
-                ;
-            const bbox = labelText.node().getBBox();  // e.g. { x, y, width, height } of the text
-
-            bgRect
-              .attr("x", bbox.x - 4)
-              .attr("y", bbox.y - 2)
-              .attr("width", bbox.width + 8)
-              .attr("height", bbox.height + 4);
-        });
-
-        if (AppUI.showNetForce.boolState) {
-            const netForceX = d.vx;
-            const netForceY = d.vy;
-            const netForceMagnitude = Math.sqrt(netForceX ** 2 + netForceY ** 2);
-
-            if (netForceMagnitude > 0.1) {
-                const netLength = Math.min(netForceMagnitude * 5, 1000);
-                const netAngle = Math.atan2(netForceY, netForceX);
-
-                arrowGroup.append("line")
-                    .attr("class", (AppUI.showNetForce.boolState) ? AppUI.showForceArrows.DOMObjectSingleString+" net-force-arrow" : AppUI.showForceArrows.DOMObjectSingleString+" net-force-arrow hidden")
-                    .attr("x1", 0)
-                    .attr("y1", 0)
-                    .attr("x2", netLength * Math.cos(netAngle))
-                    .attr("y2", netLength * Math.sin(netAngle))
-                    .attr("stroke", "red")
-                    .attr("stroke-width", 3)
-                    .attr("marker-end", "url(#arrowhead-red)")
-                    .style("opacity", netForceMagnitude > 0.9 ? 0.8 : 0.5);
-            }
+            .attr("x2", netLength * Math.cos(netAngle))
+            .attr("y2", netLength * Math.sin(netAngle))
+            .attr("stroke", "red")
+            .attr("stroke-width", 3)
+            .attr("marker-end", "url(#arrowhead-red)")
+            .style("opacity", netForceMagnitude > 0.9 ? 0.8 : 0.5);
         }
+      }
     });
     updateMetrics(Datasets.nodes);   //
 }
     
 let lastMetricsUpdate = 0;
 function updateMetrics(nodes){
-  // join/-update rows ( THIS is the missing “rows” )
+  /*────────────────────────────────────────  ROWS  ─────────────────────────*/
   const rows = tbody.selectAll("tr")
-                    .data(nodes, d => d.id)
-                    .join("tr");
+      .data(nodes, d => d.id)
+      .join("tr")
+        .attr("data-id", d => d.id)
+        .on("mouseenter", handleEnter)
+        .on("mouseleave", handleLeave);
 
-  // compute metrics (add a guard for the very first tick)
+  /*────────────────────────────────  (re)compute metrics  ──────────────────*/
   rows.each(d => {
-    const F = d.forces ?? [];
-    const sum  = F.reduce((s,f)=>s+Math.hypot(f.fx,f.fy),0);
-    const netx = F.reduce((s,f)=>s+f.fx,0);
-    const nety = F.reduce((s,f)=>s+f.fy,0);
-    const net  = Math.hypot(netx,nety);
+    const F   = d.forces ?? [];
+    const sum = F.reduce((s,f)=>s + Math.hypot(f.fx,f.fy), 0);
+    const netx= F.reduce((s,f)=>s + f.fx, 0);
+    const nety= F.reduce((s,f)=>s + f.fy, 0);
+    const net = Math.hypot(netx, nety);
+
     d._sumF   = sum;
     d._netF   = net;
     d._cancel = sum - net;
   });
 
-  // fill / update the 6 columns of every row
-  rows.selectAll("td")
+  /*────────────────────── first cell  (label + remove-btn) ─────────────────*/
+  rows.selectAll("td.rowLabel")
+      .data(d => [d])                      // one cell per row
+      .join(
+        enter => enter.append("td").attr("class","rowLabel")
+                       .html(d => `
+         <span class="name">${d.id}</span>
+         <button class="remove-btn"
+                 title="Delete ${d.id}"
+                 data-id="${d.id}">✕</button>`),
+        update => update                   // nothing dynamic inside
+      );
+
+  /*──────────────────────  numeric metric cells (7 of them)  ───────────────*/
+  rows.selectAll("td.metric")
       .data(d => [
-        d.id,
         (d.x/scaleUnit).toFixed(0),
         (-d.y/scaleUnit).toFixed(0),
-        d._sumF   .toFixed(0),
-        d._netF   .toFixed(0),
-        d._cancel .toFixed(0),
-        d.vx.toFixed(0),
-        d.vy.toFixed(0)
+        d._sumF  .toFixed(0),
+        d._netF  .toFixed(0),
+        d._cancel.toFixed(0),
+        d.vx .toFixed(0),
+        d.vy .toFixed(0)
       ])
-      .join("td")
-      .text(t => t);
-      const {sum,avg} = summarise(nodes);
+      .join(
+        enter  => enter.append("td").attr("class","metric").text(t => t),
+        update => update.text(t => t)
+      );
 
-      const footData = [
-        ["Σ",
-          null,null,
-          sum.sumF,sum.netF,sum.cancel,
-          sum.vx,sum.vy],
-        ["μ",
-          null,null,
-          avg.sumF,avg.netF,avg.cancel,
-          avg.vx,avg.vy]
-      ];
-    
+  /*──────────────────────────────  FOOTER  Σ and μ  ────────────────────────*/
+  const {sum, avg} = summarise(nodes);
+  const footData = [
+    ["Σ", null,null, sum.sumF,sum.netF,sum.cancel, sum.vx,sum.vy],
+    ["μ", null,null, avg.sumF,avg.netF,avg.cancel, avg.vx,avg.vy]
+  ];
+
   const footRows = tfoot.selectAll("tr")
       .data(footData)
       .join("tr");
 
   footRows.selectAll("td")
-      .data(d=>d)
+      .data(d => d)
       .join("td")
-      .text(d => {
-        if (Number.isFinite(d)) {          // real number → format
-          return d.toFixed(0);
-        }
-        if (typeof d === "string") {       // “Σ” or “μ” → keep
-          return d;
-        }
-        return "";                         // null / undefined → blank
-      });
+      .text(d => (Number.isFinite(d) ? d.toFixed(0) : d ?? ""));
+
+  /*──────────────────────── delegated click → remove  ──────────────────────*/
+  // d3.select("#metrics-panel")
+  //   .on("click", function(e){
+  //     if (e.target.classList.contains("remove-btn")){
+  //       console.log("remove node "+e.target.dataset.id);
+  //       removeNodeById(e.target.dataset.id);
+  //     }
+  //   });
+}
+
+
+function handleEnter() {
+  const id = this.dataset.id;                        // row / th data-id
+  d3.select(`#node-group-${id} .highlight-circle`)
+    .classed("hidden", false)
+    .classed("haloSpin", true)
+    ;                       
+}
+
+function handleLeave() {
+  const id = this.dataset.id;
+  d3.select(`#node-group-${id} .highlight-circle`)
+    .classed("hidden", true)
+    .classed("haloSpin", false)
+    ;
 }
 
 function summarise(nodes){
@@ -879,43 +947,43 @@ function summarise(nodes){
 // ================================================================================================================
 
 // Dragging behavior
-    function dragStart(event, d) {
-        simulation.alphaTarget(0.3).restart();
-        d.fx = d.x;
-        d.fy = d.y;
-    }
+function dragStart(event, d) {
+  simulation.alphaTarget(0.3).restart();
+  d.fx = d.x;
+  d.fy = d.y;
+}
 
-    function dragging(event, d) {
-        d.fx = event.x;
-        d.fy = event.y;
-    }
+function dragging(event, d) {
+  d.fx = event.x;
+  d.fy = event.y;
+}
 
-    function dragEnd(event, d) {
-        if (!d.isFixed) { // Only release normal nodes
-            d.fx = null;
-            d.fy = null;
-            simulation.alphaTarget(0);
-        }
-    }
+function dragEnd(event, d) {
+  if (!d.isFixed) { // Only release normal nodes
+    d.fx = null;
+    d.fy = null;
+    simulation.alphaTarget(0);
+  }
+}
 
-    function toggleFixed(event, d) {
-        d.isFixed = !d.isFixed; // Toggle fixed state
+function toggleFixed(event, d) {
+  d.isFixed = !d.isFixed; // Toggle fixed state
 
-        if (d.isFixed) {
-            d.fx = d.x; // Lock position
-            d.fy = d.y;
-        } else {
-            d.fx = null; // Allow movement
-            d.fy = null;
-        }
+  if (d.isFixed) {
+    d.fx = d.x; // Lock position
+    d.fy = d.y;
+  } else {
+    d.fx = null; // Allow movement
+    d.fy = null;
+  }
 
-        d3.select(this).select("circle")
-            .transition().duration(200)
-            .attr("stroke", d.isFixed ? "black" : "none") // Visual cue: Black stroke if fixed
-            .attr("stroke-width", d.isFixed ? 3 : 0);
+  d3.select(this).select("circle")
+    .transition().duration(200)
+    .attr("stroke", d.isFixed ? "black" : "none") // Visual cue: Black stroke if fixed
+    .attr("stroke-width", d.isFixed ? 3 : 0);
 
-        simulation.alpha(0.5).restart(); // Restart simulation for immediate effect // 0.5 instead of 1 for a Less aggressive restart
-    }
+  simulation.alpha(0.5).restart(); // Restart simulation for immediate effect // 0.5 instead of 1 for a Less aggressive restart
+}
 
 let draggedContainer = null; // Declare draggedContainer outside
 
@@ -924,46 +992,48 @@ function setupDragAndDropForSpawnButtons() {
 
   buttonContainers.forEach(container => {
       const dragIcon = container.querySelector('.drag-icon');
+      if (dragIcon){
+        dragIcon.addEventListener('dragstart', (e) => {
+            e.stopPropagation(); // Prevent event from bubbling up to the canvas
+            draggedContainer = container; // Store the currently dragged container
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', container.innerHTML); // Store the inner HTML for drop
+            container.classList.add('dragging'); // Optional: Add a class for styling
+        });
 
-      dragIcon.addEventListener('dragstart', (e) => {
-          e.stopPropagation(); // Prevent event from bubbling up to the canvas
-          draggedContainer = container; // Store the currently dragged container
-          e.dataTransfer.effectAllowed = 'move';
-          e.dataTransfer.setData('text/plain', container.innerHTML); // Store the inner HTML for drop
-          container.classList.add('dragging'); // Optional: Add a class for styling
-      });
+        dragIcon.addEventListener('dragend', () => {
+            if (draggedContainer) {
+                draggedContainer.classList.remove('dragging'); // Remove the dragging class
+            }
+        });
 
-      dragIcon.addEventListener('dragend', () => {
-          if (draggedContainer) {
-              draggedContainer.classList.remove('dragging'); // Remove the dragging class
-          }
-      });
+        container.addEventListener('dragover', (e) => {
+            e.preventDefault(); // Allow drop
+            e.stopPropagation(); // Prevent event from bubbling up to the canvas
+            container.classList.add('highlight'); // Add highlight class
+        });
 
-      container.addEventListener('dragover', (e) => {
-          e.preventDefault(); // Allow drop
-          e.stopPropagation(); // Prevent event from bubbling up to the canvas
-          container.classList.add('highlight'); // Add highlight class
-      });
+        container.addEventListener('dragleave', () => {
+            container.classList.remove('highlight'); // Remove highlight class when leaving
+        });
 
-      container.addEventListener('dragleave', () => {
-          container.classList.remove('highlight'); // Remove highlight class when leaving
-      });
+        container.addEventListener('drop', (e) => {
+            e.stopPropagation(); // Prevent event from bubbling up to the canvas
+            e.preventDefault();
+            if (draggedContainer && draggedContainer !== container) {
+                // Insert the dragged container before or after the current container
+                const bounding = container.getBoundingClientRect();
+                const offset = bounding.y + bounding.height / 2;
+                if (e.clientY - offset > 0) {
+                    container.after(draggedContainer); // Move dragged container after the current one
+                } else {
+                    container.before(draggedContainer); // Move dragged container before the current one
+                }
+            }
+            container.classList.remove('highlight'); // Remove highlight class after drop
+        });
+      }
 
-      container.addEventListener('drop', (e) => {
-          e.stopPropagation(); // Prevent event from bubbling up to the canvas
-          e.preventDefault();
-          if (draggedContainer && draggedContainer !== container) {
-              // Insert the dragged container before or after the current container
-              const bounding = container.getBoundingClientRect();
-              const offset = bounding.y + bounding.height / 2;
-              if (e.clientY - offset > 0) {
-                  container.after(draggedContainer); // Move dragged container after the current one
-              } else {
-                  container.before(draggedContainer); // Move dragged container before the current one
-              }
-          }
-          container.classList.remove('highlight'); // Remove highlight class after drop
-      });
   });
 }
 
@@ -977,36 +1047,47 @@ document.getElementById("removeAllButton").addEventListener("click", removeAllNo
 document.getElementById("addOneSmartButton").addEventListener("click", addOneSmart);
 
 const spawnButtonContainer = document.getElementById("spawnButtonContainer");
+const spawnButtonContainerExtended = document.getElementById("spawnButtonContainerExtended");
 
-if(spawnButtonContainer){
-  Datasets.preppedNodes.forEach(({name, nodes}) => {
-    const spawnButtonWrapper = document.createElement('div');
-    spawnButtonWrapper.setAttribute('class','button-container');
-    //spawnButtonWrapper.setAttribute('draggable','true');
-    const spawnButton = document.createElement('button');
-    spawnButton.textContent = 'Set \'' + name + '\'';
-    spawnButton.id = 'spawnButton-'+name;
-    spawnButton.addEventListener("click", () => {
-      //spawnOneByOne(nodes);
+function addSpawnButtons(datasetArray, target) {
+  datasetArray.forEach(({ name, nodes, notDraggable = false }) => {
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'button-container';
+
+    const btn = document.createElement('button');
+    btn.textContent = name;
+    btn.id = `spawnButton-${name}`;
+
+    btn.addEventListener('click', () => {
       dripSpawnSmart(
-        nodes,                             // queue
+        nodes,                        // queue
         Datasets.nodes, simulation,
         width, height, defs,
         hotspotLayer, nodeLayer,
         windLayerCancel, windLayerStress, windLayerNetForceArrows,
-        1000                               // 1 s between nodes
-      );      
+        1000                          // 1 s between nodes
+      );
     });
-    const spawnButtonIcon = document.createElement('span');
-    spawnButtonIcon.setAttribute('class','drag-icon');
-    spawnButtonIcon.setAttribute('draggable','true');
-    spawnButtonIcon.innerHTML='☰';
-    spawnButtonWrapper.append(spawnButton);
-    spawnButtonWrapper.append(spawnButtonIcon);
-    spawnButtonContainer.append(spawnButtonWrapper);
+
+    const handle = document.createElement('span');
+    handle.className = (notDraggable) ? 'drag-icon hidden' : 'drag-icon';
+    handle.draggable = true;
+    handle.textContent = '☰';
+    wrapper.append(btn, handle);
+
+    target.append(wrapper);
   });
-  setupDragAndDropForSpawnButtons();  
 }
+
+if (spawnButtonContainer){
+  addSpawnButtons(Datasets.preppedNodes, spawnButtonContainer);           // first batch
+  setupDragAndDropForSpawnButtons();
+}
+if (spawnButtonContainerExtended){
+  addSpawnButtons(Datasets.preppedNodesExtended, spawnButtonContainerExtended);   // second batch
+}
+
 
 
 // ======== Metrics table ========================================
@@ -1042,6 +1123,13 @@ table.addEventListener('mouseout', (event) => {
         });
     }
 });
+
+tbody.on("click", function (e) {
+  if (e.target.classList.contains("remove-btn")) {
+    console.log("remove node" + e.target.dataset.id, "red");
+    removeNodeById(e.target.dataset.id);
+  }
+  });
 
 // ======== Browser window resize ================================
 

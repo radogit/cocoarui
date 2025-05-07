@@ -76,3 +76,43 @@ export function forceCustomCollision(alpha) {
     });
   });
 }
+
+export function forceTravel(nodes) {
+  let lastMs = performance.now();        // ← local clock
+
+  function force() {
+    const now   = performance.now();
+    const dtSec = (now - lastMs) / 1000; // seconds since last tick
+    lastMs      = now;
+
+    nodes.forEach(n => {
+      if (n.travelMode !== 'line' || n.travelDone) return;
+
+      /* vector & remaining distance */
+      const dx = n.travelTo.x - n.travelFrom.x;
+      const dy = n.travelTo.y - n.travelFrom.y;
+      const   L = Math.hypot(dx, dy);
+      if (L === 0) { n.travelDone = true; return; }
+
+      /* progress this tick */
+      const v  = n.travelSpeed;              // units / s
+      const dL = v * dtSec;                  // advance along the path
+      n.travelDist = (n.travelDist ?? 0) + dL;
+
+      if (n.travelDist >= L) {               // reached (or overshot) end
+        n.x = n.fx = n.travelTo.x;
+        n.y = n.fy = n.travelTo.y;
+        n.vx = n.vy = 0;
+        n.radius = n.radiusFinal; 
+        n.travelDone = true;                 // <- no more updates
+      } else {
+        const frac = n.travelDist / L;       // 0 … <1
+        n.x = n.fx = n.travelFrom.x + frac * dx;
+        n.y = n.fy = n.travelFrom.y + frac * dy;
+        n.radius = n.radiusFinal * frac;
+      }
+    });
+  }
+  force.initialize = _ => (nodes = _);
+  return force;
+}
