@@ -34,8 +34,8 @@ div, .force-arrows, .node-relations, .coord-label, .id-label, .hotspot-group {
   user-select: none;
 }
 .node-circle.hidden {
-  pointer-events: initial; 
-  user-select: initial;
+  pointer-events: initial !important; 
+  user-select: initial !important;
 }
 .highlight-circle {
   stroke-dasharray: 12 6;
