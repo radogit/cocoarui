@@ -142,7 +142,7 @@ button { margin-bottom: 5px;}
   clear: both;
 }
 /* #removeAllButton { margin-top: 10px;} */
-.spawn-panel>div:nth-child(n+3) {padding-top: 15px;}
+.simulation-panel>div:nth-child(n+3) {padding-top: 15px;}
 .ui-panel hr {
   border: 0;
   border-top: 1px rgba(0,0,0,0.4) solid;
