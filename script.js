@@ -121,7 +121,7 @@ function buildOrUpdateNodes(container, nodes) {
 
           // append the circle
           g.append("circle")
-            .attr("class", "node-circle")
+            .attr("class", AppUI.showCircles.boolState? AppUI.showCircles.DOMObjectString : AppUI.showCircles.DOMObjectString + " hidden")
             .attr("fill", d => d.color)
             .attr("id", d => "circle-"+d.id)
             .attr("opacity", 0.6)
@@ -152,6 +152,16 @@ function buildOrUpdateNodes(container, nodes) {
               targetElement = document.getElementById("node-relations-" + d.id);
               if (targetElement) { targetElement.classList.remove("node-relation-hover"); }
             });
+          // highlight circle
+          g.append("rect")
+            .attr("class", d => d.representation ? "icon-"+d.representation:"icon")
+            .attr("fill","none")
+            .attr("opacity", 0.8)
+            .attr("x", d => -d.radius/Math.sqrt(2))
+            .attr("y", d => -d.radius/Math.sqrt(2))
+            .attr("width", d => d.radius/Math.sqrt(2)*2 )    // 
+            .attr("height", d => d.radius/Math.sqrt(2)*2 )   // 2* a^2 = r^2
+            ;
     
           // append ID label
           g.append("text")
@@ -223,29 +233,29 @@ function randomHotspots(n=1){
   return arr;
 }
 
-function addOne() {
-  const newNode = {
-    id: "spawn-"+Date.now().toString(36).substring(2, 8),
-    x : minDim * (Math.random() - 0.5),
-    y : minDim * (Math.random() - 0.5),
-    color: colours[Math.floor(Math.random() * colours.length)],
-    radius: 10+30 * Math.random(),
-    isFixed: false,
-    significance: 1,
-    hotspots: randomHotspots(1+Math.floor(Math.random()*4))
-  };
+// function addOne() {
+//   const newNode = {
+//     id: "spawn-"+Date.now().toString(36).substring(2, 8),
+//     x : minDim * (Math.random() - 0.5),
+//     y : minDim * (Math.random() - 0.5),
+//     color: colours[Math.floor(Math.random() * colours.length)],
+//     radius: 10+30 * Math.random(),
+//     isFixed: false,
+//     significance: 1,
+//     hotspots: randomHotspots(1+Math.floor(Math.random()*4))
+//   };
   
-  Datasets.nodes.push(newNode);
-  // (A) Re-run hotspot data-join to create rects for newNode.hotspots
-  Heatmaps.buildHeatspotRects(hotspotLayer, Datasets.nodes, defs);
+//   Datasets.nodes.push(newNode);
+//   // (A) Re-run hotspot data-join to create rects for newNode.hotspots
+//   Heatmaps.buildHeatspotRects(hotspotLayer, Datasets.nodes, defs);
 
-  // (B) Re-run node data-join to create circles, labels, etc.
-  buildOrUpdateNodes(nodeLayer, Datasets.nodes);
+//   // (B) Re-run node data-join to create circles, labels, etc.
+//   buildOrUpdateNodes(nodeLayer, Datasets.nodes);
 
-  // (C) Let the simulation know about new node
-  simulation.nodes(Datasets.nodes);       
-  simulation.alpha(1).restart(); 
-}
+//   // (C) Let the simulation know about new node
+//   simulation.nodes(Datasets.nodes);       
+//   simulation.alpha(1).restart(); 
+// }
 
 async function addOneSmart(){
   const template = {
@@ -715,7 +725,7 @@ function ticked() {
     nodeGroup.selectAll("."+AppUI.showForceArrows.DOMObjectSingleString+", ."+AppUI.showForceArrows.DOMObjectSingleString+"-value, ."+AppUI.showForceArrows.DOMObjectSingleString+"-label-group").remove();  
     nodeGroup.selectAll("."+AppUI.showNodeLines.DOMObjectSingleString+", ."+AppUI.showNodeLines.DOMObjectSingleString+"-value, ."+AppUI.showNodeLines.DOMObjectSingleString+"-label-group").remove();  
 
-    nodeGroup.select(".node-circle")
+    nodeGroup.select("."+AppUI.showCircles.DOMObjectString)
       .attr("r",      d => d.radius)
       .attr("stroke", d => d.isFixed ? "black" : "none")
       .attr("stroke-width", d => d.isFixed ? 3 : 0);

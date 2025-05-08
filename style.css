@@ -167,8 +167,8 @@ table.metrics {
 
 table.metrics th,
 table.metrics td {
-  border: 1px solid black; /* Ensure borders are applied here */
-  padding: 3px; /* Use consistent padding */
+  /* border: 1px solid black; */
+  padding: 3px;
   text-align: right;
 }
 

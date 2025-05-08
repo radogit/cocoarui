@@ -5,8 +5,11 @@ import { imagePaths } from "./backgrounds.js";
 import * as AppUI from "./ui.js";
 
 export function createSvgAndContainer() {
-  const width  = window.innerWidth;
-  const height = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+  const svgToBrowserRatio = 0.95;
+  const browserCanvasWidth  = window.innerWidth;
+  const width  = browserCanvasWidth * svgToBrowserRatio;
+  const browserCanvasHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+  const height = browserCanvasHeight * svgToBrowserRatio;
   const minDim = Math.min(width, height);
   const scaleUnit = minDim/180;
 
@@ -24,7 +27,7 @@ export function createSvgAndContainer() {
   
   const container = svg.append("g")
     .attr("class", "container")
-    .attr("transform", `translate(${width/2},${height/2})`);
+    .attr("transform", `translate(${browserCanvasWidth/2},${browserCanvasHeight/2})`);
 
   const backgroundLayer = container.append("g")
     .attr("id", "background-layer")
