@@ -2,13 +2,17 @@
 export let showNodeLabel =            { keyboardShortcut: 'Digit1',   keyboardShortcutLetter: '1',  shownInViewPanel: true, defaultState: true, boolState: true, UILabelString: 'Name', shorthandString: 'ID labels', ToggleObjectString: 'toggleNodeLabel', DOMObjectString: 'id-label', URLParamString: 'nodeLabel'};
 export let showCoordinates =          { keyboardShortcut: 'Digit2',   keyboardShortcutLetter: '2',  shownInViewPanel: true, defaultState: true, boolState: true, UILabelString: 'Coordinates', shorthandString: 'coordinate labels', ToggleObjectString: 'toggleCoordinates', DOMObjectString: 'coord-label', URLParamString: 'coords'};
 export let showForceArrows =          { keyboardShortcut: 'Digit3',   keyboardShortcutLetter: '3',  shownInViewPanel: true, defaultState: true, boolState: true, UILabelString: 'Force Arrows', shorthandString: 'arrows of forces', ToggleObjectString: 'toggleForceArrows', DOMObjectString: 'force-arrows', DOMObjectSingleString: 'force-arrow', URLParamString: 'forceArrows'};
+export let showForceArrowsLabels =    { keyboardShortcut: 'KeyE',     keyboardShortcutLetter: 'E',  shownInViewPanel: true, defaultState: true, boolState: true, UILabelString: 'Force Label', shorthandString: 'labels for arrows of forces', ToggleObjectString: 'toggleForceArrowsLabels', DOMObjectString: 'force-arrows-labels', DOMObjectSingleString: 'force-arrow-labels', URLParamString: 'forceArrowsLabels'};
 export let showNetForce =             { keyboardShortcut: 'KeyN',     keyboardShortcutLetter: 'N',  shownInViewPanel: false, defaultState: true, boolState: true, UILabelString: 'Net Force', shorthandString: 'net force arrows', ToggleObjectString: 'toggleNetForce', DOMObjectString: 'force-arrow-netForce', URLParamString: 'netForceArrows'};
 export let showObservations =         { keyboardShortcut: 'Digit4',   keyboardShortcutLetter: '4',  shownInViewPanel: true, defaultState: true, boolState: true, UILabelString: 'Observations', shorthandString: 'observations', ToggleObjectString: 'toggleObservations', DOMObjectString: 'hotspot-group', URLParamString: 'obs'};
 export let showNodeLines =            { keyboardShortcut: 'Digit5',   keyboardShortcutLetter: '5',  shownInViewPanel: true, defaultState: true, boolState: true, UILabelString: 'Breadcrumbs', shorthandString: 'dotted lines to observations', ToggleObjectString: 'toggleNodeLines', DOMObjectString: 'node-relations', DOMObjectSingleString: 'node-relation', URLParamString: 'obsLines'};
 export let showBackground =           { keyboardShortcut: 'Digit6',   keyboardShortcutLetter: '6',  shownInViewPanel: true, defaultState: false, boolState: false, UILabelString: 'Background', shorthandString: 'background', ToggleObjectString: 'toggleBackground', DOMObjectString: 'background-layer', URLParamString: 'bg'};
-export let showWindStress =           { keyboardShortcut: 'Digit7',   keyboardShortcutLetter: '7',  shownInViewPanel: true, defaultState: true, boolState: true, UILabelString: 'Stress Heatmap', shorthandString: 'wind stress', ToggleObjectString: 'windStress', DOMObjectString: 'wind-layer-stress', URLParamString: 'windStress'};
+export let showWindStress =           { keyboardShortcut: 'Digit7',   keyboardShortcutLetter: '7',  shownInViewPanel: true, defaultState: true, boolState: true, UILabelString: 'Stress Heatmap', shorthandString: 'stress heatmap', ToggleObjectString: 'stressHeatmap', DOMObjectString: 'wind-layer-stress', URLParamString: 'stressHeatmap'};
+export let showWindStressLabel =      { keyboardShortcut: 'KeyB',     keyboardShortcutLetter: 'B',  shownInViewPanel: false, defaultState: true, boolState: true, UILabelString: 'Stress Heatmap Label', shorthandString: 'stress heatmap label', ToggleObjectString: 'stressHeatmapLabel', DOMObjectString: 'wind-layer-stress-label', URLParamString: 'stressHeatmapLabel'};
 export let showWindCancel =           { keyboardShortcut: 'KeyC',     keyboardShortcutLetter: 'C',  shownInViewPanel: false, defaultState: false, boolState: false, UILabelString: 'Wind Cancel', shorthandString: 'wind cancel', ToggleObjectString: 'windCancel', DOMObjectString: 'wind-layer-cancel', URLParamString: 'windCancel'};
+export let showWindCancelLabel =      { keyboardShortcut: 'KeyG',     keyboardShortcutLetter: 'G',  shownInViewPanel: false, defaultState: false, boolState: false, UILabelString: 'Wind Cancel Label', shorthandString: 'wind cancel label', ToggleObjectString: 'windCancelLabel', DOMObjectString: 'wind-layer-cancel-label', URLParamString: 'windCancelLabel'};
 export let showWindNetForceArrows =   { keyboardShortcut: 'Digit8',   keyboardShortcutLetter: '8',  shownInViewPanel: true, defaultState: true, boolState: true, UILabelString: 'Wind Map', shorthandString: 'wind net force', ToggleObjectString: 'windNetForce', DOMObjectString: 'wind-layer-netForceArrow', URLParamString: 'windNetForce'};
+export let showCircles =              { keyboardShortcut: 'Digit9',   keyboardShortcutLetter: '9',  shownInViewPanel: true, defaultState: true, boolState: true, UILabelString: 'Node Circles', shorthandString: 'node circles', ToggleObjectString: 'nodeCircles', DOMObjectString: 'node-circle', URLParamString: 'nodeCircles'};
 export let showAxis =                 { keyboardShortcut: 'KeyA',     keyboardShortcutLetter: 'A',  shownInViewPanel: true, defaultState: true, boolState: true, UILabelString: 'Axis', shorthandString: 'axis', ToggleObjectString: 'toggleAxis', DOMObjectString: 'axis', URLParamString: 'axis'};
 export let showTerminal =             { keyboardShortcut: 'KeyL',     keyboardShortcutLetter: 'L',  shownInViewPanel: true, defaultState: false, boolState: false, UILabelString: 'Log', shorthandString: 'terminal', ToggleObjectString: 'toggleTerminal', DOMObjectString: 'logContainer', URLParamString: 'cmd'};
 
@@ -23,13 +27,17 @@ const showSettings = [
   showNodeLabel,
   showCoordinates,
   showForceArrows,
+  showForceArrowsLabels,
   showNetForce,
   showObservations,
   showNodeLines,
   showBackground,
   showWindStress,
+  showWindStressLabel,
   showWindCancel,
+  showWindCancelLabel,
   showWindNetForceArrows,
+  showCircles,
   showAxis,
   showSpawnPanel,
   showViewPanel,

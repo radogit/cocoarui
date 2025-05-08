@@ -312,19 +312,19 @@ export async function addNodeWithMultistartVisual(
   const dy = minDim / gridRows;
   
   // hide other heatmaps
-  const windLayerCancelChildren = document.getElementById("wind-layer-cancel").childNodes;
+  const windLayerCancelChildren = document.getElementById(AppUI.showWindCancel.DOMObjectString).childNodes;
   if(windLayerCancelChildren){
     windLayerCancelChildren.forEach((child) => {
       child.setAttribute("opacity",0);
     });
   }
-  const windLayerStressChildren = document.getElementById("wind-layer-stress").childNodes;
+  const windLayerStressChildren = document.getElementById(AppUI.showWindStress.DOMObjectString).childNodes;
   if(windLayerStressChildren){
     windLayerStressChildren.forEach((child) => {
       child.setAttribute("opacity",0);
     });
   }
-  const windLayerNetForceArrowChildren = document.getElementById("wind-layer-netForceArrows").childNodes;
+  const windLayerNetForceArrowChildren = document.getElementById(AppUI.showWindNetForceArrows.DOMObjectString).childNodes;
   if(windLayerNetForceArrowChildren){
     windLayerNetForceArrowChildren.forEach((child) => {
       child.setAttribute("opacity",0);
@@ -334,16 +334,19 @@ export async function addNodeWithMultistartVisual(
   const gCancel = windLayerCancel.append("g")
     .attr("id","spawn-cand-cancel-"+template.id)
     .attr("class", AppUI.showWindCancel.boolState? AppUI.showWindCancel.DOMObjectString : AppUI.showWindCancel.DOMObjectString + " hidden")
+    .attr("style","transition: all ease-in-out 0.2s;")
     .attr("opacity","0.5")
     ;
   const gStress = windLayerStress.append("g")
     .attr("id","spawn-cand-stress-"+template.id)
     .attr("class", AppUI.showWindStress.boolState? AppUI.showWindStress.DOMObjectString : AppUI.showWindStress.DOMObjectString + " hidden")
+    .attr("style","transition: all ease-in-out 0.2s;")
     .attr("opacity","0.5")
     ;
   const gNetForceArrows = windLayerNetForceArrows.append("g")
     .attr("id","spawn-cand-netForceArrow-"+template.id)
     .attr("class", AppUI.showWindNetForceArrows.boolState? AppUI.showWindNetForceArrows.DOMObjectString : AppUI.showWindNetForceArrows.DOMObjectString + " hidden")
+    .attr("style","transition: all ease-in-out 0.2s;")
     .attr("opacity","0.5")
     ;
     
@@ -404,9 +407,9 @@ export async function addNodeWithMultistartVisual(
           .attr("fill",cand.color).attr("fill-opacity",0.125*cancel/10)
           ;
         const gTextCancel = trialGCancel.append("text")
-          .attr("class", AppUI.showNodeLabel.boolState? AppUI.showNodeLabel.DOMObjectString : AppUI.showNodeLabel.DOMObjectString + " hidden")
+          .attr("class", AppUI.showWindCancelLabel.boolState? AppUI.showWindCancelLabel.DOMObjectString + " graph-label" : AppUI.showWindCancelLabel.DOMObjectString + " graph-label hidden")
           .attr("x",0).attr("dy","20px");
-        gTextCancel.append("tspan").text(`C=${cancel.toFixed(1)}`).attr("dy","0em");
+        gTextCancel.append("tspan").text(`${cancel.toFixed(1)}`).attr("dy","0em");
       
       // 5.2 breadcrumb stress
         const trialGStress = gStress.append("g")
@@ -420,9 +423,9 @@ export async function addNodeWithMultistartVisual(
           .attr("fill",cand.color).attr("fill-opacity",0.125*stress/10)
           ;
         const gTextStress = trialGStress.append("text")
-          .attr("class", AppUI.showNodeLabel.boolState? AppUI.showNodeLabel.DOMObjectString : AppUI.showNodeLabel.DOMObjectString + " hidden")
+          .attr("class", AppUI.showWindStressLabel.boolState? AppUI.showWindStressLabel.DOMObjectString + " graph-label" : AppUI.showWindStressLabel.DOMObjectString + " graph-label hidden")
           .attr("x",0).attr("dy","20px");
-        gTextStress.append("tspan").text(`S=${stress.toFixed(1)}`).attr("dy","1.2em");
+        gTextStress.append("tspan").text(`${stress.toFixed(1)}`).attr("dy","1.2em");
 
       // 5.3 breadcrumb netForceArrow
         const trialGNetForceArrows = gNetForceArrows.append("g")
@@ -668,9 +671,9 @@ function removeAllNodes() {
   Datasets.nodes.splice(0, Datasets.nodes.length);
 
   // clear the wind-force groups
-  document.getElementById('wind-layer-stress').innerHTML='';
-  document.getElementById('wind-layer-cancel').innerHTML='';
-  document.getElementById('wind-layer-netForceArrows').innerHTML='';
+  document.getElementById(AppUI.showWindStress.DOMObjectString).innerHTML='';
+  document.getElementById(AppUI.showWindCancel.DOMObjectString).innerHTML='';
+  document.getElementById(AppUI.showWindNetForceArrows.DOMObjectString).innerHTML='';
 
   // 2) Re-run the data join for nodes and hotspots
   buildOrUpdateNodes(nodeLayer, Datasets.nodes);
@@ -769,7 +772,8 @@ function ticked() {
           .style("opacity", 0.5);
         // 2) The arrow magnitude text, Append a group to hold the label & background
         const labelGroup = arrowGroup.append("g")
-          .attr("class", AppUI.showForceArrows.boolState? AppUI.showForceArrows.DOMObjectSingleString+"-label-group" : AppUI.showForceArrows.DOMObjectSingleString+"-label-group hidden")
+          //.attr("class", AppUI.showForceArrows.boolState? AppUI.showForceArrows.DOMObjectSingleString+"-label-group" : AppUI.showForceArrows.DOMObjectSingleString+"-label-group hidden")
+          .attr("class", (AppUI.showForceArrows.boolState && AppUI.showForceArrowsLabels.boolState)? AppUI.showForceArrows.DOMObjectSingleString+"-label-group" : AppUI.showForceArrows.DOMObjectSingleString+"-label-group hidden")
           .attr("transform", `translate(${labelPosX},${labelPosY})`)
           .attr("opacity", 0.3)
           ;
@@ -803,7 +807,8 @@ function ticked() {
           .attr("height", bbox.height + 4);
       });
 
-      if (AppUI.showNetForce.boolState) {
+      //if (AppUI.showNetForce.boolState) {
+      if (AppUI.showForceArrows.boolState) {
         const netForceX = d.vx;
         const netForceY = d.vy;
         const netForceMagnitude = Math.sqrt(netForceX ** 2 + netForceY ** 2);

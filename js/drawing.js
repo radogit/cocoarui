@@ -2,6 +2,7 @@
 import * as d3 from "d3";
 import { showBackground } from "./ui.js";
 import { imagePaths } from "./backgrounds.js";
+import * as AppUI from "./ui.js";
 
 export function createSvgAndContainer() {
   const width  = window.innerWidth;
@@ -52,14 +53,20 @@ export function createSvgAndContainer() {
   .attr("id", "hotspot-layer");
   
   const windLayerCancel = container.append("g")
-  .attr("class", "wind-layer-cancel")
-  .attr("id", "wind-layer-cancel");
+  .attr("class", AppUI.showWindCancel.DOMObjectString)
+  .attr("id", AppUI.showWindCancel.DOMObjectString)
+  .attr("style","transition: all ease-in-out 2s;")
+  ;
   const windLayerStress = container.append("g")
-  .attr("class", "wind-layer-stress")
-  .attr("id", "wind-layer-stress");
+  .attr("class", AppUI.showWindStress.DOMObjectString)
+  .attr("id", AppUI.showWindStress.DOMObjectString)
+  .attr("style","transition: all ease-in-out 2s;")
+  ;
   const windLayerNetForceArrows = container.append("g")
-  .attr("class", "wind-layer-netForceArrows")
-  .attr("id", "wind-layer-netForceArrows");
+  .attr("class", AppUI.showWindNetForceArrows.DOMObjectString)
+  .attr("id", AppUI.showWindNetForceArrows.DOMObjectString)
+  .attr("style","transition: all ease-in-out 2s;")
+  ;
 
   const nodeLayer = container.append("g")
   .attr("class", "node-layer")

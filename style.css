@@ -19,8 +19,8 @@ svg {
     font-size: 10px;
     fill: rgba(0,0,0,0.2)
 }
-.id-label, .coord-label {
-    font-size: 8px;
+.id-label, .coord-label, .graph-label {
+    font-size: 7px;
     opacity: 0.5;
     text-anchor: middle;
 }
@@ -37,9 +37,9 @@ div, .force-arrows, .node-relations, .coord-label, .id-label, .hotspot-group {
 .highlight-circle {
   stroke-dasharray: 12 6;
   stroke-width: 5px;
-  stroke: yellowgreen;
+  stroke: black;
 }
-.haloSpin { animation: spinDash 2s linear infinite; } @keyframes spinDash { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -18; } }
+.haloSpin { animation: spinDash 4s linear infinite; } @keyframes spinDash { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
 .remove-btn{
   border:none;
@@ -51,7 +51,8 @@ div, .force-arrows, .node-relations, .coord-label, .id-label, .hotspot-group {
   cursor:pointer;
   line-height:1.4em;
   padding:0;
-  scale: 0.7;
+  font-size: 0.7em;
+  margin: 0px;
 }
 .remove-btn:hover{ background:#d22; }
 
@@ -151,7 +152,7 @@ button { margin-bottom: 5px;}
 .node-relation-hover line { stroke-width: 10px !important; }
 .node-relation { transition: all 0.5s ease-in-out; }
 /* .wind-layer > g {opacity: 0.2;} */
-.wind-layer-stress > g, .wind-layer-cancel > g {  transition: all ease-in-out 0.2s;}
+/* .wind-layer-stress > g, .wind-layer-cancel > g {  transition: all ease-in-out 0.2s;} */
 
 /* #background-layer, #background-layer > pattern {x: -50vw; y: -50vh; width: 100vw; height:100vh; fill: blue;} */
 /* #background-bottom {fill: url('./img/background-bottom-base.png');}
@@ -195,3 +196,4 @@ table.metrics thead {
 .metrics tfoot tr:first-child {
   border-top: 2px solid;
 }
+.metrics .name { pointer-events: none;}
