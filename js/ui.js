@@ -17,11 +17,9 @@ export let showAxis =                 { keyboardShortcut: 'KeyA',     keyboardSh
 export let showTerminal =             { keyboardShortcut: 'KeyL',     keyboardShortcutLetter: 'L',  shownInViewPanel: true, defaultState: false, boolState: false, UILabelString: 'Log', shorthandString: 'terminal', ToggleObjectString: 'toggleTerminal', DOMObjectString: 'logContainer', URLParamString: 'cmd'};
 
 export let showMetricsPanel =         { keyboardShortcut: 'KeyM',     keyboardShortcutLetter: 'M',  shownInViewPanel: true, defaultState: true, boolState: true, UILabelString: 'Metrics', shorthandString: 'metrics', ToggleObjectString: 'toggleMetrics', DOMObjectString: 'metrics-panel', URLParamString: 'metricsPanel'};
-export let showSpawnPanel =           { keyboardShortcut: 'KeyS',     keyboardShortcutLetter: 'S',  shownInViewPanel: false, defaultState: true, boolState: true, UILabelString: 'Spawn Panel', shorthandString: 'spawn panel', ToggleObjectString: 'toggleSpawnPanel', DOMObjectString: 'spawn-panel', URLParamString: 'spawnPanel'};
+export let showSpawnPanel =           { keyboardShortcut: 'KeyS',     keyboardShortcutLetter: 'S',  shownInViewPanel: false, defaultState: true, boolState: true, UILabelString: 'Simulation Panel', shorthandString: 'simulation panel', ToggleObjectString: 'toggleSimulationPanel', DOMObjectString: 'simulation-panel', URLParamString: 'simulationPanel'};
 export let showViewPanel =            { keyboardShortcut: 'KeyV',     keyboardShortcutLetter: 'V',  shownInViewPanel: false, defaultState: true, boolState: true, UILabelString: 'View Panel', shorthandString: 'view panel', ToggleObjectString: 'toggleViewPanel', DOMObjectString: 'view-panel', URLParamString: 'viewPanel'};
 
-// 6 9 M as true, rest false
-// bigger gap between button lists
 
 const url = new URL(window.location.href);
 const params = new URLSearchParams(url.search);
