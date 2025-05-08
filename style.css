@@ -30,9 +30,12 @@ div, .force-arrows, .node-relations, .coord-label, .id-label, .hotspot-group {
 }
 .hidden {
   opacity: 0 !important;
-  pointer-events: none; /* Optional: Prevent interaction when hidden // visibility: hidden;
-  */
-  user-select: none;  /* Prevent text selection */
+  pointer-events: none; 
+  user-select: none;
+}
+.node-circle.hidden {
+  pointer-events: initial; 
+  user-select: initial;
 }
 .highlight-circle {
   stroke-dasharray: 12 6;
@@ -138,7 +141,8 @@ button { margin-bottom: 5px;}
   float: left;
   clear: both;
 }
-#removeAllButton { margin-top: 10px;}
+/* #removeAllButton { margin-top: 10px;} */
+.spawn-panel>div:nth-child(n+3) {padding-top: 15px;}
 .ui-panel hr {
   border: 0;
   border-top: 1px rgba(0,0,0,0.4) solid;

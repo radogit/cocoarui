@@ -165,7 +165,7 @@ function buildOrUpdateNodes(container, nodes) {
             ;
           g.append("svg:image")
             .attr("href", d =>                               // ask the lookup map
-              Icons.iconByKey[d.representation]                //   match by key
+                  d.representation!='none'? Icons.iconByKey[d.representation] : ''                //   match by key
               ) //iconByKey["03"])                           //   fallback
             .attr("x", d => -d.radius/Math.SQRT2 )
             .attr("y", d => -d.radius/Math.SQRT2 )

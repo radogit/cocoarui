@@ -15,6 +15,7 @@ export const iconDefs = [
     {key: 'sound', url: require('../img/icons/icon_sound.svg')},
     {key: 'symbol', url: require('../img/icons/icon_symbol.svg')},
     {key: 'text', url: require('../img/icons/icon_text.svg')},
+    // {key: 'none', url: require('../img/icons/icon_none.svg')},
 ];
 
 /* build {number:url, 03:url, …} for quick access */
