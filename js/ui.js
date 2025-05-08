@@ -1,17 +1,21 @@
 // ui.js
-export let showNodeLabel =            { keyboardShortcut: 'Digit1',   keyboardShortcutLetter: '1', defaultState: true, boolState: true, UILabelString: 'Name', shorthandString: 'ID labels', ToggleObjectString: 'toggleNodeLabel', DOMObjectString: 'id-label', URLParamString: 'nodeLabel'};
-export let showCoordinates =          { keyboardShortcut: 'Digit2',   keyboardShortcutLetter: '2', defaultState: true, boolState: true, UILabelString: 'Coordinates', shorthandString: 'coordinate labels', ToggleObjectString: 'toggleCoordinates', DOMObjectString: 'coord-label', URLParamString: 'coords'};
-export let showForceArrows =          { keyboardShortcut: 'Digit3',   keyboardShortcutLetter: '3', defaultState: true, boolState: true, UILabelString: 'Force Arrows', shorthandString: 'arrows of forces', ToggleObjectString: 'toggleForceArrows', DOMObjectString: 'force-arrows', DOMObjectSingleString: 'force-arrow', URLParamString: 'forceArrows'};
-export let showNetForce =             { keyboardShortcut: 'KeyN',   keyboardShortcutLetter: 'N', defaultState: true, boolState: true, UILabelString: 'Net Force', shorthandString: 'net force arrows', ToggleObjectString: 'toggleNetForce', DOMObjectString: 'force-arrow-netForce', URLParamString: 'netForceArrows'};
-export let showObservations =         { keyboardShortcut: 'Digit4',   keyboardShortcutLetter: '4', defaultState: true, boolState: true, UILabelString: 'Observations', shorthandString: 'observations', ToggleObjectString: 'toggleObservations', DOMObjectString: 'hotspot-group', URLParamString: 'obs'};
-export let showNodeLines =            { keyboardShortcut: 'Digit5',   keyboardShortcutLetter: '5', defaultState: true, boolState: true, UILabelString: 'Breadcrumbs', shorthandString: 'dotted lines to observations', ToggleObjectString: 'toggleNodeLines', DOMObjectString: 'node-relations', DOMObjectSingleString: 'node-relation', URLParamString: 'obsLines'};
-export let showBackground =           { keyboardShortcut: 'Digit6',   keyboardShortcutLetter: '6', defaultState: false, boolState: false, UILabelString: 'Background', shorthandString: 'background', ToggleObjectString: 'toggleBackground', DOMObjectString: 'background-layer', URLParamString: 'bg'};
-export let showWindStress =           { keyboardShortcut: 'Digit7',   keyboardShortcutLetter: '7', defaultState: true, boolState: true, UILabelString: 'Stress Heatmap', shorthandString: 'wind stress', ToggleObjectString: 'windStress', DOMObjectString: 'wind-layer-stress', URLParamString: 'windStress'};
-export let showWindCancel =           { keyboardShortcut: 'KeyC', keyboardShortcutLetter: 'C', defaultState: false, boolState: false, UILabelString: 'Wind Cancel', shorthandString: 'wind cancel', ToggleObjectString: 'windCancel', DOMObjectString: 'wind-layer-cancel', URLParamString: 'windCancel'};
-export let showWindNetForceArrows =   { keyboardShortcut: 'Digit8',   keyboardShortcutLetter: '8', defaultState: true, boolState: true, UILabelString: 'Wind Map', shorthandString: 'wind net force', ToggleObjectString: 'windNetForce', DOMObjectString: 'wind-layer-netForceArrow', URLParamString: 'windNetForce'};
-export let showAxis =                 { keyboardShortcut: 'KeyA',   keyboardShortcutLetter: 'A', defaultState: true, boolState: true, UILabelString: 'Axis', shorthandString: 'axis', ToggleObjectString: 'toggleAxis', DOMObjectString: 'axis', URLParamString: 'axis'};
-export let showMetricsPanel =         { keyboardShortcut: 'KeyM',   keyboardShortcutLetter: 'M', defaultState: false, boolState: false, UILabelString: 'Metrics', shorthandString: 'metrics', ToggleObjectString: 'toggleMetrics', DOMObjectString: 'metrics-panel', URLParamString: 'metrics'};
-export let showTerminal =             { keyboardShortcut: 'KeyL',   keyboardShortcutLetter: 'L', defaultState: false, boolState: false, UILabelString: 'Log', shorthandString: 'terminal', ToggleObjectString: 'toggleTerminal', DOMObjectString: 'logContainer', URLParamString: 'cmd'};
+export let showNodeLabel =            { keyboardShortcut: 'Digit1',   keyboardShortcutLetter: '1',  shownInViewPanel: true, defaultState: true, boolState: true, UILabelString: 'Name', shorthandString: 'ID labels', ToggleObjectString: 'toggleNodeLabel', DOMObjectString: 'id-label', URLParamString: 'nodeLabel'};
+export let showCoordinates =          { keyboardShortcut: 'Digit2',   keyboardShortcutLetter: '2',  shownInViewPanel: true, defaultState: true, boolState: true, UILabelString: 'Coordinates', shorthandString: 'coordinate labels', ToggleObjectString: 'toggleCoordinates', DOMObjectString: 'coord-label', URLParamString: 'coords'};
+export let showForceArrows =          { keyboardShortcut: 'Digit3',   keyboardShortcutLetter: '3',  shownInViewPanel: true, defaultState: true, boolState: true, UILabelString: 'Force Arrows', shorthandString: 'arrows of forces', ToggleObjectString: 'toggleForceArrows', DOMObjectString: 'force-arrows', DOMObjectSingleString: 'force-arrow', URLParamString: 'forceArrows'};
+export let showNetForce =             { keyboardShortcut: 'KeyN',     keyboardShortcutLetter: 'N',  shownInViewPanel: false, defaultState: true, boolState: true, UILabelString: 'Net Force', shorthandString: 'net force arrows', ToggleObjectString: 'toggleNetForce', DOMObjectString: 'force-arrow-netForce', URLParamString: 'netForceArrows'};
+export let showObservations =         { keyboardShortcut: 'Digit4',   keyboardShortcutLetter: '4',  shownInViewPanel: true, defaultState: true, boolState: true, UILabelString: 'Observations', shorthandString: 'observations', ToggleObjectString: 'toggleObservations', DOMObjectString: 'hotspot-group', URLParamString: 'obs'};
+export let showNodeLines =            { keyboardShortcut: 'Digit5',   keyboardShortcutLetter: '5',  shownInViewPanel: true, defaultState: true, boolState: true, UILabelString: 'Breadcrumbs', shorthandString: 'dotted lines to observations', ToggleObjectString: 'toggleNodeLines', DOMObjectString: 'node-relations', DOMObjectSingleString: 'node-relation', URLParamString: 'obsLines'};
+export let showBackground =           { keyboardShortcut: 'Digit6',   keyboardShortcutLetter: '6',  shownInViewPanel: true, defaultState: false, boolState: false, UILabelString: 'Background', shorthandString: 'background', ToggleObjectString: 'toggleBackground', DOMObjectString: 'background-layer', URLParamString: 'bg'};
+export let showWindStress =           { keyboardShortcut: 'Digit7',   keyboardShortcutLetter: '7',  shownInViewPanel: true, defaultState: true, boolState: true, UILabelString: 'Stress Heatmap', shorthandString: 'wind stress', ToggleObjectString: 'windStress', DOMObjectString: 'wind-layer-stress', URLParamString: 'windStress'};
+export let showWindCancel =           { keyboardShortcut: 'KeyC',     keyboardShortcutLetter: 'C',  shownInViewPanel: false, defaultState: false, boolState: false, UILabelString: 'Wind Cancel', shorthandString: 'wind cancel', ToggleObjectString: 'windCancel', DOMObjectString: 'wind-layer-cancel', URLParamString: 'windCancel'};
+export let showWindNetForceArrows =   { keyboardShortcut: 'Digit8',   keyboardShortcutLetter: '8',  shownInViewPanel: true, defaultState: true, boolState: true, UILabelString: 'Wind Map', shorthandString: 'wind net force', ToggleObjectString: 'windNetForce', DOMObjectString: 'wind-layer-netForceArrow', URLParamString: 'windNetForce'};
+export let showAxis =                 { keyboardShortcut: 'KeyA',     keyboardShortcutLetter: 'A',  shownInViewPanel: true, defaultState: true, boolState: true, UILabelString: 'Axis', shorthandString: 'axis', ToggleObjectString: 'toggleAxis', DOMObjectString: 'axis', URLParamString: 'axis'};
+export let showTerminal =             { keyboardShortcut: 'KeyL',     keyboardShortcutLetter: 'L',  shownInViewPanel: true, defaultState: false, boolState: false, UILabelString: 'Log', shorthandString: 'terminal', ToggleObjectString: 'toggleTerminal', DOMObjectString: 'logContainer', URLParamString: 'cmd'};
+
+export let showMetricsPanel =         { keyboardShortcut: 'KeyM',     keyboardShortcutLetter: 'M',  shownInViewPanel: true, defaultState: false, boolState: false, UILabelString: 'Metrics', shorthandString: 'metrics', ToggleObjectString: 'toggleMetrics', DOMObjectString: 'metrics-panel', URLParamString: 'metricsPanel'};
+export let showSpawnPanel =           { keyboardShortcut: 'KeyS',     keyboardShortcutLetter: 'S',  shownInViewPanel: false, defaultState: true, boolState: true, UILabelString: 'Spawn Panel', shorthandString: 'spawn panel', ToggleObjectString: 'toggleSpawnPanel', DOMObjectString: 'spawn-panel', URLParamString: 'spawnPanel'};
+export let showViewPanel =            { keyboardShortcut: 'KeyV',     keyboardShortcutLetter: 'V',  shownInViewPanel: false, defaultState: true, boolState: true, UILabelString: 'View Panel', shorthandString: 'view panel', ToggleObjectString: 'toggleViewPanel', DOMObjectString: 'view-panel', URLParamString: 'viewPanel'};
+
 
 const url = new URL(window.location.href);
 const params = new URLSearchParams(url.search);
@@ -19,14 +23,16 @@ const showSettings = [
   showNodeLabel,
   showCoordinates,
   showForceArrows,
-  // showNetForce,
+  showNetForce,
   showObservations,
   showNodeLines,
   showBackground,
   showWindStress,
-  // showWindCancel,
+  showWindCancel,
   showWindNetForceArrows,
   showAxis,
+  showSpawnPanel,
+  showViewPanel,
   showMetricsPanel,
   showTerminal
 ];
@@ -63,6 +69,7 @@ export function setupUI(/* references if needed: svg, etc. */) {
     setting.boolState = URLWatchdog(setting.defaultState, setting.URLParamString);
     // create a checkbox in UI
     const UIElement = document.createElement("label");
+    if(!setting.shownInViewPanel) {UIElement.setAttribute("style","display:none;");}
     let UIElementInput = document.createElement("input");
     UIElementInput.id = setting.ToggleObjectString;
     UIElementInput.type = "checkbox";
