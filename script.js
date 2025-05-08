@@ -4,7 +4,7 @@ import * as Forces from "./js/forces.js";
 import * as Drawing from "./js/drawing.js";
 import * as Heatmaps from "./js/heatmaps.js";
 import * as AppUI from "./js/ui.js";
-import * as Backgrounds from "./js/backgrounds.js";
+import * as Icons from "./js/icons.js";
 //import { dragging, dragEnd, dragStart, toggleFixed } from "./js/nodeInteraction.js";
 import { setupLogger } from './js/logger.js';
 
@@ -154,14 +154,26 @@ function buildOrUpdateNodes(container, nodes) {
             });
           // highlight circle
           g.append("rect")
-            .attr("class", d => d.representation ? "icon-"+d.representation:"icon")
+            .attr("class", d => d.representation ? "icon icon-bg icon-"+d.representation:"icon icon-bg")
             .attr("fill","none")
             .attr("opacity", 0.8)
-            .attr("x", d => -d.radius/Math.sqrt(2))
-            .attr("y", d => -d.radius/Math.sqrt(2))
-            .attr("width", d => d.radius/Math.sqrt(2)*2 )    // 
-            .attr("height", d => d.radius/Math.sqrt(2)*2 )   // 2* a^2 = r^2
+            .attr("rx", 4)
+            .attr("x", d => -d.radius/Math.SQRT2)
+            .attr("y", d => -d.radius/Math.SQRT2)
+            .attr("width", d => d.radius/Math.SQRT2*2 )    // 
+            .attr("height", d => d.radius/Math.SQRT2*2 )   // 2* a^2 = r^2
             ;
+          g.append("svg:image")
+            .attr("href", d =>                               // ask the lookup map
+              Icons.iconByKey[d.representation]                //   match by key
+              ) //iconByKey["03"])                           //   fallback
+            .attr("x", d => -d.radius/Math.SQRT2 )
+            .attr("y", d => -d.radius/Math.SQRT2 )
+            .attr("width",  d => d.radius/Math.SQRT2*2)
+            .attr("height", d => d.radius/Math.SQRT2*2)
+            .attr("class","node-icon")
+            .attr("fill", "white")
+            .style("pointer-events","none");        // clicks still hit the <circle>
     
           // append ID label
           g.append("text")
@@ -262,6 +274,7 @@ async function addOneSmart(){
     id   : "spawn-"+Date.now().toString(36).slice(-4),
     color: colours[Math.floor(Math.random()*colours.length)],
     radius: 10+30 * Math.random(),
+    representation: Icons.randomRepresentation(),
     isFixed:false,
     significance:1,
     hotspots: randomHotspots(Math.floor(Math.random()*4)+2)
@@ -625,7 +638,7 @@ export async function dripSpawnSmart(
     raw.id += '-' + Date.now().toString(36).slice(-4);   // unique-ify id
     
     if (raw.color === "random") { raw.color = colours[Math.floor(Math.random()*colours.length)]; }
-
+    
     Datasets.adjustCoordinatesToScale([raw], scaleUnit);
     Datasets.flipYCoordinates([raw]);                    // keep y-up
     Datasets.fixInitially([raw]);

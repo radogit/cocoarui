@@ -22,6 +22,7 @@
     "parcel": "^2.13.3"
   },
   "devDependencies": {
+    "@parcel/transformer-inline-string": "^2.13.3",
     "gh-pages": "^6.3.0"
   }
 }
