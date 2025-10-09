@@ -3,7 +3,18 @@
     open -a Docker && sleep 10 && docker-compose up -w
     ```
 
-**Restarting the Setup After a Reboot**
+***
+**Summary: To Pick Up Where You Left Off After Restart**
+
+1.  **Open VSCode** and navigate to your project folder.
+2.  **Start Docker** (if it’s not already running).
+3.  **Run** `docker-compose up` to start your Docker container and Parcel dev server.
+4.  (optional?) **Reattach VSCode** to the running container by using the **Dev-Containers** extension (via Command Palette > "Attach to Running Container").
+5.  **Edit your files** inside VSCode, and see the live changes in your browser [http://localhost:1234](http://localhost:1234).
+6. Commit locally
+7. Publish to Github repo
+
+***
 
 ### Step 1: Reopen VSCode and Your Project Folder
 
@@ -48,7 +59,7 @@ This will start up your **Parcel development environment** inside the Docker con
 Now, let's **reconnect VSCode to the running container**.
 
 1.  In **VSCode**, press `Ctrl + Shift + P` (or `Cmd + Shift + P` on macOS) to open the **Command Palette**.
-2.  Type **“Remote-Containers: Attach to Running Container”** and select it.
+2.  Type **“Dev-Containers: Attach to Running Container”** and select it.
 3.  A list of running containers will appear. Select the **container for your Parcel app** (it will likely be named something like `d3-parcel-app-1`).
 4.  **VSCode will automatically connect** to the container, and you should see your project files in the Explorer panel on the left side.
 
@@ -83,10 +94,46 @@ When you're done for the day, if you want to stop the container and Docker:
     This will stop and remove the containers, networks, and volumes defined in your docker-compose.yml.
 
 ***
-**Summary: To Pick Up Where You Left Off After Restart**
 
-1.  **Open VSCode** and navigate to your project folder.
-2.  **Start Docker** (if it’s not already running).
-3.  **Run** `docker-compose up` to start your Docker container and Parcel dev server.
-4.  **Reattach VSCode** to the running container by using the **Remote-Containers** extension (via Command Palette > "Attach to Running Container").
-5.  **Edit your files** inside VSCode, and see the live changes in your browser [http://localhost:1234](http://localhost:1234).
+### Step 7: Commit locally
+
+When you're done for the day, make sure to save the changes by committing locally:
+
+1.  Click to the Source Control tab (left panel, 3rd one down, branched metro-like lines with 3 circles).
+2.  Type a description
+3.  Click Commit.
+
+    This will stop and remove the containers, networks, and volumes defined in your docker-compose.yml.
+
+***
+
+### Step 8: Publish to Github repo
+
+You may also want to build a custom version for github and deploy it:
+
+1.  Ensure the docker-compose is down (step 6).
+2.  In the terminal, type and hit Enter:
+    ```
+    npm run deploy
+    ```
+
+3.  Check on the progress at **`https://github.com/radogit/cocoarui/deployments/github-pages`**. Be patient, it may take a few minutes to appear.
+
+    The public version should be available at **`https://radogit.github.io/cocoarui/`**.
+
+
+***
+
+### Step 9: Renew Access Token (Classic) (optional, only when required, when old access token expired)
+
+Personal Access Tokens (Classic) tend to have expiry limits. In such cases deployments through above commands (dependent on gh-pages) may fail. To re-authenticate:
+
+1.  go to Github > top-right corner > Settings > Developer Settings > Personal access token > Tokens (classic) (**`github.com/settings/tokens`**)
+2.  Hit [Generate new token] > Generate New Token (classic)
+3.  Give it a name, and check at least 'repo' as permissions.
+4.  Make sure to copy the provided token string, as it is only provided once.
+5.  Over in VS Code, in Terminal, type:
+    ```
+    git remote set-url origin https://radogit:<-accessTokenString->@github.com/radogit/cocoarui.git
+    ```
+    
