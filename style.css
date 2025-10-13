@@ -116,7 +116,7 @@ button { margin-bottom: 5px;}
 }
 #debug-panel button {
     min-width: 80%;
-    font-size: 10px;  
+    font-size: 8px;  
     display: block;
 }
 #debug-panel label { display: block; }
@@ -143,6 +143,11 @@ button { margin-bottom: 5px;}
 }
 /* #removeAllButton { margin-top: 10px;} */
 .simulation-panel>div:nth-child(n+3) {padding-top: 15px;}
+.simulation-panel{
+  width: 150px;
+  max-height: 60vh;
+  overflow-y: scroll;
+}
 .ui-panel hr {
   border: 0;
   border-top: 1px rgba(0,0,0,0.4) solid;
