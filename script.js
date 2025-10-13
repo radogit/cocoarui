@@ -1074,7 +1074,8 @@ function setupDragAndDropForSpawnButtons() {
 document.getElementById("removeAllButton").addEventListener("click", removeAllNodes);
 document.getElementById("addOneSmartButton").addEventListener("click", addOneSmart);
 
-const spawnButtonContainer = document.getElementById("spawnButtonContainer");
+const spawnButtonContainer1 = document.getElementById("spawnButtonContainer1");
+const spawnButtonContainer2 = document.getElementById("spawnButtonContainer2");
 const spawnButtonContainerExtended = document.getElementById("spawnButtonContainerExtended");
 
 function addSpawnButtons(datasetArray, target) {
@@ -1107,13 +1108,37 @@ function addSpawnButtons(datasetArray, target) {
     target.append(wrapper);
   });
 }
+document.querySelectorAll('.collapse-header').forEach(header => {
+    header.addEventListener('click', function () {
+        const container = this.parentElement; // Get the parent container
+        const buttons = container.querySelectorAll('.button-container'); // Get all button containers
+        const caret = this.querySelector('.caret');
 
-if (spawnButtonContainer){
-  addSpawnButtons(Datasets.preppedNodes, spawnButtonContainer);           // first batch
+        // Toggle active state for buttons
+        buttons.forEach(button => {
+            button.classList.toggle('active'); // Toggle visibility
+        });
+
+        // Check if any button is active and set max height
+        const isAnyActive = Array.from(buttons).some(button => button.classList.contains('active'));
+        container.style.height = isAnyActive ? `${buttons.length * 20+20}px` : '20px'; // Adjust height
+
+        // Change caret direction
+        caret.classList.toggle('active'); // Toggle rotation on caret
+    });
+});
+
+
+if (spawnButtonContainer1){
+  addSpawnButtons(Datasets.preppedNodes, spawnButtonContainer1);           // first batch
+  setupDragAndDropForSpawnButtons();
+}
+if (spawnButtonContainer2){
+  addSpawnButtons(Datasets.preppedNodes2, spawnButtonContainer2);           // second batch
   setupDragAndDropForSpawnButtons();
 }
 if (spawnButtonContainerExtended){
-  addSpawnButtons(Datasets.preppedNodesExtended, spawnButtonContainerExtended);   // second batch
+  addSpawnButtons(Datasets.preppedNodesExtended, spawnButtonContainerExtended);   // last batch
 }
 
 
