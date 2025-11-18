@@ -1074,6 +1074,7 @@ function setupDragAndDropForSpawnButtons() {
 document.getElementById("removeAllButton").addEventListener("click", removeAllNodes);
 document.getElementById("addOneSmartButton").addEventListener("click", addOneSmart);
 
+const spawnButtonContainer0 = document.getElementById("spawnButtonContainer0");
 const spawnButtonContainer1 = document.getElementById("spawnButtonContainer1");
 const spawnButtonContainer2 = document.getElementById("spawnButtonContainer2");
 const spawnButtonContainerExtended = document.getElementById("spawnButtonContainerExtended");
@@ -1128,6 +1129,11 @@ document.querySelectorAll('.collapse-header').forEach(header => {
     });
 });
 
+
+if (spawnButtonContainer0){
+  addSpawnButtons(Datasets.preppedNodes0, spawnButtonContainer0);           // zero batch
+  setupDragAndDropForSpawnButtons();
+}
 
 if (spawnButtonContainer1){
   addSpawnButtons(Datasets.preppedNodes, spawnButtonContainer1);           // first batch
