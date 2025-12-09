@@ -118,12 +118,23 @@ button { margin-bottom: 3px;}
   display: flex;
   font-size: 14px;
   transition: scale 0.2s ease-in-out;
+  transition: padding-left 0.5s ease-in-out;
   scale: 1;
 }
 #debug-panel button {
     min-width: 80%;
     font-size: 8px;  
     display: block;
+    border-radius: 5px;
+    background-color: #ddd;
+    border-color: '#9999aa';
+    cursor: pointer;
+    border-width: 1px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+}
+#debug-panel button:hover {
+  font-weight: bold;
 }
 #debug-panel label { display: block; }
 .drag-icon {
@@ -135,7 +146,7 @@ button { margin-bottom: 3px;}
 .drag-icon:hover{
   color: #000;
 }
-.dragging { opacity: 0.3; scale: 1.1;}
+.dragging { opacity: 0.3; scale: 1.1; padding-left: 15px;}
 .highlight {
   /* border-top: 2px dashed #0077ff; */
   padding-top: 10px;

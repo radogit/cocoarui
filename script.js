@@ -1090,7 +1090,7 @@ const spawnButtonContainerVR4 = document.getElementById("spawnButtonContainerVR4
 const spawnButtonContainerExtended = document.getElementById("spawnButtonContainerExtended");
 
 function addSpawnButtons(datasetArray, target) {
-  datasetArray.forEach(({ name, nodes, notDraggable = false }) => {
+  datasetArray.forEach(({ name, nodes, notDraggable = false, uiButtonColour }) => {
 
     const wrapper = document.createElement('div');
     wrapper.className = 'button-container';
@@ -1098,6 +1098,7 @@ function addSpawnButtons(datasetArray, target) {
     const btn = document.createElement('button');
     btn.textContent = name;
     btn.id = `spawnButton-${name}`;
+    btn.style.backgroundColor = uiButtonColour || '#ddd';
 
     btn.addEventListener('click', () => {
       dripSpawnSmart(
@@ -1154,19 +1155,19 @@ if (spawnButtonContainer2){
   setupDragAndDropForSpawnButtons();
 }
 if (spawnButtonContainerVR1){
-  addSpawnButtons(DatasetsVR1.preppedNodesVR1, spawnButtonContainerVR1);           // second batch
+  addSpawnButtons(DatasetsVR1.preppedNodesVR1, spawnButtonContainerVR1);           // VR1 batch
   setupDragAndDropForSpawnButtons();
 }
 if (spawnButtonContainerVR2){
-  addSpawnButtons(DatasetsVR2.preppedNodesVR2, spawnButtonContainerVR2);           // second batch
+  addSpawnButtons(DatasetsVR2.preppedNodesVR2, spawnButtonContainerVR2);           // VR2 batch
   setupDragAndDropForSpawnButtons();
 }
 if (spawnButtonContainerVR3){
-  addSpawnButtons(DatasetsVR3.preppedNodesVR3, spawnButtonContainerVR3);           // second batch
+  addSpawnButtons(DatasetsVR3.preppedNodesVR3, spawnButtonContainerVR3);           // VR3 batch
   setupDragAndDropForSpawnButtons();
 }
 if (spawnButtonContainerVR4){
-  addSpawnButtons(DatasetsVR4.preppedNodesVR4, spawnButtonContainerVR4);           // second batch
+  addSpawnButtons(DatasetsVR4.preppedNodesVR4, spawnButtonContainerVR4);           // VR4 batch
   setupDragAndDropForSpawnButtons();
 }
 
