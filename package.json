@@ -5,10 +5,10 @@
   "scripts": {
     "start": "parcel *.html --open --no-cache",
     "dev": "parcel serve index.html --no-cache --dist-dir dist-dev --port 1234 --host 0.0.0.0",
-    "clean": "rm -rf .parcel-cache",
+    "clean": "rm -rf .parcel-cache dist",
     "build": "npm run clean && parcel build index.html --dist-dir dist --public-url /cocoarui/",
     "predeploy": "npm run build",
-    "deploy": "npm run build && gh-pages -d dist --branch gh-pages --repo https://github.com/radogit/cocoarui.git && echo \"deployed to: https://radogit.github.io/cocoarui/\" && echo \"check status on: https://github.com/radogit/cocoarui/deployments\""
+    "deploy": "npm run build && gh-pages -d dist -b gh-pages -r https://github.com/radogit/cocoarui.git && echo \"deployed to: https://radogit.github.io/cocoarui/\" && echo \"check status on: https://github.com/radogit/cocoarui/deployments\""
   },
   "keywords": [],
   "author": "",
