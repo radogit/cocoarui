@@ -8,7 +8,7 @@
     "clean": "rm -rf .parcel-cache",
     "build": "npm run clean && parcel build index.html --dist-dir dist --public-url /cocoarui/",
     "predeploy": "npm run build",
-    "deploy": "npm run build && gh-pages -d dist && echo \"deployed to: https://radogit.github.io/cocoarui/\" && echo \"check status on: https://github.com/radogit/cocoarui/deployments\""
+    "deploy": "npm run build && gh-pages -d dist --branch gh-pages --repo https://github.com/radogit/cocoarui.git && echo \"deployed to: https://radogit.github.io/cocoarui/\" && echo \"check status on: https://github.com/radogit/cocoarui/deployments\""
   },
   "keywords": [],
   "author": "",
