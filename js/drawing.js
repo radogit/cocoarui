@@ -103,6 +103,31 @@ export function createAxes(container, width, height, minDim) {
 
   return { xScale, yScale, xAxis, yAxis };
 }
+export function createGrid(container, width, height, minDim, gridSpacing=2) {
+  const domainExtent = 90;
+
+  const yScale = d3.scaleLinear()
+    .domain([-domainExtent, domainExtent])
+    .range([ minDim/2, -minDim/2 ]);
+
+  const xScale = d3.scaleLinear()
+    .domain([-domainExtent, domainExtent])
+    .range([-minDim/2, minDim/2]);
+
+  const yAxis = d3.axisLeft(yScale).ticks(10);
+  const xAxis = d3.axisBottom(xScale).ticks(10);
+
+  const axisContainer = container.append("g").attr("class","axis");
+  axisContainer.append("g")
+    .attr("class", "y-axis")
+    .call(yAxis);
+
+    axisContainer.append("g")
+    .attr("class", "x-axis")
+    .call(xAxis);
+
+  return { xScale, yScale, xAxis, yAxis };
+}
 
 export function createArrowheads(defs, colours) {
   const arrowsContainer = defs.append("g").attr("id","arrows").attr("class","arrows");

@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "_main": "index.js",
   "scripts": {
-    "start": "parcel *.html --open",
-    "dev": "parcel serve index.html --dist-dir dist-dev --port 1234 --host 0.0.0.0",
+    "start": "parcel *.html --open --no-cache",
+    "dev": "parcel serve index.html --no-cache --dist-dir dist-dev --port 1234 --host 0.0.0.0",
     "clean": "rm -rf .parcel-cache",
     "build": "npm run clean && parcel build index.html --dist-dir dist --public-url /cocoarui/",
     "predeploy": "npm run build",

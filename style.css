@@ -62,7 +62,7 @@ div, .force-arrows, .node-relations, .coord-label, .id-label, .hotspot-group {
 .ui-panel {
     text-align: left;
     font-size: 10px;
-    width: 170px;
+    width: 220px;
     position: fixed;
     z-index: 9999;
     display: flex;
@@ -113,7 +113,7 @@ span.todo::after { content: " (todo)"; }
   z-index: 8888;
   text-align: left;
 }
-button { margin-bottom: 5px;}
+button { margin-bottom: 3px;}
 .button-container {
   display: flex;
   font-size: 14px;

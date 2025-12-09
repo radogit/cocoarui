@@ -1,5 +1,9 @@
 import * as d3 from "d3";
 import * as Datasets from "./js/datasets.js";
+import * as DatasetsVR1 from "./js/datasetsVR1.js";
+import * as DatasetsVR2 from "./js/datasetsVR2.js";
+import * as DatasetsVR3 from "./js/datasetsVR3.js";
+import * as DatasetsVR4 from "./js/datasetsVR4.js";
 import * as Forces from "./js/forces.js";
 import * as Drawing from "./js/drawing.js";
 import * as Heatmaps from "./js/heatmaps.js";
@@ -7,6 +11,8 @@ import * as AppUI from "./js/ui.js";
 import * as Icons from "./js/icons.js";
 //import { dragging, dragEnd, dragStart, toggleFixed } from "./js/nodeInteraction.js";
 import { setupLogger } from './js/logger.js';
+
+window.Datasets = Datasets;   // <-- makes Datasets visible in DevTools
 
 // Set up the logger
 setupLogger();
@@ -718,7 +724,7 @@ const simulation = d3.forceSimulation(Datasets.nodes)
     .force('travel', Forces.forceTravel(Datasets.nodes))
     .force("repel", d3.forceManyBody().strength(d => d.isFixed ? 0 : -50)) // Mild repulsion
     .force("collide", d3.forceCollide().radius(d => d.radius + Datasets.collisionMargin).strength(1.2)) // Prevent overlap
-    .force("gaussian", Forces.forceGaussianPreferredArea(1.5)) // Gaussian force for hotspots
+    .force("gaussian", Forces.forceGaussianPreferredArea(1.5)) // (1.5)) // Gaussian force for hotspots
     .force("customCollision", Forces.forceCustomCollision) // New collision force
     .on("tick", ticked);
 
@@ -1077,6 +1083,10 @@ document.getElementById("addOneSmartButton").addEventListener("click", addOneSma
 const spawnButtonContainer0 = document.getElementById("spawnButtonContainer0");
 const spawnButtonContainer1 = document.getElementById("spawnButtonContainer1");
 const spawnButtonContainer2 = document.getElementById("spawnButtonContainer2");
+const spawnButtonContainerVR1 = document.getElementById("spawnButtonContainerVR1");
+const spawnButtonContainerVR2 = document.getElementById("spawnButtonContainerVR2");
+const spawnButtonContainerVR3 = document.getElementById("spawnButtonContainerVR3");
+const spawnButtonContainerVR4 = document.getElementById("spawnButtonContainerVR4");
 const spawnButtonContainerExtended = document.getElementById("spawnButtonContainerExtended");
 
 function addSpawnButtons(datasetArray, target) {
@@ -1143,6 +1153,24 @@ if (spawnButtonContainer2){
   addSpawnButtons(Datasets.preppedNodes2, spawnButtonContainer2);           // second batch
   setupDragAndDropForSpawnButtons();
 }
+if (spawnButtonContainerVR1){
+  addSpawnButtons(DatasetsVR1.preppedNodesVR1, spawnButtonContainerVR1);           // second batch
+  setupDragAndDropForSpawnButtons();
+}
+if (spawnButtonContainerVR2){
+  addSpawnButtons(DatasetsVR2.preppedNodesVR2, spawnButtonContainerVR2);           // second batch
+  setupDragAndDropForSpawnButtons();
+}
+if (spawnButtonContainerVR3){
+  addSpawnButtons(DatasetsVR3.preppedNodesVR3, spawnButtonContainerVR3);           // second batch
+  setupDragAndDropForSpawnButtons();
+}
+if (spawnButtonContainerVR4){
+  addSpawnButtons(DatasetsVR4.preppedNodesVR4, spawnButtonContainerVR4);           // second batch
+  setupDragAndDropForSpawnButtons();
+}
+
+
 if (spawnButtonContainerExtended){
   addSpawnButtons(Datasets.preppedNodesExtended, spawnButtonContainerExtended);   // last batch
 }
@@ -1234,3 +1262,25 @@ addEventListener('keydown', function(event) {
       }
   }
 });
+
+
+
+async function initUnityDatasets() {
+  // NOTE: paths are examples; adjust to wherever you put the .txt files
+  await Datasets.loadUnityDataset(
+    "data/2025-12-06-00-48-34-type-power-visualisations-flattened(22).txt",
+    "type",
+    "power",
+    "Power - VR - descent - cycling",
+    { color: "red" }
+  );
+
+}
+
+// // Kick off the loading right away
+// initUnityDatasets().then(() => {
+//   // Once loaded, hook them into one of your spawn panels
+//   if (spawnButtonContainerVR2) {
+//     addSpawnButtons(Datasets.unityPreppedNodes, spawnButtonContainerVR2);
+//   }
+// });

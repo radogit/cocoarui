@@ -3,3 +3,4 @@ node_modules/
 archive/
 dist/
 dist-dev/
+data/
