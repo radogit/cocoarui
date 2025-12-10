@@ -35,9 +35,12 @@ README_TO_RESUME.md
 D3_experiment.code-workspace
 todo.js
 personal/
+personal/*
+!personal/README.md #allow llacefolder file
 
 #docker
 docker-compose.yml
+Dockerfile
 .dockerignore
 
 # Do not allow local gh-pages branch to appear

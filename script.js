@@ -1,9 +1,9 @@
 import * as d3 from "d3";
 import * as Datasets from "./js/datasets.js";
-import * as DatasetsVR1 from "./js/datasetsVR1.js";
-import * as DatasetsVR2 from "./js/datasetsVR2.js";
-import * as DatasetsVR3 from "./js/datasetsVR3.js";
-import * as DatasetsVR4 from "./js/datasetsVR4.js";
+import * as DatasetsVR1 from "./personal/datasetsVR1.js";
+import * as DatasetsVR2 from "./personal/datasetsVR2.js";
+import * as DatasetsVR3 from "./personal/datasetsVR3.js";
+import * as DatasetsVR4 from "./personal/datasetsVR4.js";
 import * as Forces from "./js/forces.js";
 import * as Drawing from "./js/drawing.js";
 import * as Heatmaps from "./js/heatmaps.js";
