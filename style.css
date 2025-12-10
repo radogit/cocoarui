@@ -278,3 +278,6 @@ label kbd {
 label span {
   margin-left: 3px;
 }
+input[type="checkbox"]:checked + kbd {
+  background: #ddd;
+}
