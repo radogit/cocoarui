@@ -256,3 +256,25 @@ image.node-icon {
     transition: height 0.5s ease; /* Smooth height transition */
     height: 20px;
 }
+
+kbd {
+  vertical-align: 2px;
+  background: #f7f7f7;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  margin: 0 0 -3px;
+  padding: 3px 4px 2px;
+  font-family: sans-serif;
+  font-size: .7em;
+  display: inline-block;
+  box-shadow: 0 2px #ccc;
+}
+
+label kbd {
+  border-radius: 4px;
+  box-shadow: 0 .9px #ccc;
+}
+
+label span {
+  margin-left: 3px;
+}

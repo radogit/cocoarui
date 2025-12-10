@@ -77,6 +77,7 @@ export function setupUI(/* references if needed: svg, etc. */) {
     setting.boolState = URLWatchdog(setting.defaultState, setting.URLParamString);
     // create a checkbox in UI
     const UIElement = document.createElement("label");
+    UIElement.id = "label_" + setting.ToggleObjectString;
     if(!setting.shownInViewPanel) {UIElement.setAttribute("style","display:none;");}
     let UIElementInput = document.createElement("input");
     UIElementInput.id = setting.ToggleObjectString;
@@ -84,8 +85,11 @@ export function setupUI(/* references if needed: svg, etc. */) {
     UIElementInput.setAttribute("keyboardShortcut", setting.keyboardShortcut);
     UIElement.appendChild(UIElementInput);
     //UIElement.appendChild(document.createTextNode(' [ ' + (index+1) + ' ] ' + setting.UILabelString));
+    const kbd = document.createElement("kbd");
+    kbd.textContent = setting.keyboardShortcutLetter;
+    UIElement.appendChild(kbd);
     const span = document.createElement("span");
-    span.textContent = ' [ ' + setting.keyboardShortcutLetter + ' ] ' + setting.UILabelString;
+    span.textContent = setting.UILabelString;
     UIElement.appendChild(span);
     UIContainer.appendChild(UIElement);
     // update the checkbox in UI
