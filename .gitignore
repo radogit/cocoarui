@@ -29,3 +29,11 @@ logs/
 
 # Never accidentally track gh-pages locally
 gh-pages/
+
+README_TO_RESUME.md
+D3_experiment.code-workspace
+docker-compose.
+package-lock.json
+todo.js
+.dockerignore
+.github/
