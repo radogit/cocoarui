@@ -39,3 +39,6 @@ personal/
 #docker
 docker-compose.yml
 .dockerignore
+
+# Do not allow local gh-pages branch to appear
+.git/refs/heads/gh-pages
