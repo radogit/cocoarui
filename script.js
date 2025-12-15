@@ -11,6 +11,8 @@ import * as AppUI from "./js/ui.js";
 import * as Icons from "./js/icons.js";
 //import { dragging, dragEnd, dragStart, toggleFixed } from "./js/nodeInteraction.js";
 import { setupLogger } from './js/logger.js';
+import * as Exporter from './js/exporter.js';
+
 
 window.Datasets = Datasets;   // <-- makes Datasets visible in DevTools
 
