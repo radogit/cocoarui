@@ -1081,6 +1081,16 @@ function setupDragAndDropForSpawnButtons() {
 //document.getElementById("spawnOneButton").addEventListener("click", addOne);
 document.getElementById("removeAllButton").addEventListener("click", removeAllNodes);
 document.getElementById("addOneSmartButton").addEventListener("click", addOneSmart);
+document.getElementById("downloadSVGButton")
+  .addEventListener("click", () => {
+    exportSquareSVG("bubblesExportFigure.svg");
+  });
+
+document.getElementById("downloadPNGButton")
+  .addEventListener("click", () => {
+    exportSquarePNG("bubblesExportFigure.png", 4);
+  });
+
 
 const spawnButtonContainer0 = document.getElementById("spawnButtonContainer0");
 const spawnButtonContainer1 = document.getElementById("spawnButtonContainer1");
