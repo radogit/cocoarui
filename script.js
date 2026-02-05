@@ -1094,6 +1094,11 @@ document.getElementById("downloadPNGButton")
     exportSquarePNG("bubblesExportFigure.png", 4);
   });
 
+document.getElementById("downloadCSVButton")
+  .addEventListener("click", () => {
+    exportMetricsCSV("bubblesMetrics.csv", Datasets.nodes, scaleUnit);
+  });
+
 
 const spawnButtonContainer0 = document.getElementById("spawnButtonContainer0");
 const spawnButtonContainer1 = document.getElementById("spawnButtonContainer1");

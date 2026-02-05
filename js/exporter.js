@@ -334,3 +334,65 @@ window.exportSquarePNG = async function (
 
   img.src = url;
 };
+
+// =======================================
+//  EXPORT METRICS AS CSV  (same columns as metrics panel)
+// =======================================
+/**
+ * Compute per-node metrics (sum |F|, |ΣF|, cancel) like updateMetrics in script.js.
+ */
+function computeNodeMetrics(node) {
+  const F = node.forces ?? [];
+  const sum = F.reduce((s, f) => s + Math.hypot(f.fx, f.fy), 0);
+  const netx = F.reduce((s, f) => s + f.fx, 0);
+  const nety = F.reduce((s, f) => s + f.fy, 0);
+  const net = Math.hypot(netx, nety);
+  return {
+    _sumF: sum,
+    _netF: net,
+    _cancel: sum - net
+  };
+}
+
+function escapeCsvCell(value) {
+  const s = String(value ?? "");
+  if (s.includes(",") || s.includes('"') || s.includes("\n") || s.includes("\r")) {
+    return '"' + s.replace(/"/g, '""') + '"';
+  }
+  return s;
+}
+
+/**
+ * Export nodes as CSV with columns: id, x, y, Σ|F|, |ΣF|, cancel, vx, vy
+ * (same as metrics panel). Uses scaleUnit to convert x/y to data coordinates.
+ */
+window.exportMetricsCSV = function (filename = "bubblesMetrics.csv", nodes, scaleUnit) {
+  if (!nodes || !nodes.length) {
+    console.warn("No nodes to export as CSV");
+    return;
+  }
+
+  const header = ["id", "x", "y", "Σ|F|", "|ΣF|", "cancel", "vx", "vy"];
+  const rows = nodes.map(d => {
+    const m = computeNodeMetrics(d);
+    const x = scaleUnit != null ? (d.x / scaleUnit).toFixed(0) : String(d.x);
+    const y = scaleUnit != null ? (-d.y / scaleUnit).toFixed(0) : String(-d.y);
+    return [
+      d.id,
+      x,
+      y,
+      m._sumF.toFixed(1),
+      m._netF.toFixed(1),
+      m._cancel.toFixed(1),
+      (d.vx ?? 0).toFixed(1),
+      (d.vy ?? 0).toFixed(1)
+    ].map(escapeCsvCell);
+  });
+
+  const csv = [header.join(","), ...rows.map(r => r.join(","))].join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  triggerDownload(url, filename);
+  URL.revokeObjectURL(url);
+  console.log("CSV exported:", filename, rows.length, "rows");
+};
