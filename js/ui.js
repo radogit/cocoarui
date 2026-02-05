@@ -10,10 +10,12 @@ export let showBackground =           { keyboardShortcut: 'Digit6',   keyboardSh
 export let showWindStress =           { keyboardShortcut: 'Digit7',   keyboardShortcutLetter: '7',  shownInViewPanel: true, defaultState: false, boolState: true, UILabelString: 'Stress Heatmap', shorthandString: 'stress heatmap', ToggleObjectString: 'stressHeatmap', DOMObjectString: 'wind-layer-stress', URLParamString: 'stressHeatmap'};
 export let showWindStressLabel =      { keyboardShortcut: 'KeyB',     keyboardShortcutLetter: 'B',  shownInViewPanel: false, defaultState: true, boolState: true, UILabelString: 'Stress Heatmap Label', shorthandString: 'stress heatmap label', ToggleObjectString: 'stressHeatmapLabel', DOMObjectString: 'wind-layer-stress-label', URLParamString: 'stressHeatmapLabel'};
 export let showWindCancel =           { keyboardShortcut: 'KeyC',     keyboardShortcutLetter: 'C',  shownInViewPanel: false, defaultState: false, boolState: false, UILabelString: 'Wind Cancel', shorthandString: 'wind cancel', ToggleObjectString: 'windCancel', DOMObjectString: 'wind-layer-cancel', URLParamString: 'windCancel'};
-export let showWindCancelLabel =      { keyboardShortcut: 'KeyG',     keyboardShortcutLetter: 'G',  shownInViewPanel: false, defaultState: false, boolState: false, UILabelString: 'Wind Cancel Label', shorthandString: 'wind cancel label', ToggleObjectString: 'windCancelLabel', DOMObjectString: 'wind-layer-cancel-label', URLParamString: 'windCancelLabel'};
+export let showWindCancelLabel =      { keyboardShortcut: 'KeyJ',     keyboardShortcutLetter: 'J',  shownInViewPanel: false, defaultState: false, boolState: false, UILabelString: 'Wind Cancel Label', shorthandString: 'wind cancel label', ToggleObjectString: 'windCancelLabel', DOMObjectString: 'wind-layer-cancel-label', URLParamString: 'windCancelLabel'};
 export let showWindNetForceArrows =   { keyboardShortcut: 'Digit8',   keyboardShortcutLetter: '8',  shownInViewPanel: true, defaultState: false, boolState: true, UILabelString: 'Wind Map', shorthandString: 'wind net force', ToggleObjectString: 'windNetForce', DOMObjectString: 'wind-layer-netForceArrow', URLParamString: 'windNetForce'};
 export let showCircles =              { keyboardShortcut: 'Digit9',   keyboardShortcutLetter: '9',  shownInViewPanel: true, defaultState: true, boolState: true, UILabelString: 'Node Circles', shorthandString: 'node circles', ToggleObjectString: 'nodeCircles', DOMObjectString: 'node-circle', URLParamString: 'nodeCircles'};
 export let showAxis =                 { keyboardShortcut: 'KeyA',     keyboardShortcutLetter: 'A',  shownInViewPanel: true, defaultState: false, boolState: true, UILabelString: 'Axis', shorthandString: 'axis', ToggleObjectString: 'toggleAxis', DOMObjectString: 'axis', URLParamString: 'axis'};
+export let showVerticalGrid =        { keyboardShortcut: 'KeyG',     keyboardShortcutLetter: 'G',  shownInViewPanel: true, defaultState: false, boolState: false, UILabelString: 'Vertical grid', shorthandString: 'vertical grid', ToggleObjectString: 'toggleVerticalGrid', DOMObjectString: 'grid-vertical', URLParamString: 'gridV'};
+export let showHorizontalGrid =      { keyboardShortcut: 'KeyH',     keyboardShortcutLetter: 'H',  shownInViewPanel: true, defaultState: false, boolState: false, UILabelString: 'Horizontal grid', shorthandString: 'horizontal grid', ToggleObjectString: 'toggleHorizontalGrid', DOMObjectString: 'grid-horizontal', URLParamString: 'gridH'};
 export let showTerminal =             { keyboardShortcut: 'KeyL',     keyboardShortcutLetter: 'L',  shownInViewPanel: true, defaultState: false, boolState: false, UILabelString: 'Log', shorthandString: 'terminal', ToggleObjectString: 'toggleTerminal', DOMObjectString: 'logContainer', URLParamString: 'cmd'};
 
 export let showMetricsPanel =         { keyboardShortcut: 'KeyM',     keyboardShortcutLetter: 'M',  shownInViewPanel: true, defaultState: true, boolState: true, UILabelString: 'Metrics Panel', shorthandString: 'metrics panel', ToggleObjectString: 'toggleMetrics', DOMObjectString: 'metrics-panel', URLParamString: 'metricsPanel'};
@@ -40,6 +42,8 @@ const showSettings = [
   showWindNetForceArrows,
   showCircles,
   showAxis,
+  showVerticalGrid,
+  showHorizontalGrid,
   showSpawnPanel,
   showViewPanel,
   showMetricsPanel,

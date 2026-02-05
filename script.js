@@ -79,6 +79,9 @@ const tfoot = metPanel.append("tfoot");
 // 2) Draw axes
 const { xScale, yScale, xAxis, yAxis } = Drawing.createAxes(container, width, height, minDim);
 
+// 2b) Grid lines every 10 (vertical V, horizontal H)
+Drawing.createGridLines(container, xScale, yScale);
+
 // 3) Arrowhead artefacts
 const defs = svg.append("defs").attr("id","defs").attr("width",100).attr("height",100);
 Drawing.createArrowheads(defs, colours);

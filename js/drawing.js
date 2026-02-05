@@ -103,6 +103,40 @@ export function createAxes(container, width, height, minDim) {
 
   return { xScale, yScale, xAxis, yAxis };
 }
+
+/** Vertical lines every 10 data units; horizontal lines every 10. Groups have class "grid-vertical" and "grid-horizontal" for UI toggles. */
+export function createGridLines(container, xScale, yScale) {
+  const domainExtent = 90;
+  const step = 10;
+  const positions = d3.range(-domainExtent, domainExtent + 1, step);
+
+  const vertGroup = container.append("g").attr("class", "grid-vertical");
+  vertGroup.selectAll("line")
+    .data(positions)
+    .join("line")
+    .attr("x1", d => xScale(d))
+    .attr("x2", d => xScale(d))
+    .attr("y1", yScale(-domainExtent))
+    .attr("y2", yScale(domainExtent))
+    .attr("stroke", "currentColor")
+    .attr("stroke-opacity", 0.25)
+    .attr("stroke-width", 1);
+
+  const horizGroup = container.append("g").attr("class", "grid-horizontal");
+  horizGroup.selectAll("line")
+    .data(positions)
+    .join("line")
+    .attr("x1", xScale(-domainExtent))
+    .attr("x2", xScale(domainExtent))
+    .attr("y1", d => yScale(d))
+    .attr("y2", d => yScale(d))
+    .attr("stroke", "currentColor")
+    .attr("stroke-opacity", 0.25)
+    .attr("stroke-width", 1);
+
+  return { vertGroup, horizGroup };
+}
+
 export function createGrid(container, width, height, minDim, gridSpacing=2) {
   const domainExtent = 90;
 
