@@ -5,7 +5,7 @@ import { imagePaths } from "./backgrounds.js";
 import * as AppUI from "./ui.js";
 
 export function createSvgAndContainer() {
-  const svgToBrowserRatio = 0.95;
+  const svgToBrowserRatio = 1; // 0.95;
   const browserCanvasWidth  = window.innerWidth;
   const width  = browserCanvasWidth * svgToBrowserRatio;
   const browserCanvasHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;

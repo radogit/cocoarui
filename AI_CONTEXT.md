@@ -26,6 +26,14 @@ This is a D3.js app.
 - **`js/exporter.js`**: Export routines for SVG/PNG (square crops, hiding debug/auxiliary layers) and CSV.
 - **`style.css`**: Visual styling and layout for the panels, canvas, and debug layers.
 
+### Canvas & Coordinate System
+
+- **SVG size**: SVG fills 100% of browser window (`window.innerWidth` × viewport height) from initialization; matches resize behavior (no mismatch).
+- **Container**: Inner `<g class="container">` is translated to center of SVG (`translate(width/2, height/2)`); all visualization layers are children of this container.
+- **Data space**: Axes use domain `[-90, 90]` for both X and Y; range spans `minDim` pixels (where `minDim = Math.min(width, height)`), forming a square data region centered at container origin.
+- **Coordinate scaling**: `scaleUnit = minDim/180`; used to convert between data coordinates and pixel space. Y-axis is flipped (positive Y is up in data space).
+- **Resize handling**: `onResize()` updates SVG to full window dimensions and scales the container uniformly to maintain the same logical data extent.
+
 ### Implementation Preferences & Conventions
 
 - **Prefer explicit D3 scales & joins**: Use explicit `d3.scale*` and `selection.data(...).join(...)` where appropriate; avoid opaque helper abstractions that hide the data binding.
