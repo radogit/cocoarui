@@ -796,13 +796,26 @@ function removeAllNodes() {
 // =============== SIMULATION LOGIC =======================================================================================
 // ================================================================================================================
 
+const forceCollide = d3.forceCollide().radius(d => d.radius + Datasets.collisionMargin).strength(1.2); // unchanged from original
+const forceRepel = d3.forceManyBody().strength(d => d.isFixed ? 0 : -50); // Mild repulsion between nodes
+let collisionEnabled = true;
+
 const simulation = d3.forceSimulation(Datasets.nodes)
     .force('travel', Forces.forceTravel(Datasets.nodes))
-    .force("repel", d3.forceManyBody().strength(d => d.isFixed ? 0 : -50)) // Mild repulsion
-    .force("collide", d3.forceCollide().radius(d => d.radius + Datasets.collisionMargin).strength(1.2)) // Prevent overlap
-    .force("gaussian", Forces.forceGaussianPreferredArea(1.5)) // (1.5)) // Gaussian force for hotspots
-    .force("customCollision", Forces.forceCustomCollision) // New collision force
+    .force("repel", forceRepel)
+    .force("collide", forceCollide)
+    .force("gaussian", Forces.forceGaussianPreferredArea(1.5, () => collisionEnabled))
+    .force("customCollision", Forces.forceCustomCollision)
     .on("tick", ticked);
+
+function setCollisionEnabled(enabled) {
+  collisionEnabled = enabled;
+  Forces.nodeNodeCollisionInGaussian = enabled;
+  simulation.force("repel", enabled ? forceRepel : null);
+  simulation.force("collide", enabled ? forceCollide : null);
+  simulation.force("customCollision", enabled ? Forces.forceCustomCollision : null);
+  simulation.alpha(0.3).restart();
+}
 
 
 function ticked() {
@@ -1201,6 +1214,7 @@ function updateSettingsURLParam(param, value, defaultValue) {
 const SETTINGS_PARAMS = {
   sequence: "sequenceMode",   // fixing | floating, default fixing
   background: "bgPreset",     // preset id, default first preset
+  collision: "collision",     // 1 = on, 0 = off, default on
 };
 const urlParams = new URLSearchParams(window.location.search);
 
@@ -1228,6 +1242,29 @@ if (seqFix && seqFloat) {
       sequenceMode = "floating";
       updateSettingsURLParam(SETTINGS_PARAMS.sequence, "floating", "fixing");
     }
+  });
+}
+
+// Settings panel: Collision detection
+const collisionCheckbox = document.getElementById("setting-collision");
+if (collisionCheckbox) {
+  const collFromUrl = urlParams.get(SETTINGS_PARAMS.collision);
+  if (collFromUrl === "0" || collFromUrl === "false") {
+    collisionEnabled = false;
+    Forces.nodeNodeCollisionInGaussian = false;
+    simulation.force("repel", null);
+    simulation.force("collide", null);
+    simulation.force("customCollision", null);
+    collisionCheckbox.checked = false;
+  } else {
+    collisionEnabled = true;
+    Forces.nodeNodeCollisionInGaussian = true;
+    collisionCheckbox.checked = true;
+  }
+  collisionCheckbox.addEventListener("change", () => {
+    const enabled = collisionCheckbox.checked;
+    setCollisionEnabled(enabled);
+    updateSettingsURLParam(SETTINGS_PARAMS.collision, enabled ? "1" : "0", "1");
   });
 }
 

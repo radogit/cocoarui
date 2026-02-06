@@ -1,5 +1,5 @@
 // ========= parameters =========
-export const collisionMargin = 10; // Extra space between nodes
+export const collisionMargin = 0; // Extra space between nodes
 
 // ========= INPUT DATA - NODES ================================
 export const nodes = [];

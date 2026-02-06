@@ -336,3 +336,7 @@ button#view-panel-caret {
   padding-left: 10px;
   padding-right: 10px;
 }
+
+.settings-panel label, .settings-panel select {
+  font-size: 9px;
+}

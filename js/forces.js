@@ -1,8 +1,14 @@
 import { collisionMargin, nodes } from "./datasets.js";
 
-// Gaussian force for hotspots
-export function forceGaussianPreferredArea(strength) {
+/** When false, the node-to-node collision block inside forceGaussianPreferredArea is skipped. Set from script when collision setting is off. */
+export let nodeNodeCollisionInGaussian = true;
+
+/**
+ * Gaussian force for hotspots. Optional second arg: getNodeNodeCollisionEnabled() – if provided and returns false, node-to-node push is skipped.
+ */
+export function forceGaussianPreferredArea(strength, getNodeNodeCollisionEnabled) {
   return function(alpha) {
+    const runNodeNodeCollision = getNodeNodeCollisionEnabled ? getNodeNodeCollisionEnabled() : nodeNodeCollisionInGaussian;
     nodes.forEach(d => {
       d.forces = []; // Reset all force vectors for this tick
 
@@ -22,7 +28,8 @@ export function forceGaussianPreferredArea(strength) {
         }
       });
 
-      // Node-to-node collision (soft approach)
+      // Node-to-node collision (soft approach) – skipped when collision setting is off
+      if (!runNodeNodeCollision) return;
       nodes.forEach(other => {
         if (d === other) return;
         const dx = other.x - d.x;
