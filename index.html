@@ -17,7 +17,7 @@
       </div>
     </div>
     <div id="simulation-panel" class="simulation-panel ui-panel-box">
-      <h2>Spawn <kbd>S</kbd></h2>
+      <h2>Simulation <kbd>S</kbd></h2>
       <div id="spawnButtonContainer0" class="spawn-button-group">
         <div class="collapse-header">
           <span class="caret">&#9660;</span>
@@ -75,38 +75,51 @@
   <!-- <div id="detail-panel" class="ui-panel ui-panel-right ui-panel-top ui-panel-box">
     <h2>Details</h2>
   </div> -->
-  <div id="export-panel" class="export-panel ui-panel ui-panel-right ui-panel-bottom ui-panel-box hidden">
-    <h2>Export <kbd>X</kbd></h2>
-      <div style="display: inline-block; min-width: 100%;">
-        <button id="downloadSVGButton">SVG</button>
-        <button id="downloadPNGButton">PNG</button>
-        <button id="downloadCSVButton">CSV</button>
-      </div>
-  </div>
-  <div id="settings-panel" class="settings-panel ui-panel ui-panel-right ui-panel-top ui-panel-box hidden">
-    <h2>Settings <kbd>T</kbd></h2>
-    <!-- Previous idea: weighing panel (kept here for reference) -->
-    <!-- <div id="weighing-panel" class="ui-panel-box">      
-      <h2 class="todo">Weighing</h2>
-      <label for="weightSize"><input type="radio" name="weightMethod" id="weightSize" value="size" checked disabled>Size</label>
-      <label for="weightSignificance"><input type="radio" name="weightMethod" id="weightSignificance" value="signi" disabled>Significance</label>
-      <label for="weightPriority"><input type="radio" name="weightMethod" id="weightPriority" value="prio" disabled>Priority</label>
-    </div> -->
 
-    <div class="settings-group">
-      <h4>Sequence Spawning</h4>
-      <label>
-        <input type="radio" name="sequenceMode" id="sequence-fixing" value="fixing" checked>
-        fixing (lock node after it settles)
-      </label><br>
-      <label>
-        <input type="radio" name="sequenceMode" id="sequence-floating" value="floating">
-        floating (leave node free after it settles)
-      </label>
+  <!-- Right-hand column: Metrics, Settings, Export stacked, top-right aligned -->
+  <div id="right-panel" class="ui-panel ui-panel-right ui-panel-top">
+    <div id="metrics-panel" class="metrics-panel ui-panel-box hidden">
+      <h2>Metrics <kbd>M</kbd></h2>
     </div>
-  </div>
-  <div id="metrics-panel" class="metrics-panel ui-panel ui-panel-right ui-panel-top ui-panel-box hidden">
-    <h2>Metrics <kbd>M</kbd></h2>
+
+    <div id="settings-panel" class="settings-panel ui-panel-box hidden">
+      <h2>Settings <kbd>T</kbd></h2>
+      <!-- Previous idea: weighing panel (kept here for reference) -->
+      <!-- <div id="weighing-panel" class="ui-panel-box">      
+        <h2 class="todo">Weighing</h2>
+        <label for="weightSize"><input type="radio" name="weightMethod" id="weightSize" value="size" checked disabled>Size</label>
+        <label for="weightSignificance"><input type="radio" name="weightMethod" id="weightSignificance" value="signi" disabled>Significance</label>
+        <label for="weightPriority"><input type="radio" name="weightMethod" id="weightPriority" value="prio" disabled>Priority</label>
+      </div> -->
+
+      <div class="settings-group">
+        <h4>Background</h4>
+        <label for="background-select">Preset</label>
+        <select id="background-select">
+          <!-- options filled from backgroundPresets in script.js -->
+        </select>
+      </div>
+      <div class="settings-group">
+        <h4>Sequence Spawning</h4>
+        <label>
+          <input type="radio" name="sequenceMode" id="sequence-fixing" value="fixing" checked>
+          fixing (lock node after it settles)
+        </label><br>
+        <label>
+          <input type="radio" name="sequenceMode" id="sequence-floating" value="floating">
+          floating (leave node free after it settles)
+        </label>
+      </div>
+    </div>
+
+    <div id="export-panel" class="export-panel ui-panel-box hidden">
+      <h2>Export <kbd>X</kbd></h2>
+        <div style="display: inline-block; min-width: 100%;">
+          <button id="downloadSVGButton">SVG</button>
+          <button id="downloadPNGButton">PNG</button>
+          <button id="downloadCSVButton">CSV</button>
+        </div>
+    </div>
   </div>
 </body>
 </html>

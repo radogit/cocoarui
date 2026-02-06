@@ -32,22 +32,14 @@ export function createSvgAndContainer() {
   const backgroundLayer = container.append("g")
     .attr("id", "background-layer")
     .attr("class", showBackground.boolState ? showBackground.DOMObjectString+"" : showBackground.DOMObjectString+" hidden");
-    imagePaths.forEach((imagePath, index) => {
-        // backgroundLayer.append("rect")
-        // .attr("width", imagePath.width * scaleUnit)
-        // .attr("height", imagePath.height * scaleUnit)
-        // .attr("x", imagePath.x * scaleUnit)
-        // .attr("y", imagePath.y * scaleUnit)
-        // .attr("fill", "url(#"+imagePath.name+")");  
+    imagePaths.forEach((imagePath) => {
         backgroundLayer.append("image")
-        .attr("href",imagePath.url)
-        .attr("width", imagePath.width * scaleUnit)
-        .attr("height", imagePath.height * scaleUnit)
-        .attr("x", imagePath.x * scaleUnit)
-        .attr("y", imagePath.y * scaleUnit)
-        //.attr("fill", "url(#"+imagePath.name+")")
-        ;  
-
+          .attr("data-background-name", imagePath.name)
+          .attr("href", imagePath.url)
+          .attr("width", imagePath.width * scaleUnit)
+          .attr("height", imagePath.height * scaleUnit)
+          .attr("x", imagePath.x * scaleUnit)
+          .attr("y", imagePath.y * scaleUnit);
     });
 
     

@@ -12,6 +12,7 @@ import * as Icons from "./js/icons.js";
 //import { dragging, dragEnd, dragStart, toggleFixed } from "./js/nodeInteraction.js";
 import { setupLogger } from './js/logger.js';
 import * as Exporter from './js/exporter.js';
+import { imagePaths, backgroundPresets } from './js/backgrounds.js';
 
 
 window.Datasets = Datasets;   // <-- makes Datasets visible in DevTools
@@ -1168,21 +1169,90 @@ document.getElementById("downloadCSVButton")
   .addEventListener("click", () => {
     exportMetricsCSV("bubblesMetrics.csv", Datasets.nodes, scaleUnit);
   });
+// Settings panel: persist to URL (same pattern as View panel)
+function updateSettingsURLParam(param, value, defaultValue) {
+  const url = new URL(window.location);
+  if (value === defaultValue || value == null) {
+    url.searchParams.delete(param);
+  } else {
+    url.searchParams.set(param, String(value));
+  }
+  window.history.replaceState({}, "", url);
+}
+
+const SETTINGS_PARAMS = {
+  sequence: "sequenceMode",   // fixing | floating, default fixing
+  background: "bgPreset",     // preset id, default first preset
+};
+const urlParams = new URLSearchParams(window.location.search);
+
 // Settings panel: Sequence behaviour (fixing vs floating)
 const seqFix = document.getElementById("sequence-fixing");
 const seqFloat = document.getElementById("sequence-floating");
 if (seqFix && seqFloat) {
+  const seqFromUrl = urlParams.get(SETTINGS_PARAMS.sequence);
+  if (seqFromUrl === "floating") {
+    sequenceMode = "floating";
+    seqFloat.checked = true;
+  } else {
+    sequenceMode = "fixing";
+    seqFix.checked = true;
+  }
+
   seqFix.addEventListener("change", () => {
     if (seqFix.checked) {
       sequenceMode = "fixing";
+      updateSettingsURLParam(SETTINGS_PARAMS.sequence, "fixing", "fixing");
     }
   });
   seqFloat.addEventListener("change", () => {
     if (seqFloat.checked) {
       sequenceMode = "floating";
+      updateSettingsURLParam(SETTINGS_PARAMS.sequence, "floating", "fixing");
     }
   });
 }
+
+// Settings panel: Background preset dropdown (each preset shows a set of images)
+function applyBackgroundSelection(presetId) {
+  const preset = presetId ? backgroundPresets.find(p => p.id === presetId) : null;
+  const showNames = preset ? new Set(preset.imageNames) : new Set();
+  container.select("#background-layer").selectAll("image").attr("visibility", function () {
+    const name = d3.select(this).attr("data-background-name");
+    return showNames.has(name) ? "visible" : "hidden";
+  });
+}
+const bgSelect = document.getElementById("background-select");
+if (bgSelect) {
+  backgroundPresets.forEach(({ id, label }) => {
+    const opt = document.createElement("option");
+    opt.value = id;
+    opt.textContent = label;
+    bgSelect.appendChild(opt);
+  });
+
+  const defaultPresetId = backgroundPresets[0] ? backgroundPresets[0].id : "";
+  const bgFromUrl = urlParams.get(SETTINGS_PARAMS.background);
+  const validPresetId = backgroundPresets.some(p => p.id === bgFromUrl) ? bgFromUrl : defaultPresetId;
+  bgSelect.value = validPresetId;
+  applyBackgroundSelection(validPresetId);
+
+  bgSelect.addEventListener("change", () => {
+    const id = bgSelect.value;
+    applyBackgroundSelection(id);
+    updateSettingsURLParam(SETTINGS_PARAMS.background, id, defaultPresetId);
+  });
+
+  // Keep dropdown enabled only when the Background layer is visible.
+  const bgToggle = document.getElementById("toggleBackground");
+  if (bgToggle) {
+    bgSelect.disabled = !bgToggle.checked;
+    bgToggle.addEventListener("change", () => {
+      bgSelect.disabled = !bgToggle.checked;
+    });
+  }
+}
+
 const spawnButtonContainer0 = document.getElementById("spawnButtonContainer0");
 const spawnButtonContainer1 = document.getElementById("spawnButtonContainer1");
 const spawnButtonContainer2 = document.getElementById("spawnButtonContainer2");

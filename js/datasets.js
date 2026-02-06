@@ -5,15 +5,15 @@ export const collisionMargin = 10; // Extra space between nodes
 export const nodes = [];
 
 export const preppedNodes0 = [
-{name: 'Fixed + Float', nodes: [
+  {name: 'Fixed + Float', nodes: [
     {
-        id: "D", x: 390, y: 180, color: 'purple', radius: 50, isFixed: true, significance: 1, hotspots: []
+        id: "D", x: 39, y: 18, color: 'purple', radius: 5, isFixed: true, significance: 1, hotspots: []
     },
     {
-        id: "A", x: 350, y: 550, color: 'green', radius: 30, isFixed: false, significance: 100, hotspots: [
-            { x: 350, y: 150, intensityFactor: 1.5, width: 200, height: 300, forceType: "attract" },
-            { x: 400, y: 100, intensityFactor: 1.2, width: 120, height: 320, forceType: "attract"  },
-            { x: 500, y: 280, intensityFactor: 1.2, width: 320, height: 120, forceType: "attract"  }
+        id: "A", x: 35, y: 55, color: 'green', radius: 3, isFixed: false, significance: 100, hotspots: [
+            { x: 35, y: 15, intensityFactor: 1.5, width: 20, height: 30, forceType: "attract" },
+            { x: 40, y: 10, intensityFactor: 1.2, width: 12, height: 32, forceType: "attract"  },
+            { x: 50, y: 28, intensityFactor: 1.2, width: 32, height: 12, forceType: "attract"  }
         ]
     },
 ]}
@@ -22,15 +22,15 @@ export const preppedNodes0 = [
 
 {name: 'Twins', nodes: [
     {
-        id: "B", x: 300, y: 300, color: 'blue', radius: 40, isFixed: false, significance: 1, hotspots: [
-            { x: 200, y: -100, intensityFactor: 1.0, width: 180, height: 80, forceType: "attract"  },
-            { x: 250, y: 350, intensityFactor: 1.0, width: 180, height: 80, forceType: "attract"  }
+        id: "B", x: 30, y: 30, color: 'blue', radius: 4, isFixed: false, significance: 1, hotspots: [
+            { x: 20, y: -10, intensityFactor: 1.0, width: 18, height: 8, forceType: "attract"  },
+            { x: 25, y: 35, intensityFactor: 1.0, width: 18, height: 8, forceType: "attract"  }
         ]
     },
     {
-        id: "C", x: 400, y: 400, color: 'orange', radius: 50, isFixed: false, significance: 100, hotspots: [
-            { x: 210, y: -90, intensityFactor: 1.0, width: 180, height: 80, forceType: "attract"  },
-            { x: 260, y: 360, intensityFactor: 1.0, width: 180, height: 80, forceType: "attract"  }
+        id: "C", x: 40, y: 40, color: 'orange', radius: 5, isFixed: false, significance: 100, hotspots: [
+            { x: 21, y: -9, intensityFactor: 1.0, width: 18, height: 8, forceType: "attract"  },
+            { x: 26, y: 36, intensityFactor: 1.0, width: 18, height: 8, forceType: "attract"  }
         ]
     },
 ]}
@@ -39,33 +39,33 @@ export const preppedNodes0 = [
 
 {name: 'Navigation', nodes: [
     {
-        id: "Navigation", representation: 'map', x: -50, y: 100, color: 'blue', radius: 9, isFixed: false, significance: 100, hotspots: [
-            { x: 0, y: 6, intensityFactor: 1, width: 30, height: 30, forceType: "attract"  },
-            { x: 15, y: -18, intensityFactor: 1, width: 20, height: 25, forceType: "attract"  },
-            { x: 27, y: 12, intensityFactor: 1, width: 30, height: 12, forceType: "attract"  },
-            { x: -8, y: 78, intensityFactor: 1, width: 10, height: 20, forceType: "attract"  }
+        id: "Navigation", representation: 'map', x: -5, y: 10, color: 'blue', radius: 9, isFixed: false, significance: 100, hotspots: [
+            { x: 0, y: 6, intensityFactor: 1, width: 3, height: 3, forceType: "attract"  },
+            { x: 15, y: -18, intensityFactor: 1, width: 2, height: 25, forceType: "attract"  },
+            { x: 27, y: 12, intensityFactor: 1, width: 3, height: 12, forceType: "attract"  },
+            { x: -8, y: 78, intensityFactor: 1, width: 1, height: 2, forceType: "attract"  }
         ]
     },
 ]}
 ,
 {name: 'Speed', nodes: [
     {
-        id: "Speed", representation: 'number', x: -50, y: 100, color: 'green', radius: 8, isFixed: false, significance: 100, hotspots: [
-            { x: 6, y: 12, intensityFactor: 1, width: 15, height: 30, forceType: "attract"  },
-            { x: 15, y: -40, intensityFactor: 1, width: 5, height: 15, forceType: "attract"  },
+        id: "Speed", representation: 'number', x: -5, y: 10, color: 'green', radius: 8, isFixed: false, significance: 100, hotspots: [
+            { x: 6, y: 12, intensityFactor: 1, width: 15, height: 3, forceType: "attract"  },
+            { x: 15, y: -4, intensityFactor: 1, width: 5, height: 15, forceType: "attract"  },
             { x: 55, y: 12, intensityFactor: 1, width: 12, height: 8, forceType: "attract"  },
-            { x: -30, y: 70, intensityFactor: 1, width: 15, height: 23, forceType: "attract"  }
+            { x: -3, y: 7, intensityFactor: 1, width: 15, height: 23, forceType: "attract"  }
         ]
     },
 ]}
 ,
 {name: 'Power', nodes: [
     {
-        id: "Power", representation: 'radial', x: -50, y: 100, color: 'red', radius: 6, isFixed: false, significance: 100, hotspots: [
-            { x: -78, y: 78, intensityFactor: 1, width: 20, height: 20, forceType: "attract"  },
-            { x: 0, y: 75, intensityFactor: 1, width: 20, height: 20, forceType: "attract"  },
-            { x: -12, y: 35, intensityFactor: 1, width: 20, height: 20, forceType: "attract"  },
-            { x: -50, y: 25, intensityFactor: 1, width: 20, height: 20, forceType: "attract"  }
+        id: "Power", representation: 'radial', x: -5, y: 10, color: 'red', radius: 6, isFixed: false, significance: 100, hotspots: [
+            { x: -78, y: 78, intensityFactor: 1, width: 2, height: 2, forceType: "attract"  },
+            { x: 0, y: 75, intensityFactor: 1, width: 2, height: 2, forceType: "attract"  },
+            { x: -12, y: 35, intensityFactor: 1, width: 2, height: 2, forceType: "attract"  },
+            { x: -5, y: 25, intensityFactor: 1, width: 2, height: 2, forceType: "attract"  }
         ]
     },
 ]}
@@ -74,12 +74,12 @@ export const preppedNodes0 = [
 
 {name: 'Heartrate', nodes: [
     {
-        id: "Heartrate", representation: 'symbol', x: -70, y: -80, color: 'purple', radius: 7, isFixed: false, significance: 100, hotspots: [
-            { x: -60, y: -30, intensityFactor: 1, width: 20, height: 20, forceType: "attract"  },
-            { x: 40, y: -30, intensityFactor: 1, width: 20, height: 20, forceType: "attract"  },
-            { x: -48, y: -60, intensityFactor: 1, width: 20, height: 20, forceType: "attract"  },
-            { x: 28, y: -60, intensityFactor: 1, width: 20, height: 20, forceType: "attract"  },
-            { x: -10, y: -80, intensityFactor: 1, width: 20, height: 20, forceType: "attract"  }
+        id: "Heartrate", representation: 'symbol', x: -7, y: -8, color: 'purple', radius: 7, isFixed: false, significance: 100, hotspots: [
+            { x: -6, y: -3, intensityFactor: 1, width: 2, height: 2, forceType: "attract"  },
+            { x: 4, y: -3, intensityFactor: 1, width: 2, height: 2, forceType: "attract"  },
+            { x: -48, y: -6, intensityFactor: 1, width: 2, height: 2, forceType: "attract"  },
+            { x: 28, y: -6, intensityFactor: 1, width: 2, height: 2, forceType: "attract"  },
+            { x: -1, y: -8, intensityFactor: 1, width: 2, height: 2, forceType: "attract"  }
         ]
     },
 ]},

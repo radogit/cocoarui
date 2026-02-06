@@ -82,6 +82,7 @@ div, .force-arrows, .node-relations, .coord-label, .id-label, .hotspot-group {
 .ui-panel-bottom { bottom: 15px;}
 .ui-panel-right { right: 15px;}
 #debug-panel {    height: calc(100vh - 30px);}
+#right-panel {    height: calc(100vh - 30px);}
 #view-panel { height: auto; display: table; }
 /* View panel fold: only .UIContainer collapses; header stays. max-height animates (height: auto cannot). */
 .view-panel .UIContainer {
@@ -96,7 +97,10 @@ div, .force-arrows, .node-relations, .coord-label, .id-label, .hotspot-group {
 }
 #simulation-panel {max-height: calc(100% - 50px); overflow-y: auto;}
 #detail-panel { height: 200px;}
-#metrics-panel { min-width: 350px;}
+#metrics-panel { 
+  font-size: 6px;
+  /* min-width: 350px; */
+}
 .ui-panel input[type="checkbox"]:checked + span { font-weight: bold; }
 span.todo { opacity: 0.5; }
 span.todo::after { content: " (todo)"; }
@@ -201,7 +205,7 @@ table.metrics {
 table.metrics th,
 table.metrics td {
   /* border: 1px solid black; */
-  padding: 3px;
+  padding: 2px;
   text-align: right;
 }
 
