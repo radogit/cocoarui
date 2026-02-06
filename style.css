@@ -84,8 +84,36 @@ div, .force-arrows, .node-relations, .coord-label, .id-label, .hotspot-group {
 #debug-panel {    height: calc(100vh - 30px);}
 #right-panel {    height: calc(100vh - 30px);}
 #view-panel { height: auto; display: table; }
+.view-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0;
+  gap: 0.5em;
+}
+.view-panel-header > span {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+}
+.view-panel-caret {
+  font-size: 0.9em;
+  line-height: 1;
+  padding: 0 0.2em;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: inherit;
+  flex: 0 0 auto;
+  min-width: 0;
+  width: auto;
+}
+.view-panel-caret:hover {
+  opacity: 0.8;
+}
 /* View panel fold: only .UIContainer collapses; header stays. max-height animates (height: auto cannot). */
 .view-panel .UIContainer {
+  padding-top: 10px;
   overflow: hidden;
   max-height: 400px;
   transition: max-height 0.5s ease-in-out, opacity 0.5s ease-in-out;
@@ -300,4 +328,11 @@ h4 {
   margin-bottom: 5px;
   font-size: 10px;
   font-weight: bolder;
+}
+
+
+button#view-panel-caret {
+  min-width: initial;
+  padding-left: 10px;
+  padding-right: 10px;
 }

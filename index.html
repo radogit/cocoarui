@@ -12,7 +12,10 @@
   <script type="module" src="script.js"></script>
   <div id="debug-panel" class="ui-panel ui-panel-left ui-panel-top">
     <div id="view-panel" class="view-panel ui-panel-box">
-      <h2>View <kbd>V</kbd></h2>
+      <h2 class="view-panel-header">
+        <span>View <kbd>V</kbd></span>
+        <button type="button" id="view-panel-caret" class="view-panel-caret" aria-label="Toggle view panel" title="Toggle view panel (V)"></button>
+      </h2>
       <div id="UIContainer" class="UIContainer">
       </div>
     </div>

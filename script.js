@@ -1169,6 +1169,24 @@ document.getElementById("downloadCSVButton")
   .addEventListener("click", () => {
     exportMetricsCSV("bubblesMetrics.csv", Datasets.nodes, scaleUnit);
   });
+
+// View panel: clickable caret in header (same as KeyV)
+const viewPanelCaret = document.getElementById("view-panel-caret");
+const viewPanelCheckbox = document.getElementById("toggleViewPanel");
+if (viewPanelCaret && viewPanelCheckbox) {
+  function updateViewPanelCaret() {
+    viewPanelCaret.textContent = AppUI.showViewPanel.boolState ? "\u25BC" : "\u25B2"; // ▼ expanded, ▲ collapsed
+  }
+  updateViewPanelCaret();
+  viewPanelCaret.addEventListener("click", () => {
+    AppUI.showViewPanel.boolState = !AppUI.showViewPanel.boolState;
+    AppUI.showOrHideElement(AppUI.showViewPanel.boolState, "." + AppUI.showViewPanel.DOMObjectString, AppUI.showViewPanel.shorthandString, AppUI.showViewPanel.URLParamString, AppUI.showViewPanel.defaultState);
+    viewPanelCheckbox.checked = AppUI.showViewPanel.boolState;
+    updateViewPanelCaret();
+  });
+  viewPanelCheckbox.addEventListener("change", updateViewPanelCaret);
+}
+
 // Settings panel: persist to URL (same pattern as View panel)
 function updateSettingsURLParam(param, value, defaultValue) {
   const url = new URL(window.location);
