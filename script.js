@@ -4,6 +4,8 @@ import * as DatasetsVR1 from "./personal/datasetsVR1.js";
 import * as DatasetsVR2 from "./personal/datasetsVR2.js";
 import * as DatasetsVR3 from "./personal/datasetsVR3.js";
 import * as DatasetsVR4 from "./personal/datasetsVR4.js";
+import * as DatasetsPPD from "./personal/datasetsPPD.js";
+import * as DatasetsPPA from "./personal/datasetsPPA.js";
 import * as Forces from "./js/forces.js";
 import * as Drawing from "./js/drawing.js";
 import * as Heatmaps from "./js/heatmaps.js";
@@ -1369,17 +1371,17 @@ document.querySelectorAll('.collapse-header').forEach(header => {
 });
 
 
-if (spawnButtonContainer0){
-  addSpawnButtons(Datasets.preppedNodes0, spawnButtonContainer0);           // zero batch
+if (spawnButtonContainerDemoSamples){
+  addSpawnButtons(Datasets.preppedNodesDemoSamples, spawnButtonContainerDemoSamples);           // zero batch
   setupDragAndDropForSpawnButtons();
 }
 
-if (spawnButtonContainer1){
-  addSpawnButtons(Datasets.preppedNodes, spawnButtonContainer1);           // first batch
+if (spawnButtonContainerPPD){
+  addSpawnButtons(DatasetsPPD.preppedNodesPPD, spawnButtonContainerPPD);           // first batch
   setupDragAndDropForSpawnButtons();
 }
-if (spawnButtonContainer2){
-  addSpawnButtons(Datasets.preppedNodes2, spawnButtonContainer2);           // second batch
+if (spawnButtonContainerPPA){
+  addSpawnButtons(DatasetsPPA.preppedNodesPPA, spawnButtonContainerPPA);           // second batch
   setupDragAndDropForSpawnButtons();
 }
 if (spawnButtonContainerVR1){
@@ -1400,8 +1402,8 @@ if (spawnButtonContainerVR4){
 }
 
 
-if (spawnButtonContainerExtended){
-  addSpawnButtons(Datasets.preppedNodesExtended, spawnButtonContainerExtended);   // last batch
+if (spawnButtonContainerKeepFreeSamples){
+  addSpawnButtons(Datasets.preppedNodesKeepFreeSamples, spawnButtonContainerKeepFreeSamples);   // last batch
 }
 
 
