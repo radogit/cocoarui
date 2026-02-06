@@ -71,12 +71,6 @@
         <button id="addOneSmartButton" keyboardShortcut="KeyR" style="color: darkgreen">+1 Random [R]</button>
       </div>
     </div>
-    <!-- <div id="weighing-panel" class="ui-panel-box">      
-      <h2 class="todo">Weighing</h2>
-      <label for="weightSize"><input type="radio" name="weightMethod" id="weightSize" value="size" checked disabled>Size</label>
-      <label for="weightSignificance"><input type="radio" name="weightMethod" id="weightSignificance" value="signi" disabled>Significance</label>
-      <label for="weightPriority"><input type="radio" name="weightMethod" id="weightPriority" value="prio" disabled>Priority</label>
-    </div> -->
   </div>
   <!-- <div id="detail-panel" class="ui-panel ui-panel-right ui-panel-top ui-panel-box">
     <h2>Details</h2>
@@ -88,6 +82,28 @@
         <button id="downloadPNGButton">PNG</button>
         <button id="downloadCSVButton">CSV</button>
       </div>
+  </div>
+  <div id="settings-panel" class="settings-panel ui-panel ui-panel-right ui-panel-top ui-panel-box hidden">
+    <h2>Settings <kbd>T</kbd></h2>
+    <!-- Previous idea: weighing panel (kept here for reference) -->
+    <!-- <div id="weighing-panel" class="ui-panel-box">      
+      <h2 class="todo">Weighing</h2>
+      <label for="weightSize"><input type="radio" name="weightMethod" id="weightSize" value="size" checked disabled>Size</label>
+      <label for="weightSignificance"><input type="radio" name="weightMethod" id="weightSignificance" value="signi" disabled>Significance</label>
+      <label for="weightPriority"><input type="radio" name="weightMethod" id="weightPriority" value="prio" disabled>Priority</label>
+    </div> -->
+
+    <div class="settings-group">
+      <h4>Sequence Spawning</h4>
+      <label>
+        <input type="radio" name="sequenceMode" id="sequence-fixing" value="fixing" checked>
+        fixing (lock node after it settles)
+      </label><br>
+      <label>
+        <input type="radio" name="sequenceMode" id="sequence-floating" value="floating">
+        floating (leave node free after it settles)
+      </label>
+    </div>
   </div>
   <div id="metrics-panel" class="metrics-panel ui-panel ui-panel-right ui-panel-top ui-panel-box hidden">
     <h2>Metrics <kbd>M</kbd></h2>

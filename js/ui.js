@@ -21,6 +21,7 @@ export let showTerminal =             { keyboardShortcut: 'KeyL',     keyboardSh
 export let showMetricsPanel =         { keyboardShortcut: 'KeyM',     keyboardShortcutLetter: 'M',  shownInViewPanel: true, defaultState: true, boolState: true, UILabelString: 'Metrics Panel', shorthandString: 'metrics panel', ToggleObjectString: 'toggleMetrics', DOMObjectString: 'metrics-panel', URLParamString: 'metricsPanel'};
 export let showSpawnPanel =           { keyboardShortcut: 'KeyS',     keyboardShortcutLetter: 'S',  shownInViewPanel: true, defaultState: true, boolState: true, UILabelString: 'Simulation Panel', shorthandString: 'simulation panel', ToggleObjectString: 'toggleSimulationPanel', DOMObjectString: 'simulation-panel', URLParamString: 'simulationPanel'};
 export let showViewPanel =            { keyboardShortcut: 'KeyV',     keyboardShortcutLetter: 'V',  shownInViewPanel: true, defaultState: true, boolState: true, UILabelString: 'View Panel', shorthandString: 'view panel', ToggleObjectString: 'toggleViewPanel', DOMObjectString: 'UIContainer', URLParamString: 'viewPanel'};
+export let showSettingsPanel =        { keyboardShortcut: 'KeyT',     keyboardShortcutLetter: 'T',  shownInViewPanel: true, defaultState: true, boolState: true, UILabelString: 'Settings Panel', shorthandString: 'settings panel', ToggleObjectString: 'toggleSettingsPanel', DOMObjectString: 'settings-panel', URLParamString: 'settingsPanel'};
 export let showExportPanel =          { keyboardShortcut: 'KeyX',     keyboardShortcutLetter: 'X',  shownInViewPanel: true, defaultState: true, boolState: true, UILabelString: 'Export Panel', shorthandString: 'export panel', ToggleObjectString: 'toggleExportPanel', DOMObjectString: 'export-panel', URLParamString: 'exportPanel'};
 
 
@@ -46,6 +47,7 @@ const showSettings = [
   showHorizontalGrid,
   showSpawnPanel,
   showViewPanel,
+  showSettingsPanel,
   showMetricsPanel,
   showExportPanel,
   showTerminal

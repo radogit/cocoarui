@@ -292,3 +292,8 @@ label span {
 input[type="checkbox"]:checked + kbd {
   background: #ddd;
 }
+h4 {
+  margin-bottom: 5px;
+  font-size: 10px;
+  font-weight: bolder;
+}

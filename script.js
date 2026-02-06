@@ -16,6 +16,10 @@ import * as Exporter from './js/exporter.js';
 
 window.Datasets = Datasets;   // <-- makes Datasets visible in DevTools
 
+// Global-ish setting for sequence behaviour in dripSpawnSmart
+// "fixing" → fix node after it settles; "floating" → leave free.
+let sequenceMode = "fixing";
+
 // Set up the logger
 setupLogger();
 
@@ -631,8 +635,10 @@ let nodesQueue = [];
  * @param {Number} intervalMs         delay **after** each spawn (default 1 s)  (old timed mode, now unused)
  */
 
-// Helper: wait until a node “settles” (speed below threshold for some time), then fix it.
-async function waitForNodeToSettleAndFix(node, simulation, {
+// Helper: wait until a node “settles” (speed below threshold for some time).
+// Does NOT change isFixed/fx/fy – caller decides what to do once settled,
+// based on e.g. `sequenceMode` (fixing vs floating).
+async function waitForNodeToSettle(node, simulation, {
   speedThreshold = 0.5,     // px per tick (in simulation units)
   stableMs       = 800,     // how long it must stay below threshold
   checkInterval  = 80       // ms between checks
@@ -658,17 +664,6 @@ async function waitForNodeToSettleAndFix(node, simulation, {
         stableFor += checkInterval;
         if (stableFor >= stableMs) {
           clearInterval(intervalId);
-
-          // Programmatically “fix” the node (like a double-click)
-          node.isFixed = true;
-          node.fx = node.x;
-          node.fy = node.y;
-
-          // Visual cue (black stroke) – mirror toggleFixed behaviour
-          const sel = d3.select(`#node-group-${id}`).select("circle");
-          sel.attr("stroke", "black").attr("stroke-width", 3);
-
-          simulation.alpha(0.5).restart();
           resolve();
         }
       } else {
@@ -720,12 +715,26 @@ export async function dripSpawnSmart(
     // Find the just-added node by id (after multistart it should be present in `nodes`)
     const spawned = nodes.find(n => n.id === raw.id);
 
-    // NEW MODE: wait until this node settles, then fix it and move on
-    await waitForNodeToSettleAndFix(spawned, simulation, {
+    // NEW MODE: wait until this node settles, then (optionally) fix it and move on
+    await waitForNodeToSettle(spawned, simulation, {
       speedThreshold: 0.5,
       stableMs: 800,
       checkInterval: 80
     });
+
+    // Depending on the global sequenceMode, either fix the node
+    // (like a double–click) or leave it floating.
+    if (spawned && sequenceMode === "fixing") {
+      spawned.isFixed = true;
+      spawned.fx = spawned.x;
+      spawned.fy = spawned.y;
+
+      // Visual cue (black stroke) – mirror toggleFixed behaviour
+      const sel = d3.select(`#node-group-${spawned.id}`).select("circle");
+      sel.attr("stroke", "black").attr("stroke-width", 3);
+
+      simulation.alpha(0.5).restart();
+    }
 
     // OLD MODE (timed drip), kept here for reference:
     // setTimeout(next, intervalMs);
@@ -1159,8 +1168,21 @@ document.getElementById("downloadCSVButton")
   .addEventListener("click", () => {
     exportMetricsCSV("bubblesMetrics.csv", Datasets.nodes, scaleUnit);
   });
-
-
+// Settings panel: Sequence behaviour (fixing vs floating)
+const seqFix = document.getElementById("sequence-fixing");
+const seqFloat = document.getElementById("sequence-floating");
+if (seqFix && seqFloat) {
+  seqFix.addEventListener("change", () => {
+    if (seqFix.checked) {
+      sequenceMode = "fixing";
+    }
+  });
+  seqFloat.addEventListener("change", () => {
+    if (seqFloat.checked) {
+      sequenceMode = "floating";
+    }
+  });
+}
 const spawnButtonContainer0 = document.getElementById("spawnButtonContainer0");
 const spawnButtonContainer1 = document.getElementById("spawnButtonContainer1");
 const spawnButtonContainer2 = document.getElementById("spawnButtonContainer2");
