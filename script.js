@@ -628,8 +628,56 @@ let nodesQueue = [];
  * @param {d3.Selection} windCancelLayer   <g> debug
  * @param {d3.Selection} windStressLayer   <g> debug
  * @param {d3.Selection} windNetLayer      <g> debug
- * @param {Number} intervalMs         delay **after** each spawn (default 1 s)
+ * @param {Number} intervalMs         delay **after** each spawn (default 1 s)  (old timed mode, now unused)
  */
+
+// Helper: wait until a node “settles” (speed below threshold for some time), then fix it.
+async function waitForNodeToSettleAndFix(node, simulation, {
+  speedThreshold = 0.5,     // px per tick (in simulation units)
+  stableMs       = 800,     // how long it must stay below threshold
+  checkInterval  = 80       // ms between checks
+} = {}) {
+  return new Promise(resolve => {
+    if (!node) return resolve();
+
+    let stableFor = 0;
+    const id = node.id;
+
+    const intervalId = setInterval(() => {
+      // Node might have been removed
+      if (!Datasets.nodes.includes(node)) {
+        clearInterval(intervalId);
+        return resolve();
+      }
+
+      const vx = node.vx ?? 0;
+      const vy = node.vy ?? 0;
+      const speed = Math.hypot(vx, vy);
+
+      if (speed < speedThreshold) {
+        stableFor += checkInterval;
+        if (stableFor >= stableMs) {
+          clearInterval(intervalId);
+
+          // Programmatically “fix” the node (like a double-click)
+          node.isFixed = true;
+          node.fx = node.x;
+          node.fy = node.y;
+
+          // Visual cue (black stroke) – mirror toggleFixed behaviour
+          const sel = d3.select(`#node-group-${id}`).select("circle");
+          sel.attr("stroke", "black").attr("stroke-width", 3);
+
+          simulation.alpha(0.5).restart();
+          resolve();
+        }
+      } else {
+        stableFor = 0; // reset timer if it speeds up again
+      }
+    }, checkInterval);
+  });
+}
+
 export async function dripSpawnSmart(
   nodesQueue,
   nodes,
@@ -637,7 +685,7 @@ export async function dripSpawnSmart(
   width, height, defs,
   hotspotLayer, nodeLayer,
   windCancelLayer, windStressLayer, windNetLayer,
-  intervalMs = 1000
+  intervalMs = 1000   // NOTE: kept for reference; old timed mode was using this
 ){
   // make a shallow clone so we can shift() without mutating the original
   const todo = nodesQueue.slice();
@@ -669,8 +717,21 @@ export async function dripSpawnSmart(
     buildOrUpdateNodes(nodeLayer,      nodes);
     simulation.nodes(nodes).alpha(1).restart();
 
-    // --- wait, then spawn the next one ------------------------------------
-    setTimeout(next, intervalMs);
+    // Find the just-added node by id (after multistart it should be present in `nodes`)
+    const spawned = nodes.find(n => n.id === raw.id);
+
+    // NEW MODE: wait until this node settles, then fix it and move on
+    await waitForNodeToSettleAndFix(spawned, simulation, {
+      speedThreshold: 0.5,
+      stableMs: 800,
+      checkInterval: 80
+    });
+
+    // OLD MODE (timed drip), kept here for reference:
+    // setTimeout(next, intervalMs);
+
+    // Spawn the next as soon as this one has settled
+    next();
   }
 
   next();    // kick-off
