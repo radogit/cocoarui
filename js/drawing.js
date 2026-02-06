@@ -34,6 +34,7 @@ export function createSvgAndContainer() {
     .attr("class", showBackground.boolState ? showBackground.DOMObjectString+"" : showBackground.DOMObjectString+" hidden");
     imagePaths.forEach((imagePath) => {
         backgroundLayer.append("image")
+          .attr("opacity", imagePath.opacity)
           .attr("data-background-name", imagePath.name)
           .attr("href", imagePath.url)
           .attr("width", imagePath.width * scaleUnit)
