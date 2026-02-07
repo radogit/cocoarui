@@ -13,6 +13,7 @@ export let showWindCancel =           { keyboardShortcut: 'KeyW',     keyboardSh
 export let showWindCancelLabel =      { keyboardShortcut: 'KeyJ',     keyboardShortcutLetter: 'J',  shownInViewPanel: false, defaultState: false, boolState: false, UILabelString: 'Wind Cancel Label', shorthandString: 'wind cancel label', ToggleObjectString: 'windCancelLabel', DOMObjectString: 'wind-layer-cancel-label', URLParamString: 'windCancelLabel'};
 export let showWindNetForceArrows =   { keyboardShortcut: 'Digit8',   keyboardShortcutLetter: '8',  shownInViewPanel: true, defaultState: false, boolState: true, UILabelString: 'Wind Map', shorthandString: 'wind net force', ToggleObjectString: 'windNetForce', DOMObjectString: 'wind-layer-netForceArrow', URLParamString: 'windNetForce'};
 export let showCircles =              { keyboardShortcut: 'Digit9',   keyboardShortcutLetter: '9',  shownInViewPanel: true, defaultState: true, boolState: true, UILabelString: 'Node Circles', shorthandString: 'node circles', ToggleObjectString: 'nodeCircles', DOMObjectString: 'node-circle', URLParamString: 'nodeCircles'};
+export let showNodeIcon =             { keyboardShortcut: 'KeyI',     keyboardShortcutLetter: 'I',  shownInViewPanel: true, defaultState: true, boolState: true, UILabelString: 'Node Icon', shorthandString: 'node icon', ToggleObjectString: 'toggleNodeIcon', DOMObjectString: 'node-icon', URLParamString: 'nodeIcon'};
 export let showAxis =                 { keyboardShortcut: 'KeyA',     keyboardShortcutLetter: 'A',  shownInViewPanel: true, defaultState: false, boolState: true, UILabelString: 'Axis', shorthandString: 'axis', ToggleObjectString: 'toggleAxis', DOMObjectString: 'axis', URLParamString: 'axis'};
 export let showVerticalGrid =        { keyboardShortcut: 'KeyG',     keyboardShortcutLetter: 'G',  shownInViewPanel: true, defaultState: false, boolState: false, UILabelString: 'Vertical grid', shorthandString: 'vertical grid', ToggleObjectString: 'toggleVerticalGrid', DOMObjectString: 'grid-vertical', URLParamString: 'gridV'};
 export let showHorizontalGrid =      { keyboardShortcut: 'KeyH',     keyboardShortcutLetter: 'H',  shownInViewPanel: true, defaultState: false, boolState: false, UILabelString: 'Horizontal grid', shorthandString: 'horizontal grid', ToggleObjectString: 'toggleHorizontalGrid', DOMObjectString: 'grid-horizontal', URLParamString: 'gridH'};
@@ -42,6 +43,7 @@ const showSettings = [
   showWindCancelLabel,
   showWindNetForceArrows,
   showCircles,
+  showNodeIcon,
   showAxis,
   showVerticalGrid,
   showHorizontalGrid,

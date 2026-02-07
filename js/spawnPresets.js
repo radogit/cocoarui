@@ -78,8 +78,8 @@ function buildPresetsFromSources() {
 const combinedPresets = [
     { id: "power-all", label: "Power (PPD+PPA & VR1-VR4)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#e88",
       entries: [
-        { sourceId: "PPD", entryName: "Power - PP - descent", nodeColour: "#00f" },
-        { sourceId: "PPA", entryName: "Power - PP - ascent", nodeColour: "#f00" },
+        { sourceId: "PPD", entryName: "Power-PP-descent", nodeColour: "#00f" },
+        { sourceId: "PPA", entryName: "Power-PP-ascent", nodeColour: "#f00" },
         { sourceId: "VR1", entryName: "type-power", nodeColour: "#ff8000" },
         { sourceId: "VR2", entryName: "type-power", nodeColour: "#ff8000" },
         { sourceId: "VR3", entryName: "type-power", nodeColour: "#900090" },
@@ -88,8 +88,8 @@ const combinedPresets = [
     },
     { id: "distance-all", label: "Distance (PPD+PPA & VR1-VR4)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#8e8",
       entries: [
-        { sourceId: "PPD", entryName: "Distance - PP - descent", nodeColour: "#00f" },
-        { sourceId: "PPA", entryName: "Distance - PP - ascent", nodeColour: "#f00" },
+        { sourceId: "PPD", entryName: "Distance-PP-descent", nodeColour: "#00f" },
+        { sourceId: "PPA", entryName: "Distance-PP-ascent", nodeColour: "#f00" },
         { sourceId: "VR1", entryName: "type-distance", nodeColour: "#ff8000" },
         { sourceId: "VR2", entryName: "type-distance", nodeColour: "#0ff8000" },
         { sourceId: "VR3", entryName: "type-distance", nodeColour: "#900090" },

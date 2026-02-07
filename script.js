@@ -171,9 +171,9 @@ function buildOrUpdateNodes(container, nodes) {
               targetElement = document.getElementById("node-relations-" + d.id);
               if (targetElement) { targetElement.classList.remove("node-relation-hover"); }
             });
-          // highlight circle
+          // highlight circle + icon area (both toggled by Node icon [I])
           g.append("rect")
-            .attr("class", d => d.representation ? "icon icon-bg icon-"+d.representation:"icon icon-bg")
+            .attr("class", d => d.representation ? "icon icon-bg node-icon icon-"+d.representation : "icon icon-bg node-icon")
             .attr("fill","none")
             .attr("opacity", 0.8)
             .attr("rx", 4)
@@ -190,7 +190,7 @@ function buildOrUpdateNodes(container, nodes) {
             .attr("y", d => -d.radius/Math.SQRT2 )
             .attr("width",  d => d.radius/Math.SQRT2*2)
             .attr("height", d => d.radius/Math.SQRT2*2)
-            .attr("class","node-icon")
+            .attr("class", AppUI.showNodeIcon.boolState ? AppUI.showNodeIcon.DOMObjectString : AppUI.showNodeIcon.DOMObjectString + " hidden")
             .attr("fill", "white")
             .style("pointer-events","none");        // clicks still hit the <circle>
     
