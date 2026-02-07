@@ -15,6 +15,7 @@ import * as Icons from "./js/icons.js";
 import { setupLogger } from './js/logger.js';
 import * as Exporter from './js/exporter.js';
 import { imagePaths, backgroundPresets } from './js/backgrounds.js';
+import { spawnPresets, getNodesForPreset } from './js/spawnPresets.js';
 
 
 window.Datasets = Datasets;   // <-- makes Datasets visible in DevTools
@@ -1310,45 +1311,58 @@ if (bgSelect) {
   }
 }
 
-const spawnButtonContainer0 = document.getElementById("spawnButtonContainer0");
-const spawnButtonContainer1 = document.getElementById("spawnButtonContainer1");
-const spawnButtonContainer2 = document.getElementById("spawnButtonContainer2");
-const spawnButtonContainerVR1 = document.getElementById("spawnButtonContainerVR1");
-const spawnButtonContainerVR2 = document.getElementById("spawnButtonContainerVR2");
-const spawnButtonContainerVR3 = document.getElementById("spawnButtonContainerVR3");
-const spawnButtonContainerVR4 = document.getElementById("spawnButtonContainerVR4");
-const spawnButtonContainerExtended = document.getElementById("spawnButtonContainerExtended");
+/** Build spawn buttons from spawnPresets (dataset registry). Each preset = one button; presets with same panelId go in that container. */
+function buildSpawnButtonsFromPresets() {
+  const containersByPanelId = {};
+  spawnPresets.forEach((preset) => {
+    const panelId = preset.panelId;
+    if (!panelId) return;
+    if (!containersByPanelId[panelId]) {
+      const el = document.getElementById(panelId);
+      if (el) containersByPanelId[panelId] = el;
+    }
+  });
 
-function addSpawnButtons(datasetArray, target) {
-  datasetArray.forEach(({ name, nodes, notDraggable = false, uiButtonColour }) => {
+  spawnPresets.forEach((preset) => {
+    const target = containersByPanelId[preset.panelId];
+    if (!target) return;
 
-    const wrapper = document.createElement('div');
-    wrapper.className = 'button-container';
+    const wrapper = document.createElement("div");
+    wrapper.className = "button-container";
 
-    const btn = document.createElement('button');
-    btn.textContent = name;
-    btn.id = `spawnButton-${name}`;
-    btn.style.backgroundColor = uiButtonColour || '#ddd';
+    const btn = document.createElement("button");
+    btn.textContent = preset.label;
+    btn.id = `spawnButton-${preset.id}`;
+    btn.style.backgroundColor = preset.uiButtonColour || "#ddd";
 
-    btn.addEventListener('click', () => {
+    btn.addEventListener("click", () => {
+      const nodes = getNodesForPreset(preset);
+      if (!nodes.length) return;
       dripSpawnSmart(
-        nodes,                        // queue
-        Datasets.nodes, simulation,
-        width, height, defs,
-        hotspotLayer, nodeLayer,
-        windLayerCancel, windLayerStress, windLayerNetForceArrows,
-        1000                          // 1 s between nodes
+        nodes,
+        Datasets.nodes,
+        simulation,
+        width,
+        height,
+        defs,
+        hotspotLayer,
+        nodeLayer,
+        windLayerCancel,
+        windLayerStress,
+        windLayerNetForceArrows,
+        1000
       );
     });
 
-    const handle = document.createElement('span');
-    handle.className = (notDraggable) ? 'drag-icon hidden' : 'drag-icon';
+    const handle = document.createElement("span");
+    handle.className = "drag-icon";
     handle.draggable = true;
-    handle.textContent = '☰';
+    handle.textContent = "☰";
     wrapper.append(btn, handle);
-
     target.append(wrapper);
   });
+
+  setupDragAndDropForSpawnButtons();
 }
 document.querySelectorAll('.collapse-header').forEach(header => {
     header.addEventListener('click', function () {
@@ -1371,40 +1385,7 @@ document.querySelectorAll('.collapse-header').forEach(header => {
 });
 
 
-if (spawnButtonContainerDemoSamples){
-  addSpawnButtons(Datasets.preppedNodesDemoSamples, spawnButtonContainerDemoSamples);           // zero batch
-  setupDragAndDropForSpawnButtons();
-}
-
-if (spawnButtonContainerPPD){
-  addSpawnButtons(DatasetsPPD.preppedNodesPPD, spawnButtonContainerPPD);           // first batch
-  setupDragAndDropForSpawnButtons();
-}
-if (spawnButtonContainerPPA){
-  addSpawnButtons(DatasetsPPA.preppedNodesPPA, spawnButtonContainerPPA);           // second batch
-  setupDragAndDropForSpawnButtons();
-}
-if (spawnButtonContainerVR1){
-  addSpawnButtons(DatasetsVR1.preppedNodesVR1, spawnButtonContainerVR1);           // VR1 batch
-  setupDragAndDropForSpawnButtons();
-}
-if (spawnButtonContainerVR2){
-  addSpawnButtons(DatasetsVR2.preppedNodesVR2, spawnButtonContainerVR2);           // VR2 batch
-  setupDragAndDropForSpawnButtons();
-}
-if (spawnButtonContainerVR3){
-  addSpawnButtons(DatasetsVR3.preppedNodesVR3, spawnButtonContainerVR3);           // VR3 batch
-  setupDragAndDropForSpawnButtons();
-}
-if (spawnButtonContainerVR4){
-  addSpawnButtons(DatasetsVR4.preppedNodesVR4, spawnButtonContainerVR4);           // VR4 batch
-  setupDragAndDropForSpawnButtons();
-}
-
-
-if (spawnButtonContainerKeepFreeSamples){
-  addSpawnButtons(Datasets.preppedNodesKeepFreeSamples, spawnButtonContainerKeepFreeSamples);   // last batch
-}
+buildSpawnButtonsFromPresets();
 
 
 
