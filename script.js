@@ -205,12 +205,14 @@ function buildOrUpdateNodes(container, nodes) {
             .text(d => d.id)
             ;
   
-          // append coords label (if you want)
+          // append coords label (centered inside the node circle)
           g.append("text")
             .attr("class", "coord-label")
             .attr("id", d => "coord-label-"+d.id)
             .attr("dx", 0)
-            .attr("dy", d => d.radius + 15)
+            .attr("dy", 0)
+            .attr("text-anchor", "middle")
+            .attr("dominant-baseline", "middle")
             ;
 
           // Force arrows container
