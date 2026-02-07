@@ -1456,22 +1456,22 @@ function onResize() {
 // ======== Keyboard ==================================================
 
 addEventListener('keydown', function(event) {
-  let inputs = document.getElementById("UIContainer").getElementsByTagName("input");
-  for (let input of inputs) {
-      let shortcut = input.getAttribute("keyboardShortcut");
-      if (event.code === shortcut) {
-          input.checked = !input.checked;
-          input.dispatchEvent(new Event('change'));
-          break;
-      }
+  const inputs = document.querySelectorAll('input[keyboardShortcut]');
+  for (const input of inputs) {
+    if (event.code === input.getAttribute("keyboardShortcut")) {
+      input.checked = !input.checked;
+      input.dispatchEvent(new Event('change'));
+      event.preventDefault();
+      return;
+    }
   }
-  let buttons = document.getElementById("debug-panel").getElementsByTagName("button");
-  for (let button of buttons) {
-      let shortcut = button.getAttribute("keyboardShortcut");
-      if (event.code === shortcut) {
-          button.click();
-          break;
-      }
+  const buttons = document.querySelectorAll('#debug-panel button[keyboardShortcut]');
+  for (const button of buttons) {
+    if (event.code === button.getAttribute("keyboardShortcut")) {
+      button.click();
+      event.preventDefault();
+      return;
+    }
   }
 });
 
