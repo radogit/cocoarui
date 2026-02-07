@@ -194,12 +194,14 @@ function buildOrUpdateNodes(container, nodes) {
             .attr("fill", "white")
             .style("pointer-events","none");        // clicks still hit the <circle>
     
-          // append ID label
+          // append ID label (centered inside the node circle)
           g.append("text")
             .attr("class", AppUI.showNodeLabel.boolState? AppUI.showNodeLabel.DOMObjectString : AppUI.showNodeLabel.DOMObjectString + " hidden")
             .attr("id", d => AppUI.showNodeLabel.boolState? AppUI.showNodeLabel.DOMObjectString+"-"+d.id : AppUI.showNodeLabel.DOMObjectString+"-"+d.id + " hidden")
             .attr("dx", 0)
-            .attr("dy", d => -d.radius - 2)
+            .attr("dy", 0)
+            .attr("text-anchor", "middle")
+            .attr("dominant-baseline", "middle")
             .text(d => d.id)
             ;
   
