@@ -71,30 +71,108 @@ function buildPresetsFromSources() {
 
 /**
  * Combined presets: reuse entries from multiple sources (e.g. Power from VR1–VR4).
- * - Preset-level uiButtonColour: colour of the spawn button.
- * - Per-entry nodeColour (optional): override colour of all nodes from that entry when spawned.
- *   Example: { sourceId: "VR1", entryName: "type-power", nodeColour: "#c00" }
+ * - uiButtonColour: colour of the spawn button.
+ * - nodeColour (preset-level): default colour for all nodes in this preset when spawned.
+ * - nodeColour (entry-level): overrides preset nodeColour for that entry only. Cascading: entry > preset > dataset.
  */
 const combinedPresets = [
-  { id: "power-all", label: "Power (PPD+PPA & VR1-VR4)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#e88",
-    entries: [
-      { sourceId: "VR1", entryName: "type-power", nodeColour: "#c00" },
-      { sourceId: "VR2", entryName: "type-power", nodeColour: "#c00" },
-      { sourceId: "VR3", entryName: "type-power", nodeColour: "#c00" },
-      { sourceId: "VR4", entryName: "type-power", nodeColour: "#c00" },
-      { sourceId: "PPD", entryName: "Power - PP - descent", nodeColour: "#c00" },
-      { sourceId: "PPA", entryName: "Power - PP - ascent", nodeColour: "#c00" },
-    ] },
+    { id: "power-all", label: "Power (PPD+PPA & VR1-VR4)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#e88",
+      entries: [
+        { sourceId: "PPD", entryName: "Power - PP - descent", nodeColour: "#00f" },
+        { sourceId: "PPA", entryName: "Power - PP - ascent", nodeColour: "#f00" },
+        { sourceId: "VR1", entryName: "type-power", nodeColour: "#ff8000" },
+        { sourceId: "VR2", entryName: "type-power", nodeColour: "#ff8000" },
+        { sourceId: "VR3", entryName: "type-power", nodeColour: "#900090" },
+        { sourceId: "VR4", entryName: "type-power", nodeColour: "#900090" },
+      ] 
+    },
     { id: "distance-all", label: "Distance (PPD+PPA & VR1-VR4)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#8e8",
       entries: [
-        { sourceId: "VR1", entryName: "type-distance", nodeColour: "#0c0" },
-        { sourceId: "VR2", entryName: "type-distance", nodeColour: "#0c0" },
-        { sourceId: "VR3", entryName: "type-distance", nodeColour: "#0c0" },
-        { sourceId: "VR4", entryName: "type-distance", nodeColour: "#0c0" },
-        { sourceId: "PPD", entryName: "Distance - PP - descent", nodeColour: "#0c0" },
-        { sourceId: "PPA", entryName: "Distance - PP - ascent", nodeColour: "#0c0" },
-      ] },
-  ];
+        { sourceId: "PPD", entryName: "Distance - PP - descent", nodeColour: "#00f" },
+        { sourceId: "PPA", entryName: "Distance - PP - ascent", nodeColour: "#f00" },
+        { sourceId: "VR1", entryName: "type-distance", nodeColour: "#ff8000" },
+        { sourceId: "VR2", entryName: "type-distance", nodeColour: "#0ff8000" },
+        { sourceId: "VR3", entryName: "type-distance", nodeColour: "#900090" },
+        { sourceId: "VR4", entryName: "type-distance", nodeColour: "#900090" },
+      ] 
+    },
+    { id: "layout-PPD", label: "Layout (PPD)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#0000ff", nodeColour: "#00f", 
+      entries: [
+        { sourceId: "VR1", entryName: "type-speed"},
+        { sourceId: "VR1", entryName: "type-navigation"},
+        { sourceId: "VR1", entryName: "type-distance"},
+        { sourceId: "VR1", entryName: "type-heartrate"},
+        { sourceId: "VR1", entryName: "type-power"},
+        { sourceId: "VR1", entryName: "type-speed"},
+        { sourceId: "VR1", entryName: "type-gradient"},
+        { sourceId: "VR1", entryName: "type-navigation"},
+      ] 
+    },
+    { id: "layout-PPA", label: "Layout (PPA)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ff0000", nodeColour: "#f00", 
+      entries: [
+        { sourceId: "VR1", entryName: "type-speed"},
+        { sourceId: "VR1", entryName: "type-navigation"},
+        { sourceId: "VR1", entryName: "type-distance"},
+        { sourceId: "VR1", entryName: "type-heartrate"},
+        { sourceId: "VR1", entryName: "type-power"},
+        { sourceId: "VR1", entryName: "type-speed"},
+        { sourceId: "VR1", entryName: "type-gradient"},
+        { sourceId: "VR1", entryName: "type-navigation"},
+      ] 
+    },
+    { id: "layout-VR1", label: "Layout (VR1)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ff8000", nodeColour: "#ff8000", 
+      entries: [
+        { sourceId: "VR1", entryName: "type-speed"},
+        { sourceId: "VR1", entryName: "type-navigation"},
+        { sourceId: "VR1", entryName: "type-distance"},
+        { sourceId: "VR1", entryName: "type-heartrate"},
+        { sourceId: "VR1", entryName: "type-power"},
+        { sourceId: "VR1", entryName: "type-speed"},
+        { sourceId: "VR1", entryName: "type-gradient"},
+        { sourceId: "VR1", entryName: "type-navigation"},
+      ] 
+    },
+    { id: "layout-VR2", label: "Layout (VR2)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ff8000", nodeColour: "#ff8000", 
+      entries: [
+        { sourceId: "VR2", entryName: "type-speed"},
+        { sourceId: "VR2", entryName: "type-navigation"},
+        { sourceId: "VR2", entryName: "type-distance"},
+        { sourceId: "VR2", entryName: "type-power"},
+        { sourceId: "VR2", entryName: "type-heartrate"},
+        { sourceId: "VR2", entryName: "type-speed"},
+        { sourceId: "VR2", entryName: "type-gradient"},
+        { sourceId: "VR2", entryName: "type-navigation"},
+        { sourceId: "VR2", entryName: "type-time"},
+      ] 
+    },
+    { id: "layout-VR3", label: "Layout (VR3)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#900090", nodeColour: "#900090", 
+      entries: [
+        { sourceId: "VR3", entryName: "type-speed"},
+        { sourceId: "VR3", entryName: "type-power"},
+        { sourceId: "VR3", entryName: "type-distance"},
+        { sourceId: "VR3", entryName: "type-navigation"},
+        { sourceId: "VR3", entryName: "type-heartrate"},
+        { sourceId: "VR3", entryName: "type-gradient"},
+        { sourceId: "VR3", entryName: "type-speed"},
+        { sourceId: "VR3", entryName: "type-power"},
+        { sourceId: "VR3", entryName: "type-time"},
+      ] 
+    },
+    { id: "layout-VR4", label: "Layout (VR4)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#900090", nodeColour: "#900090", 
+      entries: [
+        { sourceId: "VR4", entryName: "type-speed"},
+        { sourceId: "VR4", entryName: "type-power"},
+        { sourceId: "VR4", entryName: "type-distance"},
+        { sourceId: "VR4", entryName: "type-navigation"},
+        { sourceId: "VR4", entryName: "type-heartrate"},
+        { sourceId: "VR4", entryName: "type-gradient"},
+        { sourceId: "VR4", entryName: "type-speed"},
+        { sourceId: "VR4", entryName: "type-power"},
+        { sourceId: "VR4", entryName: "type-time"},
+      ] 
+    },
+
+];
 
 /** All spawn presets: per-source entries plus combined groups. Each preset = one button. */
 export const spawnPresets = [...buildPresetsFromSources(), ...combinedPresets];
@@ -102,17 +180,19 @@ export const spawnPresets = [...buildPresetsFromSources(), ...combinedPresets];
 /**
  * Resolve a preset to a single flat array of node objects (cloned) for dripSpawnSmart.
  * Missing entries are skipped; if all missing, returns [].
- * If an entry has nodeColour, that colour is applied to every node from that entry.
+ * Node colour cascade: entry.nodeColour > preset.nodeColour > node’s original color from dataset.
  */
 export function getNodesForPreset(preset) {
+  const presetNodeColour = preset.nodeColour;
   const nodes = [];
   for (const entryRef of preset.entries) {
-    const { sourceId, entryName, nodeColour } = entryRef;
+    const { sourceId, entryName, nodeColour: entryNodeColour } = entryRef;
+    const effectiveColour = entryNodeColour != null ? entryNodeColour : presetNodeColour;
     const entry = getEntry(sourceId, entryName);
     if (!entry || !Array.isArray(entry.nodes)) continue;
     const cloned = structuredClone(entry.nodes);
-    if (nodeColour != null) {
-      cloned.forEach((n) => { n.color = nodeColour; });
+    if (effectiveColour != null) {
+      cloned.forEach((n) => { n.color = effectiveColour; });
     }
     nodes.push(...cloned);
   }
