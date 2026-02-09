@@ -246,9 +246,9 @@ function buildOrUpdateNodes(container, nodes) {
             .attr("fill", "white")
             .style("pointer-events","none");        // clicks still hit the <circle>
     
-          // append ID label (centered in circle; wraps to 2 lines, font scales to fit radius)
+          // append ID label (centered in circle; wraps to 2 lines, font scales to fit radius; use d.displayLabel if set e.g. from spawn preset)
           g.each(function(d) {
-            const raw = typeof d.id === "string" ? d.id : String(d.id);
+            const raw = d.displayLabel != null ? String(d.displayLabel) : (typeof d.id === "string" ? d.id : String(d.id));
             const label = raw.length > 5 ? raw.slice(0, -5) : raw;
             const maxWidth = 2 * d.radius * 0.85;
             const split = splitLabelIntoTwoLines(label);

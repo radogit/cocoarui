@@ -73,77 +73,78 @@ function buildPresetsFromSources() {
  * Combined presets: reuse entries from multiple sources (e.g. Power from VR1–VR4).
  * - uiButtonColour: colour of the spawn button.
  * - nodeColour (preset/entry): fill colour for nodes; cascade entry > preset > dataset. Heatmaps use node.color.
- * - nodeFill (preset/entry): optional SVG fill for the node circle (e.g. "url(#diag-hatch)"). Overrides colour for circle only; cascade entry > preset. Omit to use nodeColour/color.
+ * - nodeFill (preset/entry): optional SVG fill for the node circle (e.g. "url(#diag-hatch)"); cascade entry > preset.
+ * - nodeLabel (preset/entry): optional display name for the node id-label (instead of node.id); cascade entry > preset.
  */
 const combinedPresets = [
     { id: "power-all", label: "Power (PPD+PPA & VR1-VR4)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ddd",
       entries: [
-        { sourceId: "PPD", entryName: "Power-PP-descent", nodeColour: "#00f" },
-        { sourceId: "PPA", entryName: "Power-PP-ascent", nodeColour: "#f00" },
-        { sourceId: "VR1", entryName: "type-power", nodeColour: "#ff8000", nodeFill: "url(#diag-hatch-orange)" },
-        { sourceId: "VR2", entryName: "type-power", nodeColour: "#ff8000" },
-        { sourceId: "VR3", entryName: "type-power", nodeColour: "#900090", nodeFill: "url(#diag-hatch-purple)" },
-        { sourceId: "VR4", entryName: "type-power", nodeColour: "#900090" },
+        { sourceId: "PPD", entryName: "Power-PP-descent", nodeColour: "#00f", nodeLabel: "PPD" },
+        { sourceId: "PPA", entryName: "Power-PP-ascent", nodeColour: "#f00", nodeLabel: "PPA" },
+        { sourceId: "VR1", entryName: "type-power", nodeColour: "#ff8000", nodeFill: "url(#diag-hatch-orange)", nodeLabel: "VR1" },
+        { sourceId: "VR2", entryName: "type-power", nodeColour: "#ff8000", nodeLabel: "VR2" },
+        { sourceId: "VR3", entryName: "type-power", nodeColour: "#900090", nodeFill: "url(#diag-hatch-purple)", nodeLabel: "VR3" },
+        { sourceId: "VR4", entryName: "type-power", nodeColour: "#900090", nodeLabel: "VR4" },
       ] 
     },
     { id: "distance-all", label: "Distance (PPD+PPA & VR1-VR4)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ddd",
       entries: [
-        { sourceId: "PPD", entryName: "Distance-PP-descent", nodeColour: "#00f" },
-        { sourceId: "PPA", entryName: "Distance-PP-ascent", nodeColour: "#f00" },
-        { sourceId: "VR1", entryName: "type-distance", nodeColour: "#ff8000", nodeFill: "url(#diag-hatch-orange)" },
-        { sourceId: "VR2", entryName: "type-distance", nodeColour: "#ff8000" },
-        { sourceId: "VR3", entryName: "type-distance", nodeColour: "#900090", nodeFill: "url(#diag-hatch-purple)" },
-        { sourceId: "VR4", entryName: "type-distance", nodeColour: "#900090" },
+        { sourceId: "PPD", entryName: "Distance-PP-descent", nodeColour: "#00f", nodeLabel: "PPD" },
+        { sourceId: "PPA", entryName: "Distance-PP-ascent", nodeColour: "#f00", nodeLabel: "PPA" },
+        { sourceId: "VR1", entryName: "type-distance", nodeColour: "#ff8000", nodeFill: "url(#diag-hatch-orange)", nodeLabel: "VR1" },
+        { sourceId: "VR2", entryName: "type-distance", nodeColour: "#ff8000", nodeLabel: "VR2" },
+        { sourceId: "VR3", entryName: "type-distance", nodeColour: "#900090", nodeFill: "url(#diag-hatch-purple)", nodeLabel: "VR3" },
+        { sourceId: "VR4", entryName: "type-distance", nodeColour: "#900090", nodeLabel: "VR4" },
       ] 
     },
     { id: "navigation-all", label: "Navigation (PPD+PPA & VR1-VR4)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ddd",
       entries: [
-        { sourceId: "PPD", entryName: "Navigation-PP-descent", nodeColour: "#00f" },
-        { sourceId: "PPA", entryName: "Navigation-PP-ascent", nodeColour: "#f00" },
-        { sourceId: "VR1", entryName: "type-navigation", nodeColour: "#ff8000", nodeFill: "url(#diag-hatch-orange)" },
-        { sourceId: "VR2", entryName: "type-navigation", nodeColour: "#ff8000" },
-        { sourceId: "VR3", entryName: "type-navigation", nodeColour: "#900090", nodeFill: "url(#diag-hatch-purple)" },
-        { sourceId: "VR4", entryName: "type-navigation", nodeColour: "#900090" },
+        { sourceId: "PPD", entryName: "Navigation-PP-descent", nodeColour: "#00f", nodeLabel: "PPD" },
+        { sourceId: "PPA", entryName: "Navigation-PP-ascent", nodeColour: "#f00", nodeLabel: "PPA" },
+        { sourceId: "VR1", entryName: "type-navigation", nodeColour: "#ff8000", nodeFill: "url(#diag-hatch-orange)", nodeLabel: "VR1" },
+        { sourceId: "VR2", entryName: "type-navigation", nodeColour: "#ff8000", nodeLabel: "VR2" },
+        { sourceId: "VR3", entryName: "type-navigation", nodeColour: "#900090", nodeFill: "url(#diag-hatch-purple)", nodeLabel: "VR3" },
+        { sourceId: "VR4", entryName: "type-navigation", nodeColour: "#900090", nodeLabel: "VR4" },
       ] 
     },
     { id: "heartrate-all", label: "Heartrate (PPD+PPA & VR1-VR4)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ddd",
       entries: [
-        { sourceId: "PPD", entryName: "Heartrate-PP-descent", nodeColour: "#00f" },
-        { sourceId: "PPA", entryName: "Heartrate-PP-ascent", nodeColour: "#f00" },
-        { sourceId: "VR1", entryName: "type-heartrate", nodeColour: "#ff8000", nodeFill: "url(#diag-hatch-orange)" },
-        { sourceId: "VR2", entryName: "type-heartrate", nodeColour: "#ff8000" },
-        { sourceId: "VR3", entryName: "type-heartrate", nodeColour: "#900090", nodeFill: "url(#diag-hatch-purple)" },
-        { sourceId: "VR4", entryName: "type-heartrate", nodeColour: "#900090" },
+        { sourceId: "PPD", entryName: "Heartrate-PP-descent", nodeColour: "#00f", nodeLabel: "PPD" },
+        { sourceId: "PPA", entryName: "Heartrate-PP-ascent", nodeColour: "#f00", nodeLabel: "PPA" },
+        { sourceId: "VR1", entryName: "type-heartrate", nodeColour: "#ff8000", nodeFill: "url(#diag-hatch-orange)", nodeLabel: "VR1" },
+        { sourceId: "VR2", entryName: "type-heartrate", nodeColour: "#ff8000", nodeLabel: "VR2" },
+        { sourceId: "VR3", entryName: "type-heartrate", nodeColour: "#900090", nodeFill: "url(#diag-hatch-purple)", nodeLabel: "VR3" },
+        { sourceId: "VR4", entryName: "type-heartrate", nodeColour: "#900090", nodeLabel: "VR4" },
       ] 
     },
     { id: "speed-all", label: "Speed (PPD+PPA & VR1-VR4)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ddd",
       entries: [
-        { sourceId: "PPD", entryName: "Speed-PP-descent", nodeColour: "#00f" },
-        { sourceId: "PPA", entryName: "Speed-PP-ascent", nodeColour: "#f00" },
-        { sourceId: "VR1", entryName: "type-speed", nodeColour: "#ff8000", nodeFill: "url(#diag-hatch-orange)" },
-        { sourceId: "VR2", entryName: "type-speed", nodeColour: "#ff8000" },
-        { sourceId: "VR3", entryName: "type-speed", nodeColour: "#900090", nodeFill: "url(#diag-hatch-purple)" },
-        { sourceId: "VR4", entryName: "type-speed", nodeColour: "#900090" },
+        { sourceId: "PPD", entryName: "Speed-PP-descent", nodeColour: "#00f", nodeLabel: "PPD" },
+        { sourceId: "PPA", entryName: "Speed-PP-ascent", nodeColour: "#f00", nodeLabel: "PPA" },
+        { sourceId: "VR1", entryName: "type-speed", nodeColour: "#ff8000", nodeFill: "url(#diag-hatch-orange)", nodeLabel: "VR1" },
+        { sourceId: "VR2", entryName: "type-speed", nodeColour: "#ff8000", nodeLabel: "VR2" },
+        { sourceId: "VR3", entryName: "type-speed", nodeColour: "#900090", nodeFill: "url(#diag-hatch-purple)", nodeLabel: "VR3" },
+        { sourceId: "VR4", entryName: "type-speed", nodeColour: "#900090", nodeLabel: "VR4" },
       ] 
     },
     { id: "gradient-all", label: "Gradient (PPD+PPA & VR1-VR4)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ddd",
       entries: [
-        { sourceId: "PPD", entryName: "Gradient-PP-descent", nodeColour: "#00f" },
-        { sourceId: "PPA", entryName: "Gradient-PP-ascent", nodeColour: "#f00" },
-        { sourceId: "VR1", entryName: "type-gradient", nodeColour: "#ff8000", nodeFill: "url(#diag-hatch-orange)" },
-        { sourceId: "VR2", entryName: "type-gradient", nodeColour: "#ff8000" },
-        { sourceId: "VR3", entryName: "type-gradient", nodeColour: "#900090", nodeFill: "url(#diag-hatch-purple)" },
-        { sourceId: "VR4", entryName: "type-gradient", nodeColour: "#900090" },
+        { sourceId: "PPD", entryName: "Gradient-PP-descent", nodeColour: "#00f", nodeLabel: "PPD" },
+        { sourceId: "PPA", entryName: "Gradient-PP-ascent", nodeColour: "#f00", nodeLabel: "PPA" },
+        { sourceId: "VR1", entryName: "type-gradient", nodeColour: "#ff8000", nodeFill: "url(#diag-hatch-orange)", nodeLabel: "VR1" },
+        { sourceId: "VR2", entryName: "type-gradient", nodeColour: "#ff8000", nodeLabel: "VR2" },
+        { sourceId: "VR3", entryName: "type-gradient", nodeColour: "#900090", nodeFill: "url(#diag-hatch-purple)", nodeLabel: "VR3" },
+        { sourceId: "VR4", entryName: "type-gradient", nodeColour: "#900090", nodeLabel: "VR4" },
       ] 
     },
     { id: "time-all", label: "Time (PPD+PPA & VR1-VR4)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ddd",
       entries: [
-        { sourceId: "PPD", entryName: "Time-PP-descent", nodeColour: "#00f" },
-        { sourceId: "PPA", entryName: "Time-PP-ascent", nodeColour: "#f00" },
-        { sourceId: "VR1", entryName: "type-time", nodeColour: "#ff8000", nodeFill: "url(#diag-hatch-orange)" },
-        { sourceId: "VR2", entryName: "type-time", nodeColour: "#ff8000" },
-        { sourceId: "VR3", entryName: "type-time", nodeColour: "#900090", nodeFill: "url(#diag-hatch-purple)" },
-        { sourceId: "VR4", entryName: "type-time", nodeColour: "#900090" },
+        { sourceId: "PPD", entryName: "Time-PP-descent", nodeColour: "#00f", nodeLabel: "PPD" },
+        { sourceId: "PPA", entryName: "Time-PP-ascent", nodeColour: "#f00", nodeLabel: "PPA" },
+        { sourceId: "VR1", entryName: "type-time", nodeColour: "#ff8000", nodeFill: "url(#diag-hatch-orange)", nodeLabel: "VR1" },
+        { sourceId: "VR2", entryName: "type-time", nodeColour: "#ff8000", nodeLabel: "VR2" },
+        { sourceId: "VR3", entryName: "type-time", nodeColour: "#900090", nodeFill: "url(#diag-hatch-purple)", nodeLabel: "VR3" },
+        { sourceId: "VR4", entryName: "type-time", nodeColour: "#900090", nodeLabel: "VR4" },
       ] 
     },
     { id: "layout-PPD", label: "Layout (Paper Pano Descent)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#66f", nodeColour: "#00f", 
@@ -232,21 +233,25 @@ export const spawnPresets = [...buildPresetsFromSources(), ...combinedPresets];
  * Missing entries are skipped; if all missing, returns [].
  * Node colour cascade: entry.nodeColour > preset.nodeColour > node’s original color from dataset.
  * Node fill cascade: entry.nodeFill > preset.nodeFill; when set, node.fill is used for the circle (e.g. "url(#diag-hatch)").
+ * Node label cascade: entry.nodeLabel > preset.nodeLabel; when set, node.displayLabel is used for the id-label text instead of node.id.
  */
 export function getNodesForPreset(preset) {
   const presetNodeColour = preset.nodeColour;
   const presetNodeFill = preset.nodeFill;
+  const presetNodeLabel = preset.nodeLabel;
   const nodes = [];
   for (const entryRef of preset.entries) {
-    const { sourceId, entryName, nodeColour: entryNodeColour, nodeFill: entryNodeFill } = entryRef;
+    const { sourceId, entryName, nodeColour: entryNodeColour, nodeFill: entryNodeFill, nodeLabel: entryNodeLabel } = entryRef;
     const effectiveColour = entryNodeColour != null ? entryNodeColour : presetNodeColour;
     const effectiveFill = entryNodeFill != null ? entryNodeFill : presetNodeFill;
+    const effectiveLabel = entryNodeLabel != null ? entryNodeLabel : presetNodeLabel;
     const entry = getEntry(sourceId, entryName);
     if (!entry || !Array.isArray(entry.nodes)) continue;
     const cloned = structuredClone(entry.nodes);
     cloned.forEach((n) => {
       if (effectiveColour != null) n.color = effectiveColour;
       if (effectiveFill != null) n.fill = effectiveFill;
+      if (effectiveLabel != null) n.displayLabel = effectiveLabel;
     });
     nodes.push(...cloned);
   }
