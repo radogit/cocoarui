@@ -90,9 +90,32 @@ const { xScale, yScale, xAxis, yAxis } = Drawing.createAxes(container, width, he
 // 2b) Grid lines every 10 (vertical V, horizontal H)
 Drawing.createGridLines(container, xScale, yScale);
 
-// 3) Arrowhead artefacts
+// 3) Arrowhead artefacts + shared patterns (e.g. diag-hatch for preset fill)
 const defs = svg.append("defs").attr("id","defs").attr("width",100).attr("height",100);
 Drawing.createArrowheads(defs, colours);
+
+// Shared hatch patterns for nodeFill (can be referenced as url(#...))
+const patterns = defs.append("g").attr("id", "patterns");
+function addDiagHatchPattern(id, stroke) {
+  const p = patterns.append("pattern")
+    .attr("id", id)
+    .attr("width", 6).attr("height", 6)
+    .attr("patternUnits", "userSpaceOnUse")
+    .attr("patternTransform", "rotate(45)");
+  p.append("rect")
+    .attr("width", 6)
+    .attr("height", 6)
+    .attr("fill", "transparent");
+  p.append("line")
+    .attr("x1", 0).attr("y1", 0)
+    .attr("x2", 0).attr("y2", 6)
+    .attr("stroke", stroke)
+    .attr("stroke-width", 11);
+}
+// Default + a few colour variants for presets to pick from
+addDiagHatchPattern("diag-hatch",         "#ff8000"); // legacy/default
+addDiagHatchPattern("diag-hatch-orange",  "#ff8000");
+addDiagHatchPattern("diag-hatch-purple",  "#900090");
 
 // 3+) Backgrounds
 //Backgrounds.createBackgroundDefs(defs, scaleUnit);
@@ -112,6 +135,15 @@ AppUI.setupUI();
 // ================================================================================================================
 
 let nodeGroup;
+
+/** Split label into at most 2 lines for node circle; prefer split at space near midpoint. */
+function splitLabelIntoTwoLines(label) {
+  if (!label || label.length <= 8) return [label];
+  const mid = Math.ceil(label.length / 2);
+  const before = label.lastIndexOf(" ", mid);
+  const splitAt = before >= Math.ceil(label.length * 0.3) ? before : mid;
+  return [label.slice(0, splitAt).trim(), label.slice(splitAt).trim()];
+}
 
 function buildOrUpdateNodes(container, nodes) {
   
@@ -138,10 +170,10 @@ function buildOrUpdateNodes(container, nodes) {
             .attr("r",d => (d.radius +10) )
             ;
 
-          // append the circle
+          // append the circle (fill: node.fill if set e.g. url(#diag-hatch), else node.color)
           g.append("circle")
             .attr("class", AppUI.showCircles.boolState? AppUI.showCircles.DOMObjectString : AppUI.showCircles.DOMObjectString + " hidden")
-            .attr("fill", d => d.color)
+            .attr("fill", d => d.fill != null ? d.fill : d.color)
             .attr("id", d => "circle-"+d.id)
             .attr("opacity", 0.6)
             .attr("r", d => d.radius)
@@ -194,16 +226,28 @@ function buildOrUpdateNodes(container, nodes) {
             .attr("fill", "white")
             .style("pointer-events","none");        // clicks still hit the <circle>
     
-          // append ID label (centered inside the node circle)
-          g.append("text")
-            .attr("class", AppUI.showNodeLabel.boolState? AppUI.showNodeLabel.DOMObjectString : AppUI.showNodeLabel.DOMObjectString + " hidden")
-            .attr("id", d => AppUI.showNodeLabel.boolState? AppUI.showNodeLabel.DOMObjectString+"-"+d.id : AppUI.showNodeLabel.DOMObjectString+"-"+d.id + " hidden")
-            .attr("dx", 0)
-            .attr("dy", 0)
-            .attr("text-anchor", "middle")
-            .attr("dominant-baseline", "middle")
-            .text(d => d.id)
-            ;
+          // append ID label (centered in circle; wraps to 2 lines, font scales to fit radius)
+          g.each(function(d) {
+            const raw = typeof d.id === "string" ? d.id : String(d.id);
+            const label = raw.length > 5 ? raw.slice(0, -5) : raw;
+            const maxWidth = 2 * d.radius * 0.85;
+            const split = splitLabelIntoTwoLines(label);
+            const lines = split.length > 1 ? split : [label];
+            const charsPerLine = Math.max(1, Math.ceil(label.length / lines.length));
+            const fontSize = Math.min(12, Math.max(4, maxWidth / (charsPerLine * 0.55)));
+            const textEl = d3.select(this).append("text")
+              .attr("class", AppUI.showNodeLabel.boolState ? AppUI.showNodeLabel.DOMObjectString : AppUI.showNodeLabel.DOMObjectString + " hidden")
+              .attr("id", AppUI.showNodeLabel.DOMObjectString + "-" + d.id)
+              .attr("text-anchor", "middle")
+              .attr("dominant-baseline", "middle")
+              .style("font-size", fontSize + "px");
+            if (lines.length === 1) {
+              textEl.append("tspan").attr("x", 0).attr("dy", 0).text(lines[0]);
+            } else {
+              textEl.append("tspan").attr("x", 0).attr("dy", "-0.5em").text(lines[0]);
+              textEl.append("tspan").attr("x", 0).attr("dy", "1em").text(lines[1]);
+            }
+          });
   
           // append coords label (centered inside the node circle)
           g.append("text")
@@ -270,7 +314,7 @@ function randomHotspots(n=1){
 
 // function addOne() {
 //   const newNode = {
-//     id: "spawn-"+Date.now().toString(36).substring(2, 8),
+//     id: "random-"+Date.now().toString(36).substring(2, 8),
 //     x : minDim * (Math.random() - 0.5),
 //     y : minDim * (Math.random() - 0.5),
 //     color: colours[Math.floor(Math.random() * colours.length)],
@@ -294,7 +338,7 @@ function randomHotspots(n=1){
 
 async function addOneSmart(){
   const template = {
-    id   : "spawn-"+Date.now().toString(36).slice(-4),
+    id   : "random-"+Date.now().toString(36).slice(-4),
     color: colours[Math.floor(Math.random()*colours.length)],
     radius: 10+30 * Math.random(),
     representation: Icons.randomRepresentation(),

@@ -72,17 +72,17 @@ function buildPresetsFromSources() {
 /**
  * Combined presets: reuse entries from multiple sources (e.g. Power from VR1–VR4).
  * - uiButtonColour: colour of the spawn button.
- * - nodeColour (preset-level): default colour for all nodes in this preset when spawned.
- * - nodeColour (entry-level): overrides preset nodeColour for that entry only. Cascading: entry > preset > dataset.
+ * - nodeColour (preset/entry): fill colour for nodes; cascade entry > preset > dataset. Heatmaps use node.color.
+ * - nodeFill (preset/entry): optional SVG fill for the node circle (e.g. "url(#diag-hatch)"). Overrides colour for circle only; cascade entry > preset. Omit to use nodeColour/color.
  */
 const combinedPresets = [
     { id: "power-all", label: "Power (PPD+PPA & VR1-VR4)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#e88",
       entries: [
         { sourceId: "PPD", entryName: "Power-PP-descent", nodeColour: "#00f" },
         { sourceId: "PPA", entryName: "Power-PP-ascent", nodeColour: "#f00" },
-        { sourceId: "VR1", entryName: "type-power", nodeColour: "#ff8000" },
+        { sourceId: "VR1", entryName: "type-power", nodeColour: "#ff8000", nodeFill: "url(#diag-hatch-orange)" },
         { sourceId: "VR2", entryName: "type-power", nodeColour: "#ff8000" },
-        { sourceId: "VR3", entryName: "type-power", nodeColour: "#900090" },
+        { sourceId: "VR3", entryName: "type-power", nodeColour: "#900090", nodeFill: "url(#diag-hatch-purple)" },
         { sourceId: "VR4", entryName: "type-power", nodeColour: "#900090" },
       ] 
     },
@@ -90,9 +90,9 @@ const combinedPresets = [
       entries: [
         { sourceId: "PPD", entryName: "Distance-PP-descent", nodeColour: "#00f" },
         { sourceId: "PPA", entryName: "Distance-PP-ascent", nodeColour: "#f00" },
-        { sourceId: "VR1", entryName: "type-distance", nodeColour: "#ff8000" },
-        { sourceId: "VR2", entryName: "type-distance", nodeColour: "#0ff8000" },
-        { sourceId: "VR3", entryName: "type-distance", nodeColour: "#900090" },
+        { sourceId: "VR1", entryName: "type-distance", nodeColour: "#ff8000", nodeFill: "url(#diag-hatch-orange)" },
+        { sourceId: "VR2", entryName: "type-distance", nodeColour: "#ff8000" },
+        { sourceId: "VR3", entryName: "type-distance", nodeColour: "#900090", nodeFill: "url(#diag-hatch-purple)" },
         { sourceId: "VR4", entryName: "type-distance", nodeColour: "#900090" },
       ] 
     },
@@ -120,7 +120,7 @@ const combinedPresets = [
         { sourceId: "VR1", entryName: "type-navigation"},
       ] 
     },
-    { id: "layout-VR1", label: "Layout (VR1)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ff8000", nodeColour: "#ff8000", 
+    { id: "layout-VR1", label: "Layout (VR1)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ff8000", nodeColour: "#ff8000", nodeFill: "url(#diag-hatch-orange)",
       entries: [
         { sourceId: "VR1", entryName: "type-speed"},
         { sourceId: "VR1", entryName: "type-navigation"},
@@ -145,7 +145,7 @@ const combinedPresets = [
         { sourceId: "VR2", entryName: "type-time"},
       ] 
     },
-    { id: "layout-VR3", label: "Layout (VR3)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#900090", nodeColour: "#900090", 
+    { id: "layout-VR3", label: "Layout (VR3)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#900090", nodeColour: "#900090", nodeFill: "url(#diag-hatch-purple)",
       entries: [
         { sourceId: "VR3", entryName: "type-speed"},
         { sourceId: "VR3", entryName: "type-power"},
@@ -181,19 +181,23 @@ export const spawnPresets = [...buildPresetsFromSources(), ...combinedPresets];
  * Resolve a preset to a single flat array of node objects (cloned) for dripSpawnSmart.
  * Missing entries are skipped; if all missing, returns [].
  * Node colour cascade: entry.nodeColour > preset.nodeColour > node’s original color from dataset.
+ * Node fill cascade: entry.nodeFill > preset.nodeFill; when set, node.fill is used for the circle (e.g. "url(#diag-hatch)").
  */
 export function getNodesForPreset(preset) {
   const presetNodeColour = preset.nodeColour;
+  const presetNodeFill = preset.nodeFill;
   const nodes = [];
   for (const entryRef of preset.entries) {
-    const { sourceId, entryName, nodeColour: entryNodeColour } = entryRef;
+    const { sourceId, entryName, nodeColour: entryNodeColour, nodeFill: entryNodeFill } = entryRef;
     const effectiveColour = entryNodeColour != null ? entryNodeColour : presetNodeColour;
+    const effectiveFill = entryNodeFill != null ? entryNodeFill : presetNodeFill;
     const entry = getEntry(sourceId, entryName);
     if (!entry || !Array.isArray(entry.nodes)) continue;
     const cloned = structuredClone(entry.nodes);
-    if (effectiveColour != null) {
-      cloned.forEach((n) => { n.color = effectiveColour; });
-    }
+    cloned.forEach((n) => {
+      if (effectiveColour != null) n.color = effectiveColour;
+      if (effectiveFill != null) n.fill = effectiveFill;
+    });
     nodes.push(...cloned);
   }
   return nodes;

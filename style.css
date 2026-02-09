@@ -20,9 +20,26 @@ svg {
     fill: rgba(0,0,0,0.2)
 }
 .id-label, .coord-label, .graph-label {
-    font-size: 7px;
-    opacity: 0.5;
+    font-size: 15px;
+    font-weight: bolder;
+    opacity: 1;
     text-anchor: middle;
+}
+.id-label {
+  fill: white;
+  text-shadow:
+  0 0 0 #000,
+  1px 0 0 #000,
+  -1px 0 0 #000,
+  0 1px 0 #000,
+  0 -1px 0 #000,
+  1px 1px 0 #000,
+  -1px -1px 0 #000,
+  1px -1px 0 #000,
+  -1px 1px 0 #000,
+  2px 2px 0 #000,
+  3px 3px 0 #000;
+  paint-order: stroke fill markers;
 }
 input:disabled+label { opacity: 0.4;}
 div, .force-arrows, .node-relations, .coord-label, .id-label, .hotspot-group {
