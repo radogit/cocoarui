@@ -52,6 +52,26 @@ const colours = [
   'darkorange'
 ];
 
+/** Arrowheads are defined by colour name (e.g. arrowhead-blue). Use this so marker-end works when node.color is a name or a hex from presets. */
+const hexToColourName = {
+  "#f00": "red", "#ff0000": "red", "#c00": "red", "#e88": "red",
+  "#0f0": "green", "#00ff00": "green", "#0c0": "green", "#8e8": "green", "#00aa55": "green",
+  "#00f": "blue", "#0000ff": "blue", "#00aaff": "blue",
+  "#ff8000": "orange", "#ff5000": "orange", "#f80": "orange",
+  "#80f": "purple", "#800080": "purple", "#900090": "purple",
+  "#f0f": "magenta", "#ff00ff": "magenta"
+};
+function colourNameForArrowhead(c) {
+  if (!c || typeof c !== "string") return "white";
+  const key = c.toLowerCase();
+  if (colours.includes(key)) return key;
+  if (key.startsWith("#") && hexToColourName[key]) return hexToColourName[key];
+  return "white";
+}
+function getArrowheadId(color) {
+  return "arrowhead-" + colourNameForArrowhead(color);
+}
+
 // ================================================================================================================
 // =============== ONE TIME =======================================================================================
 // ================================================================================================================
@@ -538,7 +558,7 @@ export async function addNodeWithMultistartVisual(
               .attr("netLength", netLength)
               .attr("stroke", cand.color)
               .attr("stroke-width", 3)
-              .attr("marker-end", "url(#arrowhead-"+cand.color+")")
+              .attr("marker-end", "url(#"+getArrowheadId(cand.color)+")")
               .style("opacity", netForceMagnitude > 0.9 ? 0.8 : 0.5);
         //}
 
