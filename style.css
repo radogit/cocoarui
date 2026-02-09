@@ -48,6 +48,7 @@ div {
     display: flex;
     flex-direction: column; 
 }
+.ui-panel-right { width: 260px;}
 .ui-panel-box{
   background: rgba(255, 255, 255, 0.7);
   padding: 10px;
@@ -144,7 +145,8 @@ button { margin-bottom: 3px;}
   scale: 1;
 }
 #debug-panel button {
-    min-width: 80%;
+    /* min-width: 80%; */
+    width: 100%;
     font-size: 8px;  
     display: block;
     border-radius: 5px;
@@ -312,6 +314,7 @@ h4 {
 
 button#view-panel-caret {
   min-width: initial;
+  width: initial;
   padding-left: 10px;
   padding-right: 10px;
 }

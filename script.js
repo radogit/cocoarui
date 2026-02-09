@@ -97,7 +97,7 @@ const metPanel = d3.select("#metrics-panel")
                    .attr("class", "metrics");
 
 metPanel.append("thead").append("tr").selectAll("th")
-        .data(["id", "x", "y", "Σ|F|", "|ΣF|", "cancel", "vx", "vy"])
+        .data(["id", "fix", "x", "y", "Σ|F|", "|ΣF|", "cancel", "vx", "vy"])
         .enter().append("th")
         .text(d => d);
 
@@ -1068,6 +1068,23 @@ function updateMetrics(nodes){
         update => update                   // nothing dynamic inside
       );
 
+  /*──────────────────────  fixed checkbox cell  ────────────────────────────*/
+  rows.selectAll("td.fixed-cell")
+      .data(d => [d])
+      .join(
+        enter => enter.append("td").attr("class", "fixed-cell")
+          .append("label").attr("class", "fixed-checkbox-label")
+          .append("input")
+          .attr("type", "checkbox")
+          .attr("title", "Fix/unfix node position")
+          .property("checked", d => d.isFixed)
+          .on("change", function(event, d) {
+            event.stopPropagation();
+            setNodeFixed(d, this.checked);
+          }),
+        update => update.select("input").property("checked", d => d.isFixed)
+      );
+
   /*──────────────────────  numeric metric cells (7 of them)  ───────────────*/
   rows.selectAll("td.metric")
       .data(d => [
@@ -1087,8 +1104,8 @@ function updateMetrics(nodes){
   /*──────────────────────────────  FOOTER  Σ and μ  ────────────────────────*/
   const {sum, avg} = summarise(nodes);
   const footData = [
-    ["Σ", null,null, sum.sumF,sum.netF,sum.cancel, sum.vx,sum.vy],
-    ["μ", null,null, avg.sumF,avg.netF,avg.cancel, avg.vx,avg.vy]
+    ["Σ", null, null, null, sum.sumF,sum.netF,sum.cancel, sum.vx,sum.vy],
+    ["μ", null, null, null, avg.sumF,avg.netF,avg.cancel, avg.vx,avg.vy]
   ];
 
   const footRows = tfoot.selectAll("tr")
@@ -1169,23 +1186,26 @@ function dragEnd(event, d) {
   }
 }
 
-function toggleFixed(event, d) {
-  d.isFixed = !d.isFixed; // Toggle fixed state
-
-  if (d.isFixed) {
-    d.fx = d.x; // Lock position
-    d.fy = d.y;
+function setNodeFixed(node, fixed) {
+  node.isFixed = !!fixed;
+  if (node.isFixed) {
+    node.fx = node.x;
+    node.fy = node.y;
   } else {
-    d.fx = null; // Allow movement
-    d.fy = null;
+    node.fx = null;
+    node.fy = null;
   }
+  const sel = d3.select(`#node-group-${node.id}`).select("circle");
+  if (!sel.empty()) {
+    sel.transition().duration(200)
+      .attr("stroke", node.isFixed ? "black" : "none")
+      .attr("stroke-width", node.isFixed ? 3 : 0);
+  }
+  simulation.alpha(0.5).restart();
+}
 
-  d3.select(this).select("circle")
-    .transition().duration(200)
-    .attr("stroke", d.isFixed ? "black" : "none") // Visual cue: Black stroke if fixed
-    .attr("stroke-width", d.isFixed ? 3 : 0);
-
-  simulation.alpha(0.5).restart(); // Restart simulation for immediate effect // 0.5 instead of 1 for a Less aggressive restart
+function toggleFixed(event, d) {
+  setNodeFixed(d, !d.isFixed);
 }
 
 let draggedContainer = null; // Declare draggedContainer outside
