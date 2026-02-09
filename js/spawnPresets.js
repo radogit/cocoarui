@@ -76,7 +76,7 @@ function buildPresetsFromSources() {
  * - nodeFill (preset/entry): optional SVG fill for the node circle (e.g. "url(#diag-hatch)"). Overrides colour for circle only; cascade entry > preset. Omit to use nodeColour/color.
  */
 const combinedPresets = [
-    { id: "power-all", label: "Power (PPD+PPA & VR1-VR4)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#e88",
+    { id: "power-all", label: "Power (PPD+PPA & VR1-VR4)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ddd",
       entries: [
         { sourceId: "PPD", entryName: "Power-PP-descent", nodeColour: "#00f" },
         { sourceId: "PPA", entryName: "Power-PP-ascent", nodeColour: "#f00" },
@@ -86,7 +86,7 @@ const combinedPresets = [
         { sourceId: "VR4", entryName: "type-power", nodeColour: "#900090" },
       ] 
     },
-    { id: "distance-all", label: "Distance (PPD+PPA & VR1-VR4)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#8e8",
+    { id: "distance-all", label: "Distance (PPD+PPA & VR1-VR4)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ddd",
       entries: [
         { sourceId: "PPD", entryName: "Distance-PP-descent", nodeColour: "#00f" },
         { sourceId: "PPA", entryName: "Distance-PP-ascent", nodeColour: "#f00" },
@@ -96,7 +96,57 @@ const combinedPresets = [
         { sourceId: "VR4", entryName: "type-distance", nodeColour: "#900090" },
       ] 
     },
-    { id: "layout-PPD", label: "Layout (PPD)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#0000ff", nodeColour: "#00f", 
+    { id: "navigation-all", label: "Navigation (PPD+PPA & VR1-VR4)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ddd",
+      entries: [
+        { sourceId: "PPD", entryName: "Navigation-PP-descent", nodeColour: "#00f" },
+        { sourceId: "PPA", entryName: "Navigation-PP-ascent", nodeColour: "#f00" },
+        { sourceId: "VR1", entryName: "type-navigation", nodeColour: "#ff8000", nodeFill: "url(#diag-hatch-orange)" },
+        { sourceId: "VR2", entryName: "type-navigation", nodeColour: "#ff8000" },
+        { sourceId: "VR3", entryName: "type-navigation", nodeColour: "#900090", nodeFill: "url(#diag-hatch-purple)" },
+        { sourceId: "VR4", entryName: "type-navigation", nodeColour: "#900090" },
+      ] 
+    },
+    { id: "heartrate-all", label: "Heartrate (PPD+PPA & VR1-VR4)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ddd",
+      entries: [
+        { sourceId: "PPD", entryName: "Heartrate-PP-descent", nodeColour: "#00f" },
+        { sourceId: "PPA", entryName: "Heartrate-PP-ascent", nodeColour: "#f00" },
+        { sourceId: "VR1", entryName: "type-heartrate", nodeColour: "#ff8000", nodeFill: "url(#diag-hatch-orange)" },
+        { sourceId: "VR2", entryName: "type-heartrate", nodeColour: "#ff8000" },
+        { sourceId: "VR3", entryName: "type-heartrate", nodeColour: "#900090", nodeFill: "url(#diag-hatch-purple)" },
+        { sourceId: "VR4", entryName: "type-heartrate", nodeColour: "#900090" },
+      ] 
+    },
+    { id: "speed-all", label: "Speed (PPD+PPA & VR1-VR4)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ddd",
+      entries: [
+        { sourceId: "PPD", entryName: "Speed-PP-descent", nodeColour: "#00f" },
+        { sourceId: "PPA", entryName: "Speed-PP-ascent", nodeColour: "#f00" },
+        { sourceId: "VR1", entryName: "type-speed", nodeColour: "#ff8000", nodeFill: "url(#diag-hatch-orange)" },
+        { sourceId: "VR2", entryName: "type-speed", nodeColour: "#ff8000" },
+        { sourceId: "VR3", entryName: "type-speed", nodeColour: "#900090", nodeFill: "url(#diag-hatch-purple)" },
+        { sourceId: "VR4", entryName: "type-speed", nodeColour: "#900090" },
+      ] 
+    },
+    { id: "gradient-all", label: "Gradient (PPD+PPA & VR1-VR4)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ddd",
+      entries: [
+        { sourceId: "PPD", entryName: "Gradient-PP-descent", nodeColour: "#00f" },
+        { sourceId: "PPA", entryName: "Gradient-PP-ascent", nodeColour: "#f00" },
+        { sourceId: "VR1", entryName: "type-gradient", nodeColour: "#ff8000", nodeFill: "url(#diag-hatch-orange)" },
+        { sourceId: "VR2", entryName: "type-gradient", nodeColour: "#ff8000" },
+        { sourceId: "VR3", entryName: "type-gradient", nodeColour: "#900090", nodeFill: "url(#diag-hatch-purple)" },
+        { sourceId: "VR4", entryName: "type-gradient", nodeColour: "#900090" },
+      ] 
+    },
+    { id: "time-all", label: "Time (PPD+PPA & VR1-VR4)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ddd",
+      entries: [
+        { sourceId: "PPD", entryName: "Time-PP-descent", nodeColour: "#00f" },
+        { sourceId: "PPA", entryName: "Time-PP-ascent", nodeColour: "#f00" },
+        { sourceId: "VR1", entryName: "type-time", nodeColour: "#ff8000", nodeFill: "url(#diag-hatch-orange)" },
+        { sourceId: "VR2", entryName: "type-time", nodeColour: "#ff8000" },
+        { sourceId: "VR3", entryName: "type-time", nodeColour: "#900090", nodeFill: "url(#diag-hatch-purple)" },
+        { sourceId: "VR4", entryName: "type-time", nodeColour: "#900090" },
+      ] 
+    },
+    { id: "layout-PPD", label: "Layout (Paper Pano Descent)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#66f", nodeColour: "#00f", 
       entries: [
         { sourceId: "VR1", entryName: "type-speed"},
         { sourceId: "VR1", entryName: "type-navigation"},
@@ -108,7 +158,7 @@ const combinedPresets = [
         { sourceId: "VR1", entryName: "type-navigation"},
       ] 
     },
-    { id: "layout-PPA", label: "Layout (PPA)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ff0000", nodeColour: "#f00", 
+    { id: "layout-PPA", label: "Layout (Paper Pano Ascent)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ff0000", nodeColour: "#f00", 
       entries: [
         { sourceId: "VR1", entryName: "type-speed"},
         { sourceId: "VR1", entryName: "type-navigation"},
