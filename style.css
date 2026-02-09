@@ -13,53 +13,16 @@ svg {
     margin: auto;
 }
 
-.label {
-    pointer-events: none;  /* Prevent selection or interaction */
-    user-select: none;  /* Prevent text selection */
-    font-size: 10px;
-    fill: rgba(0,0,0,0.2)
-}
-.id-label, .coord-label, .graph-label {
-    font-size: 15px;
-    font-weight: bolder;
-    opacity: 1;
-    text-anchor: middle;
-}
-.id-label {
-  fill: white;
-  text-shadow:
-  0 0 0 #000,
-  1px 0 0 #000,
-  -1px 0 0 #000,
-  0 1px 0 #000,
-  0 -1px 0 #000,
-  1px 1px 0 #000,
-  -1px -1px 0 #000,
-  1px -1px 0 #000,
-  -1px 1px 0 #000,
-  2px 2px 0 #000,
-  3px 3px 0 #000;
-  paint-order: stroke fill markers;
-}
+/* SVG styling lives in style-svg.css (loaded below); embedded into exported SVG */
 input:disabled+label { opacity: 0.4;}
-div, .force-arrows, .node-relations, .coord-label, .id-label, .hotspot-group {
-  transition: opacity 0.5s ease; /* Adjust duration and easing as needed */
+div {
+  transition: opacity 0.5s ease;
 }
 .hidden {
   opacity: 0 !important;
   pointer-events: none; 
   user-select: none;
 }
-.node-circle.hidden {
-  pointer-events: initial !important; 
-  user-select: initial !important;
-}
-.highlight-circle {
-  stroke-dasharray: 12 6;
-  stroke-width: 5px;
-  stroke: black;
-}
-.haloSpin { animation: spinDash 4s linear infinite; } @keyframes spinDash { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
 .remove-btn{
   border:none;
@@ -153,7 +116,6 @@ span.todo::after { content: " (todo)"; }
     height: 10px;
     width: 10px;
 }
-.force-arrow { filter: drop-shadow(0px 3px 3px rgba(0, 0, 0, 0.4)); }
 #logContainer > div {
   background: rgba(0,0,0,0.9);
   float: left;

@@ -2,59 +2,85 @@
 // exportSquarePNG("figure.png");
 // exportSquarePNG("figure-4x.png", 4); // publication-quality
 
+import { STYLE_SVG_CSS } from "./style-svg-css.js";
+
+// =======================================
+//  Embed style-svg.css into cloned SVG so export matches screen (font, .id-label, etc.)
+//  Prefer fetch from the page's stylesheet URL (works with Parcel hashed filenames);
+//  if that returns HTML (SPA fallback) or fails, use bundled STYLE_SVG_CSS.
+//  For PNG export at scale > 1, pass { scale } so every px value in the CSS is
+//  multiplied by scale (keeps text-shadow, font-size, stroke-width etc. proportional).
+// =======================================
+function scalePxInCss(css, scale) {
+  if (scale == null || scale === 1) return css;
+  return css.replace(/(\d+(?:\.\d+)?)px/g, (_, n) => Math.round(parseFloat(n) * scale * 100) / 100 + "px");
+}
+
+async function embedSvgStyles(svgClone, options = {}) {
+  let css = STYLE_SVG_CSS;
+  const link = document.querySelector('link[href*="style-svg"]');
+  const url = link ? link.getAttribute("href") : "style-svg.css";
+  try {
+    const res = await fetch(url);
+    if (res.ok) {
+      const text = await res.text();
+      if (text.trim() && !text.trimStart().startsWith("<")) {
+        css = text;
+      }
+    }
+  } catch (_) {
+    /* use bundled STYLE_SVG_CSS */
+  }
+  const scale = options.scale;
+  if (scale != null && scale !== 1) {
+    css = scalePxInCss(css, scale);
+  }
+  const style = document.createElementNS("http://www.w3.org/2000/svg", "style");
+  style.setAttribute("type", "text/css");
+  style.textContent = css;
+  svgClone.insertBefore(style, svgClone.firstChild);
+}
+
 // =======================================
 //  EXPORT CLEAN SVG  (only visible nodes)
 // =======================================
-window.exportSVG = function(filename = "export.svg") {
+window.exportSVG = async function (filename = "export.svg") {
+  const svg = document.querySelector("svg");
+  if (!svg) {
+    console.error("No <svg> found on page.");
+    return;
+  }
 
-    const svg = document.querySelector("svg");
-    if (!svg) {
-        console.error("No <svg> found on page.");
-        return;
-    }
+  const clone = svg.cloneNode(true);
 
-    // 1) Deep clone so we can prune hidden things safely
-    const clone = svg.cloneNode(true);
+  const isHidden = (el) => {
+    const style = window.getComputedStyle(el);
+    return (
+      style.display === "none" ||
+      style.visibility === "hidden" ||
+      el.classList.contains("hidden")
+    );
+  };
+  const prune = (el) => {
+    [...el.children].forEach((child) => {
+      if (isHidden(child)) child.remove();
+      else prune(child);
+    });
+  };
+  prune(clone);
 
-    // 2) Remove all elements with class "hidden" or display:none or visibility:hidden
-    const isHidden = el => {
-        const style = window.getComputedStyle(el);
-        return (
-            style.display === "none" ||
-            style.visibility === "hidden" ||
-            el.classList.contains("hidden")
-        );
-    };
+  await embedSvgStyles(clone);
 
-    // Recursive prune
-    const prune = (el) => {
-        [...el.children].forEach(child => {
-            if (isHidden(child)) {
-                child.remove();
-            } else {
-                prune(child);
-            }
-        });
-    };
-    prune(clone);
-
-    // 3) Inline all computed styles so SVG looks the same outside the browser
-    inlineComputedStyles(clone);
-
-    // 4) Serialize the final SVG
-    const svgBlob = new Blob([clone.outerHTML], { type: "image/svg+xml;charset=utf-8" });
-    const url = URL.createObjectURL(svgBlob);
-
-    // 5) Download
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-
-    console.log("SVG exported:", filename);
+  const svgBlob = new Blob([clone.outerHTML], { type: "image/svg+xml;charset=utf-8" });
+  const url = URL.createObjectURL(svgBlob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  console.log("SVG exported:", filename);
 };
 
 
@@ -89,94 +115,80 @@ function inlineComputedStyles(svgEl) {
     });
 }
 
-window.exportCroppedSVG = function(filename = "export.svg") {
+window.exportCroppedSVG = async function (filename = "export.svg") {
+  const svg = document.querySelector("svg");
+  const container = document.querySelector("g.container");
 
-    const svg = document.querySelector("svg");
-    const container = document.querySelector("g.container");
+  if (!svg || !container) {
+    console.error("Missing <svg> or <g class='container'>");
+    return;
+  }
 
-    if (!svg || !container) {
-        console.error("Missing <svg> or <g class='container'>");
-        return;
-    }
+  const clone = svg.cloneNode(true);
+  const bbox = container.getBBox();
 
-    // Clone the SVG so we can safely modify it
-    const clone = svg.cloneNode(true);
+  clone.setAttribute("viewBox", `${bbox.x} ${bbox.y} ${bbox.width} ${bbox.height}`);
+  clone.setAttribute("width", bbox.width);
+  clone.setAttribute("height", bbox.height);
 
-    // Find container inside the clone
-    const cloneContainer = clone.querySelector("g.container");
+  await embedSvgStyles(clone);
 
-    // Compute bounding box BEFORE modifying structure
-    const bbox = container.getBBox();  // content box
+  const blob = new Blob([clone.outerHTML], { type: "image/svg+xml;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  console.log("Cropped SVG exported:", filename);
+};
 
-    // Apply cropping by setting viewBox and width/height
-    clone.setAttribute("viewBox", `${bbox.x} ${bbox.y} ${bbox.width} ${bbox.height}`);
-    clone.setAttribute("width", bbox.width);
-    clone.setAttribute("height", bbox.height);
+window.exportPNG = async function (filename = "export.png", scale = 1) {
+  const svg = document.querySelector("svg");
+  const container = document.querySelector("g.container");
 
-    inlineComputedStyles(clone);
+  if (!svg || !container) {
+    console.error("Missing <svg> or <g class='container'>");
+    return;
+  }
 
-    // Serialize
-    const blob = new Blob([clone.outerHTML], { type: "image/svg+xml;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
+  const bbox = container.getBBox();
+  const clone = svg.cloneNode(true);
+  clone.setAttribute("viewBox", `${bbox.x} ${bbox.y} ${bbox.width} ${bbox.height}`);
+  const w = bbox.width * scale;
+  const h = bbox.height * scale;
+  clone.setAttribute("width", w);
+  clone.setAttribute("height", h);
 
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    a.click();
-    a.remove();
+  await embedSvgStyles(clone, { scale });
+
+  const svgString = new XMLSerializer().serializeToString(clone);
+  const svgBlob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
+  const url = URL.createObjectURL(svgBlob);
+
+  const img = new Image();
+  img.onload = () => {
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(img, 0, 0);
+    canvas.toBlob((blob) => {
+      const pngUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = pngUrl;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(pngUrl);
+    });
     URL.revokeObjectURL(url);
-
-    console.log("Cropped SVG exported:", filename);
+  };
+  img.src = url;
 };
 
-window.exportPNG = function(filename = "export.png", scale = 1) {
-    const svg = document.querySelector("svg");
-    const container = document.querySelector("g.container");
-
-    if (!svg || !container) {
-        console.error("Missing <svg> or <g class='container'>");
-        return;
-    }
-
-    const bbox = container.getBBox();
-
-    // First create a cropped SVG string
-    const clone = svg.cloneNode(true);
-    clone.setAttribute("viewBox", `${bbox.x} ${bbox.y} ${bbox.width} ${bbox.height}`);
-    clone.setAttribute("width", bbox.width);
-    clone.setAttribute("height", bbox.height);
-
-    inlineComputedStyles(clone);
-
-    const svgString = new XMLSerializer().serializeToString(clone);
-    const svgBlob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
-    const url = URL.createObjectURL(svgBlob);
-
-    // Convert SVG → Image
-    const img = new Image();
-    img.onload = () => {
-        const canvas = document.createElement("canvas");
-        canvas.width = bbox.width * scale;
-        canvas.height = bbox.height * scale;
-
-        const ctx = canvas.getContext("2d");
-        ctx.scale(scale, scale);
-        ctx.drawImage(img, 0, 0);
-
-        canvas.toBlob(blob => {
-            const pngUrl = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = pngUrl;
-            a.download = filename;
-            a.click();
-            URL.revokeObjectURL(pngUrl);
-        });
-
-        URL.revokeObjectURL(url);
-    };
-    img.src = url;
-};
-
+// Unified helper: inline the important computed styles so exported SVG/PNG
+// looks like what you see in the browser (including bold + text-shadow).
 function inlineComputedStyles(svgEl) {
   svgEl.querySelectorAll("*").forEach(el => {
     const cs = getComputedStyle(el);
@@ -189,7 +201,8 @@ function inlineComputedStyles(svgEl) {
         prop.startsWith("stroke") ||
         prop.startsWith("opacity") ||
         prop.startsWith("font") ||
-        prop.startsWith("marker")
+        prop.startsWith("marker") ||
+        prop.startsWith("text")      // e.g. text-shadow
       ) {
         keep.push(`${prop}:${cs.getPropertyValue(prop)}`);
       }
@@ -268,7 +281,7 @@ window.exportSquareSVG = async function (filename = "export-square.svg") {
 
   removeHiddenElements(clone);
   await inlineSvgImages(clone);
-  inlineComputedStyles(clone);
+  await embedSvgStyles(clone);
 
   const blob = new Blob(
     [clone.outerHTML],
@@ -302,12 +315,13 @@ window.exportSquarePNG = async function (
 
   const clone = svg.cloneNode(true);
   clone.setAttribute("viewBox", `${x} ${y} ${size} ${size}`);
-  clone.setAttribute("width",  size);
-  clone.setAttribute("height", size);
+  const pixelSize = size * scale;
+  clone.setAttribute("width",  pixelSize);
+  clone.setAttribute("height", pixelSize);
 
   removeHiddenElements(clone);
   await inlineSvgImages(clone);
-  inlineComputedStyles(clone);
+  await embedSvgStyles(clone, { scale });
 
   const svgString = new XMLSerializer().serializeToString(clone);
   const svgBlob = new Blob([svgString], { type: "image/svg+xml" });
@@ -316,11 +330,10 @@ window.exportSquarePNG = async function (
   const img = new Image();
   img.onload = () => {
     const canvas = document.createElement("canvas");
-    canvas.width  = size * scale;
-    canvas.height = size * scale;
+    canvas.width  = pixelSize;
+    canvas.height = pixelSize;
 
     const ctx = canvas.getContext("2d");
-    ctx.scale(scale, scale);
     ctx.drawImage(img, 0, 0);
 
     canvas.toBlob(blob => {
