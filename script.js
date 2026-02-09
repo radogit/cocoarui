@@ -745,6 +745,14 @@ async function waitForNodeToSettle(node, simulation, {
   });
 }
 
+/** Queue of the current spawn run; cleared by Delete All so no more nodes are spawned. */
+let currentSpawnQueue = null;
+
+export function clearSpawnQueue() {
+  if (currentSpawnQueue) currentSpawnQueue.length = 0;
+  currentSpawnQueue = null;
+}
+
 export async function dripSpawnSmart(
   nodesQueue,
   nodes,
@@ -756,6 +764,7 @@ export async function dripSpawnSmart(
 ){
   // make a shallow clone so we can shift() without mutating the original
   const todo = nodesQueue.slice();
+  currentSpawnQueue = todo;
 
   async function next () {
     if (todo.length === 0) return;
@@ -1237,7 +1246,11 @@ function setupDragAndDropForSpawnButtons() {
 // ================================================================================================================
 
 //document.getElementById("spawnOneButton").addEventListener("click", addOne);
-document.getElementById("removeAllButton").addEventListener("click", removeAllNodes);
+document.getElementById("removeAllButton").addEventListener("click", () => {
+  clearSpawnQueue();
+  removeAllNodes();
+  updateSettingsURLParam(SETTINGS_PARAMS.spawn, "", "");
+});
 document.getElementById("addOneSmartButton").addEventListener("click", addOneSmart);
 document.getElementById("downloadSVGButton")
   .addEventListener("click", () => {
@@ -1286,6 +1299,7 @@ const SETTINGS_PARAMS = {
   sequence: "sequenceMode",   // fixing | floating, default fixing
   background: "bgPreset",     // preset id, default first preset
   collision: "collision",     // 1 = on, 0 = off, default on
+  spawn: "spawn",             // preset id to auto-start on load (e.g. ?spawn=power-all)
 };
 const urlParams = new URLSearchParams(window.location.search);
 
@@ -1406,6 +1420,7 @@ function buildSpawnButtonsFromPresets() {
     btn.addEventListener("click", () => {
       const nodes = getNodesForPreset(preset);
       if (!nodes.length) return;
+      updateSettingsURLParam(SETTINGS_PARAMS.spawn, preset.id, "");
       dripSpawnSmart(
         nodes,
         Datasets.nodes,
@@ -1455,7 +1470,30 @@ document.querySelectorAll('.collapse-header').forEach(header => {
 
 buildSpawnButtonsFromPresets();
 
-
+// Auto-start a spawn preset from URL (e.g. ?spawn=power-all)
+const spawnPresetId = urlParams.get(SETTINGS_PARAMS.spawn);
+if (spawnPresetId) {
+  const preset = spawnPresets.find((p) => p.id === spawnPresetId);
+  if (preset) {
+    const nodes = getNodesForPreset(preset);
+    if (nodes.length) {
+      dripSpawnSmart(
+        nodes,
+        Datasets.nodes,
+        simulation,
+        width,
+        height,
+        defs,
+        hotspotLayer,
+        nodeLayer,
+        windLayerCancel,
+        windLayerStress,
+        windLayerNetForceArrows,
+        1000
+      );
+    }
+  }
+}
 
 // ======== Metrics table ========================================
 
