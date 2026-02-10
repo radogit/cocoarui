@@ -1045,7 +1045,7 @@ function ticked() {
       }
     });
     // Update explicit node-to-node link arrows (spawn preset links)
-    if (linkLayer) {
+    if (linkLayer && AppUI.showNodeLinks.boolState) {
       if (activeLinks.length) {
         const nodes = Datasets.nodes;
         const labelToNode = new Map();
@@ -1644,6 +1644,9 @@ if (spawnPresetId) {
   if (preset) {
     const nodes = getNodesForPreset(preset);
     if (nodes.length) {
+      if (Array.isArray(preset.links) && preset.links.length) {
+        activeLinks.push(...preset.links);
+      }
       dripSpawnSmart(
         nodes,
         Datasets.nodes,
