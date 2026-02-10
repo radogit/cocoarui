@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "_main": "index.js",
   "scripts": {
+    "build-style-svg-css": "node scripts/build-style-svg-css.js",
+    "prestart": "npm run build-style-svg-css",
+    "prebuild": "npm run build-style-svg-css",
     "start": "parcel *.html --open --no-cache",
     "dev": "parcel serve index.html --no-cache --dist-dir dist-dev --port 1234 --host 0.0.0.0",
     "clean": "rm -rf .parcel-cache dist",

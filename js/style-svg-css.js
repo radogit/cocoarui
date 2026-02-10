@@ -1,9 +1,9 @@
 /**
- * Bundled copy of style-svg.css for embedding into exported SVG when fetch fails
- * (e.g. production build where style-svg.css is bundled or SPA returns index.html).
- * Keep in sync with style-svg.css when changing SVG styles.
+ * Generated from style-svg.css — do not edit.
+ * Regenerate with: npm run build-style-svg-css
+ * Used by exporter as fallback when fetch(style-svg.css) fails.
  */
-export const STYLE_SVG_CSS = `/* SVG-only styles: used in-document and embedded into exported SVG */
+export const STYLE_SVG_CSS = `/* SVG-only styles: used in-document and embedded into exported SVG so export matches screen */
 
 svg {
   font-family: Arial, sans-serif;
@@ -23,6 +23,10 @@ svg {
   font-weight: bolder;
   opacity: 1;
   text-anchor: middle;
+}
+.graph-label {
+  font-size: 7px;
+  font-weight: initial;
 }
 
 .id-label {
@@ -48,6 +52,13 @@ svg {
 .id-label,
 .hotspot-group {
   transition: opacity 0.5s ease;
+}
+
+.node-links {
+  opacity: 0.4;
+}
+.node-links .node-link {
+  pointer-events: none;
 }
 
 .node-circle.hidden {
