@@ -1443,11 +1443,11 @@ if (viewPanelCaret && viewPanelCheckbox) {
 // Settings panel: persist to URL (same pattern as View panel)
 function updateSettingsURLParam(param, value, defaultValue) {
   const url = new URL(window.location);
-  if (value === defaultValue || value == null) {
-    url.searchParams.delete(param);
-  } else {
-    url.searchParams.set(param, String(value));
-  }
+  // Always persist the current state explicitly, even if it matches the default,
+  // so historical URLs remain accurate if defaults change later.
+  // Null/undefined become an empty string so the param still reflects "no value".
+  const str = value === undefined || value === null ? "" : String(value);
+  url.searchParams.set(param, str);
   window.history.replaceState({}, "", url);
 }
 

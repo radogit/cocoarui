@@ -154,15 +154,10 @@ export function showOrHideElement (bool, className, shorthand, URLparam, default
  */
 function updateURLParam(param, bool, defaultState) {
   const url = new URL(window.location);
-  //url.searchParams.set(param, bool ? "1" : "0");
-  
-  //If you prefer removing the param when false, you can do:
-  if (bool != defaultState) {
-    url.searchParams.set(param, bool ? "1" : "0");
-  } else {
-    url.searchParams.delete(param);
-  }
-  
+  // Always persist the current state explicitly, even if it matches the default,
+  // so historical URLs remain accurate if defaults change later.
+  url.searchParams.set(param, bool ? "1" : "0");
+
   // Update the browser's URL bar but don’t reload or add a new history entry:
   window.history.replaceState({}, "", url);
 }
