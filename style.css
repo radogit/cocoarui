@@ -238,6 +238,9 @@ table.metrics thead {
 .metrics tr:hover {
   background: #ffffaa !important;
 }
+.metrics tr.row-highlight-from-canvas {
+  background: #ffffaa !important;
+}
 
 .metrics tr.metrics-row-queued {
   background: #e8e8e8;

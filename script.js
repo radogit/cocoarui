@@ -177,6 +177,12 @@ function buildOrUpdateNodes(container, nodes) {
             .attr("class", "node-group")
             .attr("id", d => "node-group-"+d.id)
             .on("dblclick", toggleFixed)
+            .on("mouseenter", function(event, d) {
+              tbody.select(`tr[data-id="${d.id}"]`).classed("row-highlight-from-canvas", true);
+            })
+            .on("mouseleave", function(event, d) {
+              tbody.select(`tr[data-id="${d.id}"]`).classed("row-highlight-from-canvas", false);
+            })
             .call(d3.drag()
               .on("start", dragStart)
               .on("drag", dragging)
