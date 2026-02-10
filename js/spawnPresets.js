@@ -75,6 +75,7 @@ function buildPresetsFromSources() {
  * - nodeColour (preset/entry): fill colour for nodes; cascade entry > preset > dataset. Heatmaps use node.color.
  * - nodeFill (preset/entry): optional SVG fill for the node circle (e.g. "url(#diag-hatch)"); cascade entry > preset.
  * - nodeLabel (preset/entry): optional display name for the node id-label (instead of node.id); cascade entry > preset.
+ * - links: optional array of { fromLabel, toLabel, color? }. color is a colour name (e.g. "red", "blue") from the app palette; arrow stroke and arrowhead use it.
  */
 const combinedPresets = [
     { id: "power-all", label: "Power (PPD+PPA & VR1-VR4)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ddd",
@@ -139,10 +140,10 @@ const combinedPresets = [
     },
     { id: "time-all", label: "Time (PPD+PPA & VR1-VR4)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ddd",
       links: [
-        { fromLabel: "PPD", toLabel: "VR2" },
-        { fromLabel: "VR1", toLabel: "VR2" },
-        { fromLabel: "PPA", toLabel: "VR4" },
-        { fromLabel: "VR3", toLabel: "VR4" }
+        { fromLabel: "PPD", toLabel: "VR2", color: "blue" },
+        { fromLabel: "VR1", toLabel: "VR2", color: "green" },
+        { fromLabel: "PPA", toLabel: "VR4", color: "orange" },
+        { fromLabel: "VR3", toLabel: "VR4", color: "magenta" }
       ],
       entries: [
         { sourceId: "PPD", entryName: "Time-PP-descent", nodeColour: "#00f", nodeLabel: "PPD"},

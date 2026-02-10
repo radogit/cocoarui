@@ -1076,6 +1076,7 @@ function ticked() {
             key: `${link.fromLabel}->${link.toLabel}`,
             source,
             target,
+            color: link.color ?? null,
           };
         }).filter(Boolean);
 
@@ -1122,9 +1123,9 @@ function ticked() {
           const f = (len - m) / len;
           return d.source.y + dy * f;
         })
-        .attr("stroke", "#000")
+        .attr("stroke", (d) => d.color ? colourNameForArrowhead(d.color) : "black")
         .attr("stroke-width", 10)
-        .attr("marker-end", "url(#arrowhead-black)");
+        .attr("marker-end", (d) => "url(#" + (d.color ? getArrowheadId(d.color) : "arrowhead-black") + ")");
       } else {
         linkLayer.selectAll("line.node-link").remove();
       }
