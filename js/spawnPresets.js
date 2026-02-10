@@ -252,7 +252,21 @@ export const spawnPresets = [...buildPresetsFromSources(), ...combinedPresets];
  *
  * NOTE: Links should refer to either the node’s original id or its nodeLabel
  * (which becomes displayLabel), there is no separate displayLabel field.
+ *
+ * Node radius is computed from hotspots: for each observation,
+ * sqrt((width² + height²) / divisor) with divisor from hotspotForceDivisor (or 1);
+ * radius = (average of those values over all hotspots) / 2. No hotspots → 0.
  */
+function radiusFromHotspots(node) {
+  if (!node.hotspots || !node.hotspots.length) return 0;
+  let sum = 0;
+  for (const h of node.hotspots) {
+    const div = (node.hotspotForceDivisor && node.hotspotForceDivisor[h.name]) ?? 1;
+    sum += Math.sqrt((h.width * h.width + h.height * h.height) / div);
+  }
+  return (sum / node.hotspots.length) / 2;
+}
+
 export function getNodesForPreset(preset) {
   const presetNodeColour = preset.nodeColour;
   const presetNodeFill = preset.nodeFill;
@@ -282,6 +296,11 @@ export function getNodesForPreset(preset) {
         n.displayLabel = effectiveLabel;
       }
       n.hotspotForceDivisor = forceDivisor;
+      const hardcoded = n.radius;
+      const calculated = radiusFromHotspots(n);
+      n.radius = calculated;
+      const match = Math.abs(calculated - hardcoded) < 1e-6;
+      console.log(`[spawn] ${n.id}: radius calculated=${calculated.toFixed(4)} hardcoded=${hardcoded} ${match ? "match" : "DIFF"}`);
     });
     nodes.push(...cloned);
   }
