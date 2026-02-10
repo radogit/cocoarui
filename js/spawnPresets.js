@@ -85,6 +85,12 @@ function buildPresetsFromSources() {
  */
 const combinedPresets = [
     { id: "power-all", label: "Power (PPD+PPA & VR1-VR4)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ddd",
+      links: [
+        { fromLabel: "PPD", toLabel: "VR2", color: "cyan" },
+        { fromLabel: "VR1", toLabel: "VR2", color: "cyan" },
+        { fromLabel: "PPA", toLabel: "VR4", color: "magenta" },
+        { fromLabel: "VR3", toLabel: "VR4", color: "magenta" }
+      ],
       entries: [
         { sourceId: "PPD", entryName: "Power-PP-descent", nodeColour: "#00f", nodeLabel: "PPD" },
         { sourceId: "PPA", entryName: "Power-PP-ascent", nodeColour: "#f00", nodeLabel: "PPA" },
@@ -95,6 +101,12 @@ const combinedPresets = [
       ] 
     },
     { id: "distance-all", label: "Distance (PPD+PPA & VR1-VR4)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ddd",
+      links: [
+        { fromLabel: "PPD", toLabel: "VR2", color: "cyan" },
+        { fromLabel: "VR1", toLabel: "VR2", color: "cyan" },
+        { fromLabel: "PPA", toLabel: "VR4", color: "magenta" },
+        { fromLabel: "VR3", toLabel: "VR4", color: "magenta" }
+      ],
       entries: [
         { sourceId: "PPD", entryName: "Distance-PP-descent", nodeColour: "#00f", nodeLabel: "PPD" },
         { sourceId: "PPA", entryName: "Distance-PP-ascent", nodeColour: "#f00", nodeLabel: "PPA" },
@@ -105,6 +117,12 @@ const combinedPresets = [
       ] 
     },
     { id: "navigation-all", label: "Navigation (PPD+PPA & VR1-VR4)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ddd",
+      links: [
+        { fromLabel: "PPD", toLabel: "VR2", color: "cyan" },
+        { fromLabel: "VR1", toLabel: "VR2", color: "cyan" },
+        { fromLabel: "PPA", toLabel: "VR4", color: "magenta" },
+        { fromLabel: "VR3", toLabel: "VR4", color: "magenta" }
+      ],
       entries: [
         { sourceId: "PPD", entryName: "Navigation-PP-descent", nodeColour: "#00f", nodeLabel: "PPD" },
         { sourceId: "PPA", entryName: "Navigation-PP-ascent", nodeColour: "#f00", nodeLabel: "PPA" },
@@ -115,6 +133,12 @@ const combinedPresets = [
       ] 
     },
     { id: "heartrate-all", label: "Heartrate (PPD+PPA & VR1-VR4)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ddd",
+      links: [
+        { fromLabel: "PPD", toLabel: "VR2", color: "cyan" },
+        { fromLabel: "VR1", toLabel: "VR2", color: "cyan" },
+        { fromLabel: "PPA", toLabel: "VR4", color: "magenta" },
+        { fromLabel: "VR3", toLabel: "VR4", color: "magenta" }
+      ],
       entries: [
         { sourceId: "PPD", entryName: "Heartrate-PP-descent", nodeColour: "#00f", nodeLabel: "PPD" },
         { sourceId: "PPA", entryName: "Heartrate-PP-ascent", nodeColour: "#f00", nodeLabel: "PPA" },
@@ -125,6 +149,12 @@ const combinedPresets = [
       ] 
     },
     { id: "speed-all", label: "Speed (PPD+PPA & VR1-VR4)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ddd",
+      links: [
+        { fromLabel: "PPD", toLabel: "VR2", color: "cyan" },
+        { fromLabel: "VR1", toLabel: "VR2", color: "cyan" },
+        { fromLabel: "PPA", toLabel: "VR4", color: "magenta" },
+        { fromLabel: "VR3", toLabel: "VR4", color: "magenta" }
+      ],
       entries: [
         { sourceId: "PPD", entryName: "Speed-PP-descent", nodeColour: "#00f", nodeLabel: "PPD" },
         { sourceId: "PPA", entryName: "Speed-PP-ascent", nodeColour: "#f00", nodeLabel: "PPA" },
@@ -135,6 +165,12 @@ const combinedPresets = [
       ] 
     },
     { id: "gradient-all", label: "Gradient (PPD+PPA & VR1-VR4)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ddd",
+      links: [
+        { fromLabel: "PPD", toLabel: "VR2", color: "cyan" },
+        { fromLabel: "VR1", toLabel: "VR2", color: "cyan" },
+        { fromLabel: "PPA", toLabel: "VR4", color: "magenta" },
+        { fromLabel: "VR3", toLabel: "VR4", color: "magenta" }
+      ],
       entries: [
         { sourceId: "PPD", entryName: "Gradient-PP-descent", nodeColour: "#00f", nodeLabel: "PPD" },
         { sourceId: "PPA", entryName: "Gradient-PP-ascent", nodeColour: "#f00", nodeLabel: "PPA" },
@@ -146,9 +182,9 @@ const combinedPresets = [
     },
     { id: "time-all", label: "Time (PPD+PPA & VR1-VR4)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ddd",
       links: [
-        { fromLabel: "PPD", toLabel: "VR2", color: "blue" },
-        { fromLabel: "VR1", toLabel: "VR2", color: "green" },
-        { fromLabel: "PPA", toLabel: "VR4", color: "orange" },
+        { fromLabel: "PPD", toLabel: "VR2", color: "cyan" },
+        { fromLabel: "VR1", toLabel: "VR2", color: "cyan" },
+        { fromLabel: "PPA", toLabel: "VR4", color: "magenta" },
         { fromLabel: "VR3", toLabel: "VR4", color: "magenta" }
       ],
       entries: [

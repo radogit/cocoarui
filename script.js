@@ -37,9 +37,9 @@ const colours = [
   'red', 
   'green', 
   'blue', 
+  'cyan',
   'orange', 
   'purple', 
-//  'cyan', 
   'magenta', 
 //  'yellow', 
   'darkblue', 
@@ -63,7 +63,8 @@ const hexToColourName = {
   "#00f": "blue", "#0000ff": "blue", "#00aaff": "blue",
   "#ff8000": "orange", "#ff5000": "orange", "#f80": "orange",
   "#80f": "purple", "#800080": "purple", "#900090": "purple",
-  "#f0f": "magenta", "#ff00ff": "magenta"
+  "#f0f": "magenta", "#ff00ff": "magenta",
+  "#0ff": "cyan", "#00ffff": "cyan"
 };
 function colourNameForArrowhead(c) {
   if (!c || typeof c !== "string") return "white";
