@@ -764,7 +764,7 @@ export function clearSpawnQueue() {
   currentSpawnQueue = null;
 }
 
-export async function dripSpawnSmart(
+export function dripSpawnSmart(
   nodesQueue,
   nodes,
   simulation,
@@ -773,69 +773,76 @@ export async function dripSpawnSmart(
   windCancelLayer, windStressLayer, windNetLayer,
   intervalMs = 1000   // NOTE: kept for reference; old timed mode was using this
 ){
-  // make a shallow clone so we can shift() without mutating the original
-  const todo = nodesQueue.slice();
-  currentSpawnQueue = todo;
+  // Return a promise that resolves when all nodes are spawned and settled.
+  return new Promise((resolve) => {
+    // make a shallow clone so we can shift() without mutating the original
+    const todo = nodesQueue.slice();
+    currentSpawnQueue = todo;
 
-  async function next () {
-    if (todo.length === 0) return;
+    async function next () {
+      if (todo.length === 0) {
+        currentSpawnQueue = null;
+        resolve();
+        return;
+      }
 
-    const raw = structuredClone(todo.shift());           // fresh copy
-    raw.id += '-' + Date.now().toString(36).slice(-4);   // unique-ify id
-    
-    if (raw.color === "random") { raw.color = colours[Math.floor(Math.random()*colours.length)]; }
-    
-    Datasets.adjustCoordinatesToScale([raw], scaleUnit);
-    Datasets.flipYCoordinates([raw]);                    // keep y-up
-    Datasets.fixInitially([raw]);
+      const raw = structuredClone(todo.shift());           // fresh copy
+      raw.id += '-' + Date.now().toString(36).slice(-4);   // unique-ify id
+      
+      if (raw.color === "random") { raw.color = colours[Math.floor(Math.random()*colours.length)]; }
+      
+      Datasets.adjustCoordinatesToScale([raw], scaleUnit);
+      Datasets.flipYCoordinates([raw]);                    // keep y-up
+      Datasets.fixInitially([raw]);
 
-    // --- run the lattice search ------------------------------------------
-    await addNodeWithMultistartVisual(
-      nodes, raw, simulation,
-      width, height, defs,
-      windCancelLayer, windStressLayer, windNetLayer,
-      /* ticks  */ 80,
-      /* cols   */ 18,
-      /* rows   */ 18
-    );
+      // --- run the lattice search ------------------------------------------
+      await addNodeWithMultistartVisual(
+        nodes, raw, simulation,
+        width, height, defs,
+        windCancelLayer, windStressLayer, windNetLayer,
+        /* ticks  */ 80,
+        /* cols   */ 18,
+        /* rows   */ 18
+      );
 
-    // --- refresh DOM / forces --------------------------------------------
-    Heatmaps.buildHeatspotRects(hotspotLayer, nodes, defs);
-    buildOrUpdateNodes(nodeLayer,      nodes);
-    simulation.nodes(nodes).alpha(1).restart();
+      // --- refresh DOM / forces --------------------------------------------
+      Heatmaps.buildHeatspotRects(hotspotLayer, nodes, defs);
+      buildOrUpdateNodes(nodeLayer,      nodes);
+      simulation.nodes(nodes).alpha(1).restart();
 
-    // Find the just-added node by id (after multistart it should be present in `nodes`)
-    const spawned = nodes.find(n => n.id === raw.id);
+      // Find the just-added node by id (after multistart it should be present in `nodes`)
+      const spawned = nodes.find(n => n.id === raw.id);
 
-    // NEW MODE: wait until this node settles, then (optionally) fix it and move on
-    await waitForNodeToSettle(spawned, simulation, {
-      speedThreshold: 0.5,
-      stableMs: 800,
-      checkInterval: 80
-    });
+      // NEW MODE: wait until this node settles, then (optionally) fix it and move on
+      await waitForNodeToSettle(spawned, simulation, {
+        speedThreshold: 0.5,
+        stableMs: 800,
+        checkInterval: 80
+      });
 
-    // Depending on the global sequenceMode, either fix the node
-    // (like a double–click) or leave it floating.
-    if (spawned && sequenceMode === "fixing") {
-      spawned.isFixed = true;
-      spawned.fx = spawned.x;
-      spawned.fy = spawned.y;
+      // Depending on the global sequenceMode, either fix the node
+      // (like a double–click) or leave it floating.
+      if (spawned && sequenceMode === "fixing") {
+        spawned.isFixed = true;
+        spawned.fx = spawned.x;
+        spawned.fy = spawned.y;
 
-      // Visual cue (black stroke) – mirror toggleFixed behaviour
-      const sel = d3.select(`#node-group-${spawned.id}`).select("circle");
-      sel.attr("stroke", "black").attr("stroke-width", 3);
+        // Visual cue (black stroke) – mirror toggleFixed behaviour
+        const sel = d3.select(`#node-group-${spawned.id}`).select("circle");
+        sel.attr("stroke", "black").attr("stroke-width", 3);
 
-      simulation.alpha(0.5).restart();
+        simulation.alpha(0.5).restart();
+      }
+
+      // OLD MODE (timed drip), kept here for reference:
+      // setTimeout(next, intervalMs);
+
+      // Spawn the next as soon as this one has settled
+      next();
     }
 
-    // OLD MODE (timed drip), kept here for reference:
-    // setTimeout(next, intervalMs);
-
-    // Spawn the next as soon as this one has settled
-    next();
-  }
-
-  next();    // kick-off
+    next();    // kick-off
+  });
 }
 
 // ======== REMOVE ========================================================================================================
@@ -1456,6 +1463,9 @@ const SETTINGS_PARAMS = {
   background: "bgPreset",     // preset id, default first preset
   collision: "collision",     // 1 = on, 0 = off, default on
   spawn: "spawn",             // preset id to auto-start on load (e.g. ?spawn=power-all)
+  autoSvg: "autoSvg",         // 1 = auto-download SVG after auto-spawn completes
+  autoPng: "autoPng",         // 1 = auto-download PNG after auto-spawn completes
+  autoCsv: "autoCsv",         // 1 = auto-download CSV after auto-spawn completes
 };
 const urlParams = new URLSearchParams(window.location.search);
 
@@ -1640,6 +1650,9 @@ buildSpawnButtonsFromPresets();
 // Auto-start a spawn preset from URL (e.g. ?spawn=power-all)
 const spawnPresetId = urlParams.get(SETTINGS_PARAMS.spawn);
 if (spawnPresetId) {
+  const autoSvg = urlParams.get(SETTINGS_PARAMS.autoSvg) === "1";
+  const autoPng = urlParams.get(SETTINGS_PARAMS.autoPng) === "1";
+  const autoCsv = urlParams.get(SETTINGS_PARAMS.autoCsv) === "1";
   const preset = spawnPresets.find((p) => p.id === spawnPresetId);
   if (preset) {
     const nodes = getNodesForPreset(preset);
@@ -1660,7 +1673,18 @@ if (spawnPresetId) {
         windLayerStress,
         windLayerNetForceArrows,
         1000
-      );
+      ).then(() => {
+        // After auto-spawn finishes and all nodes have settled, trigger any requested auto-downloads.
+        if (autoSvg && typeof window.exportSquareSVG === "function") {
+          window.exportSquareSVG(getExportFilenameBase("svg"));
+        }
+        if (autoPng && typeof window.exportSquarePNG === "function") {
+          window.exportSquarePNG(getExportFilenameBase("png"), 4);
+        }
+        if (autoCsv && typeof window.exportMetricsCSV === "function") {
+          window.exportMetricsCSV(getExportFilenameBase("csv"), Datasets.nodes, scaleUnit);
+        }
+      });
     }
   }
 }
