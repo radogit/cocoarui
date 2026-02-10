@@ -49,6 +49,9 @@ svg {
   transition: opacity 0.5s ease;
 }
 
+.node-links {
+  opacity: 0.4;
+}
 .node-links .node-link {
   pointer-events: none;
 }

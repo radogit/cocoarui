@@ -175,6 +175,19 @@ export function createArrowheads(defs, colours) {
     .attr("d", "M0,0 L10,5 L0,10 Z")
     .attr("fill", "white");
 
+  // Generic black arrowhead (used for node-links)
+  arrowsContainer.append("marker")
+    .attr("id", "arrowhead-black")
+    .attr("viewBox", "0 0 10 10")
+    .attr("refX", 0)
+    .attr("refY", 5)
+    .attr("markerWidth", 4)
+    .attr("markerHeight", 4)
+    .attr("orient", "auto")
+    .append("path")
+    .attr("d", "M0,0 L10,5 L0,10 Z")
+    .attr("fill", "black");
+
   // Define gradients for each node's hotspots dynamically
   colours.forEach(colour => {
     arrowsContainer.append("marker")

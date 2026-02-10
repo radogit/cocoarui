@@ -1082,18 +1082,49 @@ function ticked() {
         const sel = linkLayer.selectAll("line.node-link")
           .data(linkData, (d) => d.key);
 
+          const marginStart = 30; // pixels to inset from start
+          const marginEnd = 50; // pixels to inset from end
+
         sel.join(
           enter => enter.append("line").attr("class", "node-link"),
           update => update,
           exit => exit.remove()
         )
-        .attr("x1", (d) => d.source.x)
-        .attr("y1", (d) => d.source.y)
-        .attr("x2", (d) => d.target.x)
-        .attr("y2", (d) => d.target.y)
-        .attr("stroke", "#444")
-        .attr("stroke-width", 2)
-        .attr("marker-end", "url(#arrowhead-white)");
+        .attr("x1", (d) => {
+          const dx = d.target.x - d.source.x;
+          const dy = d.target.y - d.source.y;
+          const len = Math.hypot(dx, dy) || 1;
+          const m = Math.min(marginStart, len / 2);
+          const f = m / len;
+          return d.source.x + dx * f;
+        })
+        .attr("y1", (d) => {
+          const dx = d.target.x - d.source.x;
+          const dy = d.target.y - d.source.y;
+          const len = Math.hypot(dx, dy) || 1;
+          const m = Math.min(marginStart, len / 2);
+          const f = m / len;
+          return d.source.y + dy * f;
+        })
+        .attr("x2", (d) => {
+          const dx = d.target.x - d.source.x;
+          const dy = d.target.y - d.source.y;
+          const len = Math.hypot(dx, dy) || 1;
+          const m = Math.min(marginEnd, len / 2);
+          const f = (len - m) / len;
+          return d.source.x + dx * f;
+        })
+        .attr("y2", (d) => {
+          const dx = d.target.x - d.source.x;
+          const dy = d.target.y - d.source.y;
+          const len = Math.hypot(dx, dy) || 1;
+          const m = Math.min(marginEnd, len / 2);
+          const f = (len - m) / len;
+          return d.source.y + dy * f;
+        })
+        .attr("stroke", "#000")
+        .attr("stroke-width", 10)
+        .attr("marker-end", "url(#arrowhead-black)");
       } else {
         linkLayer.selectAll("line.node-link").remove();
       }
