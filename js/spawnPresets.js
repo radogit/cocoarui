@@ -25,6 +25,12 @@ export const datasetSources = {
   KeepFree: Datasets.preppedNodesKeepFreeSamples,
 };
 
+/** Map sourceId -> { hotspotName: divisor }. Used to divide hotspot force by divisor; missing name = 1. */
+const sourceForceDivisor = {
+  PPA: DatasetsPPA.hotspotForceDivisor ?? {},
+  PPD: DatasetsPPD.hotspotForceDivisor ?? {},
+};
+
 /** Which spawn panel (container id) each source’s entries go into by default. */
 const sourceToPanelId = {
   Demo: "spawnButtonContainerDemoSamples",
@@ -266,6 +272,7 @@ export function getNodesForPreset(preset) {
     const entry = getEntry(sourceId, entryName);
     if (!entry || !Array.isArray(entry.nodes)) continue;
     const cloned = structuredClone(entry.nodes);
+    const forceDivisor = sourceForceDivisor[sourceId] ?? {};
     cloned.forEach((n) => {
       if (effectiveColour != null) n.color = effectiveColour;
       if (effectiveFill != null) n.fill = effectiveFill;
@@ -274,6 +281,7 @@ export function getNodesForPreset(preset) {
         // and what link labels should refer to.
         n.displayLabel = effectiveLabel;
       }
+      n.hotspotForceDivisor = forceDivisor;
     });
     nodes.push(...cloned);
   }

@@ -18,7 +18,8 @@ export function forceGaussianPreferredArea(strength, getNodeNodeCollisionEnabled
         const dy = hotspot.y - d.y;
         const distance = Math.sqrt(dx*dx + dy*dy);
         if (distance > 1) {
-          const f = Math.exp(-distance / hotspot.width) * strength * hotspot.intensityFactor;
+          const divisor = (d.hotspotForceDivisor?.[hotspot.name] ?? 1);
+          const f = (Math.exp(-distance / hotspot.width) * strength * hotspot.intensityFactor) / divisor;
           const fx = (hotspot.forceType === "attract") ? dx*f : -dx*f;
           const fy = (hotspot.forceType === "attract") ? dy*f : -dy*f;
 
