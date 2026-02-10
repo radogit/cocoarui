@@ -24,6 +24,10 @@ window.Datasets = Datasets;   // <-- makes Datasets visible in DevTools
 // "fixing" → fix node after it settles; "floating" → leave free.
 let sequenceMode = "fixing";
 
+// Explicit node-to-node links spawned from presets (by label), e.g. 1<-2, 1<-3
+// Each entry: { fromLabel: string, toLabel: string }
+let activeLinks = [];
+
 // Set up the logger
 setupLogger();
 
@@ -77,7 +81,7 @@ function getArrowheadId(color) {
 // ================================================================================================================
 
 // 1) Create the SVG, container
-const { svg, container, nodeLayer, hotspotLayer, windLayerCancel, windLayerStress, windLayerNetForceArrows, width, height, minDim, scaleUnit } = Drawing.createSvgAndContainer();
+const { svg, container, nodeLayer, hotspotLayer, linkLayer, windLayerCancel, windLayerStress, windLayerNetForceArrows, width, height, minDim, scaleUnit } = Drawing.createSvgAndContainer();
 // console.log("minDim " + minDim, "lime");
 console.log("scaleUnit " + scaleUnit, "lime");
 // console.log("width " + width, "lime");
@@ -861,6 +865,10 @@ function removeAllNodes() {
   console.log('removed all nodes.','red');
   // 1) Clear the array
   Datasets.nodes.splice(0, Datasets.nodes.length);
+  activeLinks = [];
+  if (linkLayer) {
+    linkLayer.selectAll("*").remove();
+  }
 
   // clear the wind-force groups
   document.getElementById(AppUI.showWindStress.DOMObjectString).innerHTML='';
@@ -1036,6 +1044,54 @@ function ticked() {
         }
       }
     });
+    // Update explicit node-to-node link arrows (spawn preset links)
+    if (linkLayer) {
+      if (activeLinks.length) {
+        const nodes = Datasets.nodes;
+        const labelToNode = new Map();
+        nodes.forEach((n) => {
+          const idKey = String(n.id);
+          if (!labelToNode.has(idKey)) {
+            labelToNode.set(idKey, n);
+          }
+          if (n.displayLabel != null) {
+            const lblKey = String(n.displayLabel);
+            if (!labelToNode.has(lblKey)) {
+              labelToNode.set(lblKey, n);
+            }
+          }
+        });
+        const linkData = activeLinks.map((link) => {
+          const source = labelToNode.get(String(link.fromLabel));
+          const target = labelToNode.get(String(link.toLabel));
+          if (!source || !target) return null;
+          return {
+            key: `${link.fromLabel}->${link.toLabel}`,
+            source,
+            target,
+          };
+        }).filter(Boolean);
+
+        const sel = linkLayer.selectAll("line.node-link")
+          .data(linkData, (d) => d.key);
+
+        sel.join(
+          enter => enter.append("line").attr("class", "node-link"),
+          update => update,
+          exit => exit.remove()
+        )
+        .attr("x1", (d) => d.source.x)
+        .attr("y1", (d) => d.source.y)
+        .attr("x2", (d) => d.target.x)
+        .attr("y2", (d) => d.target.y)
+        .attr("stroke", "#444")
+        .attr("stroke-width", 2)
+        .attr("marker-end", "url(#arrowhead-white)");
+      } else {
+        linkLayer.selectAll("line.node-link").remove();
+      }
+    }
+
     updateMetrics(Datasets.nodes, currentSpawnQueue);   //
 }
     
@@ -1527,6 +1583,10 @@ function buildSpawnButtonsFromPresets() {
     btn.addEventListener("click", () => {
       const nodes = getNodesForPreset(preset);
       if (!nodes.length) return;
+      // Accumulate any explicit node-to-node links defined on this preset
+      if (Array.isArray(preset.links) && preset.links.length) {
+        activeLinks.push(...preset.links);
+      }
       updateSettingsURLParam(SETTINGS_PARAMS.spawn, preset.id, "");
       dripSpawnSmart(
         nodes,

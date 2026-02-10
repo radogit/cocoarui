@@ -48,6 +48,11 @@ export function createSvgAndContainer() {
   .attr("class", "hotspot-layer")
   .attr("id", "hotspot-layer");
   
+  // Layer for explicit node-to-node links (spawn preset arrows)
+  const linkLayer = container.append("g")
+  .attr("class", "node-links")
+  .attr("id", "node-links");
+  
   const windLayerCancel = container.append("g")
   .attr("class", AppUI.showWindCancel.DOMObjectString)
   .attr("id", AppUI.showWindCancel.DOMObjectString)
@@ -68,7 +73,7 @@ export function createSvgAndContainer() {
   .attr("class", "node-layer")
   .attr("id", "node-layer");
 
-  return { svg, container, nodeLayer, hotspotLayer, windLayerCancel, windLayerStress, windLayerNetForceArrows, width, height, minDim, scaleUnit };
+  return { svg, container, nodeLayer, hotspotLayer, linkLayer, windLayerCancel, windLayerStress, windLayerNetForceArrows, width, height, minDim, scaleUnit };
 }
 
 export function createAxes(container, width, height, minDim) {
