@@ -376,8 +376,8 @@ function escapeCsvCell(value) {
 }
 
 /**
- * Export nodes as CSV with columns: id, x, y, Σ|F|, |ΣF|, cancel, vx, vy
- * (same as metrics panel). Uses scaleUnit to convert x/y to data coordinates.
+ * Export nodes as CSV with columns: entryName, nodeLabel, x, y, diameter, Σ|F|, |ΣF|, cancel, vx, vy.
+ * Uses scaleUnit to convert x/y/diameter to data coordinates.
  */
 window.exportMetricsCSV = function (filename = "bubblesMetrics.csv", nodes, scaleUnit) {
   if (!nodes || !nodes.length) {
@@ -385,15 +385,20 @@ window.exportMetricsCSV = function (filename = "bubblesMetrics.csv", nodes, scal
     return;
   }
 
-  const header = ["id", "x", "y", "Σ|F|", "|ΣF|", "cancel", "vx", "vy"];
+  const header = ["entryName", "nodeLabel", "x", "y", "diameter", "Σ|F|", "|ΣF|", "cancel", "vx", "vy"];
   const rows = nodes.map(d => {
     const m = computeNodeMetrics(d);
     const x = scaleUnit != null ? (d.x / scaleUnit).toFixed(0) : String(d.x);
     const y = scaleUnit != null ? (-d.y / scaleUnit).toFixed(0) : String(-d.y);
+    const diameter = scaleUnit != null ? (2 * (d.radius ?? 0) / scaleUnit).toFixed(0) : String(2 * (d.radius ?? 0));
+    const entryName = d.entryName ?? "";
+    const nodeLabel = d.displayLabel != null ? d.displayLabel : d.id;
     return [
-      d.id,
+      entryName,
+      nodeLabel,
       x,
       y,
+      diameter,
       m._sumF.toFixed(1),
       m._netF.toFixed(1),
       m._cancel.toFixed(1),

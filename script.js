@@ -102,7 +102,7 @@ const metPanel = d3.select("#metrics-panel")
                    .attr("class", "metrics");
 
 metPanel.append("thead").append("tr").selectAll("th")
-        .data(["id", "fix", "x", "y", "Σ|F|", "|ΣF|", "cancel", "vx", "vy"])
+        .data(["nodeLabel", "fix", "x", "y", "diameter", "Σ|F|", "|ΣF|", "cancel", "vx", "vy"])
         .enter().append("th")
         .text(d => d);
 
@@ -1172,21 +1172,23 @@ function updateMetrics(nodes, queue){
       .join(
         enter => enter.append("td").attr("class", "rowLabel").each(function(d) {
           const sel = d3.select(this);
+          const label = d.node.displayLabel != null ? d.node.displayLabel : d.node.id;
           if (d.isQueued) {
-            sel.html(`<span class="name">${d.node.id}</span><span class="queued-badge" title="Awaiting introduction">pending</span>`);
+            sel.html(`<span class="name">${label}</span><span class="queued-badge" title="Awaiting introduction">pending</span>`);
           } else {
             sel.html(`
-              <span class="name">${d.node.id}</span>
+              <span class="name">${label}</span>
               <button class="remove-btn" title="Delete ${d.node.id}" data-id="${d.node.id}">✕</button>`);
           }
         }),
         update => update.each(function(d) {
           const sel = d3.select(this);
+          const label = d.node.displayLabel != null ? d.node.displayLabel : d.node.id;
           if (d.isQueued) {
-            sel.html(`<span class="name">${d.node.id}</span><span class="queued-badge" title="Awaiting introduction">pending</span>`);
+            sel.html(`<span class="name">${label}</span><span class="queued-badge" title="Awaiting introduction">pending</span>`);
           } else {
             sel.html(`
-              <span class="name">${d.node.id}</span>
+              <span class="name">${label}</span>
               <button class="remove-btn" title="Delete ${d.node.id}" data-id="${d.node.id}">✕</button>`);
           }
         })
@@ -1223,13 +1225,14 @@ function updateMetrics(nodes, queue){
         })
       );
 
-  /*──────────────────────  numeric metric cells (7 of them)  ───────────────*/
+  /*──────────────────────  numeric metric cells (8: x, y, diameter, sum, net, cancel, vx, vy)  ─────*/
   rows.selectAll("td.metric")
       .data(d => d.isQueued
-        ? ["—", "—", "—", "—", "—", "—", "—"]
+        ? ["—", "—", "—", "—", "—", "—", "—", "—"]
         : [
             (d.node.x/scaleUnit).toFixed(0),
             (-d.node.y/scaleUnit).toFixed(0),
+            (2 * (d.node.radius ?? 0) / scaleUnit).toFixed(0),
             d.node._sumF  .toFixed(0),
             d.node._netF  .toFixed(0),
             d.node._cancel.toFixed(0),
@@ -1244,8 +1247,8 @@ function updateMetrics(nodes, queue){
   /*──────────────────────────────  FOOTER  Σ and μ  ────────────────────────*/
   const {sum, avg} = summarise(nodes);
   const footData = [
-    ["Σ", null, null, null, sum.sumF,sum.netF,sum.cancel, sum.vx,sum.vy],
-    ["μ", null, null, null, avg.sumF,avg.netF,avg.cancel, avg.vx,avg.vy]
+    ["Σ", null, null, null, 2 * sum.radius / scaleUnit, sum.sumF,sum.netF,sum.cancel, sum.vx,sum.vy],
+    ["μ", null, null, null, 2 * avg.radius / scaleUnit, avg.sumF,avg.netF,avg.cancel, avg.vx,avg.vy]
   ];
 
   const footRows = tfoot.selectAll("tr")
@@ -1291,10 +1294,11 @@ function handleLeave() {
 
 function summarise(nodes){
   const n = nodes.length || 1;                         // avoid /0
-  const sum = {x:0,y:0,sumF:0,netF:0,cancel:0,vx:0,vy:0};
+  const sum = {x:0,y:0,radius:0,sumF:0,netF:0,cancel:0,vx:0,vy:0};
   nodes.forEach(d=>{
     sum.x      += d.x;
     sum.y      += d.y;
+    sum.radius += d.radius ?? 0;
     sum.sumF   += d._sumF;
     sum.netF   += d._netF;
     sum.cancel += d._cancel;

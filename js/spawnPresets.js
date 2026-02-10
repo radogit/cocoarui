@@ -331,6 +331,7 @@ export function getNodesForPreset(preset) {
         // and what link labels should refer to.
         n.displayLabel = effectiveLabel;
       }
+      n.entryName = entryName;
       n.hotspotForceDivisor = forceDivisor;
       const hardcoded = n.radius;
       const calculated = radiusFromHotspots(n);
