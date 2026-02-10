@@ -179,9 +179,14 @@ function buildOrUpdateNodes(container, nodes) {
             .on("dblclick", toggleFixed)
             .on("mouseenter", function(event, d) {
               tbody.select(`tr[data-id="${d.id}"]`).classed("row-highlight-from-canvas", true);
+              // Highlight this node's observations, dim others
+              hotspotLayer.selectAll(".hotspot-group").attr("opacity", 0.15);
+              d3.select(`#hotspot-group-${d.id}`).attr("opacity", 1);
             })
             .on("mouseleave", function(event, d) {
               tbody.select(`tr[data-id="${d.id}"]`).classed("row-highlight-from-canvas", false);
+              // Restore all observations to default opacity
+              hotspotLayer.selectAll(".hotspot-group").attr("opacity", 0.3);
             })
             .call(d3.drag()
               .on("start", dragStart)
@@ -212,8 +217,6 @@ function buildOrUpdateNodes(container, nodes) {
               if (targetElement) { targetElement.setAttribute("opacity", 0.6); }
               targetElement = document.getElementById("spawn-cand-netForceArrow-" + d.id);
               if (targetElement) { targetElement.setAttribute("opacity", 0.6); }
-              targetElement = document.getElementById("hotspot-group-" + d.id);
-              if (targetElement) { targetElement.setAttribute("opacity", 0.6); }
               targetElement = document.getElementById("node-relations-" + d.id);
               if (targetElement) { targetElement.classList.add("node-relation-hover");}
             })
@@ -224,8 +227,6 @@ function buildOrUpdateNodes(container, nodes) {
               if (targetElement) { targetElement.setAttribute("opacity", "0"); }
               targetElement = document.getElementById("spawn-cand-netForceArrow-" + d.id);
               if (targetElement) { targetElement.setAttribute("opacity", "0"); }
-              targetElement = document.getElementById("hotspot-group-" + d.id);
-              if (targetElement) { targetElement.setAttribute("opacity", "0.2"); }
               targetElement = document.getElementById("node-relations-" + d.id);
               if (targetElement) { targetElement.classList.remove("node-relation-hover"); }
             });
@@ -380,8 +381,8 @@ async function addOneSmart(){
       width, height, defs,
       windLayerCancel, windLayerStress, windLayerNetForceArrows,
       /* ticks   */ 80,
-      /* cols    */ 20,
-      /* rows    */ 20
+      /* cols    */ 18,
+      /* rows    */ 18
   );
   // redraw DOM
   Heatmaps.buildHeatspotRects(hotspotLayer, Datasets.nodes, defs);
@@ -405,17 +406,17 @@ async function addOneSmart(){
  * @param {d3.Selection} windLayerCancel  <g> used for debug crumbs
  * @param {d3.Selection} windLayerStress  <g> used for debug crumbs
  * @param {d3.Selection} windLayerNetForceArrows  <g> used for debug crumbs
- * @param {Number} ticks         mini–ticks per candidate   (default 30)
- * @param {Number} gridCols      lattice columns            (default 5)
- * @param {Number} gridRows      lattice rows               (default 5)
+ * @param {Number} ticks         mini–ticks per candidate   (default 80)
+ * @param {Number} gridCols      lattice columns            (default 18)
+ * @param {Number} gridRows      lattice rows               (default 18)
  */
 export async function addNodeWithMultistartVisual(
   nodes, template, simulation,
   width, height, defs, 
   windLayerCancel, windLayerStress, windLayerNetForceArrows,
   ticks      = 80,
-  gridCols   = 20,
-  gridRows   = 20
+  gridCols   = 18,
+  gridRows   = 18
 ){
 
   const snapshot = nodes.map(n=>({x:n.x,y:n.y,vx:n.vx,vy:n.vy}));
@@ -790,8 +791,8 @@ export async function dripSpawnSmart(
       width, height, defs,
       windCancelLayer, windStressLayer, windNetLayer,
       /* ticks  */ 80,
-      /* cols   */ 20,
-      /* rows   */ 20
+      /* cols   */ 18,
+      /* rows   */ 18
     );
 
     // --- refresh DOM / forces --------------------------------------------
@@ -1176,7 +1177,10 @@ function handleEnter() {
   d3.select(`#node-group-${id} .highlight-circle`)
     .classed("hidden", false)
     .classed("haloSpin", true)
-    ;                       
+    ;
+  // Highlight this node's observations, dim others (same as canvas hover)
+  hotspotLayer.selectAll(".hotspot-group").attr("opacity", 0.15);
+  d3.select(`#hotspot-group-${id}`).attr("opacity", 1);
 }
 
 function handleLeave() {
@@ -1185,6 +1189,8 @@ function handleLeave() {
     .classed("hidden", true)
     .classed("haloSpin", false)
     ;
+  // Restore all observations to default opacity
+  hotspotLayer.selectAll(".hotspot-group").attr("opacity", 0.3);
 }
 
 function summarise(nodes){
@@ -1509,7 +1515,14 @@ function buildSpawnButtonsFromPresets() {
     const btn = document.createElement("button");
     btn.textContent = preset.label;
     btn.id = `spawnButton-${preset.id}`;
-    btn.style.backgroundColor = preset.uiButtonColour || "#ddd";
+    const baseColour = preset.uiButtonColour || "#ddd";
+    if (preset.nodeFill && String(preset.nodeFill).includes("hatch")) {
+      btn.classList.add("spawn-btn-hatch");
+      btn.style.setProperty("--spawn-btn-hatch-color", baseColour);
+      btn.style.backgroundColor = baseColour;
+    } else {
+      btn.style.backgroundColor = baseColour;
+    }
 
     btn.addEventListener("click", () => {
       const nodes = getNodesForPreset(preset);

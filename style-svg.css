@@ -19,6 +19,10 @@ svg {
   opacity: 1;
   text-anchor: middle;
 }
+.graph-label {
+  font-size: 7px;
+  font-weight: initial;
+}
 
 .id-label {
   fill: white;
