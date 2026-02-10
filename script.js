@@ -1029,75 +1029,112 @@ function ticked() {
         }
       }
     });
-    updateMetrics(Datasets.nodes);   //
+    updateMetrics(Datasets.nodes, currentSpawnQueue);   //
 }
     
 let lastMetricsUpdate = 0;
-function updateMetrics(nodes){
+function updateMetrics(nodes, queue){
+  queue = queue || [];
+  const combined = [
+    ...nodes.map(d => ({ key: d.id, isQueued: false, node: d })),
+    ...queue.map((d, i) => ({ key: "queue-" + i, isQueued: true, node: d }))
+  ];
+
   /*────────────────────────────────────────  ROWS  ─────────────────────────*/
   const rows = tbody.selectAll("tr")
-      .data(nodes, d => d.id)
+      .data(combined, d => d.key)
       .join("tr")
-        .attr("data-id", d => d.id)
+        .attr("data-id", d => d.node.id)
+        .classed("metrics-row-queued", d => d.isQueued)
         .on("mouseenter", handleEnter)
         .on("mouseleave", handleLeave);
 
-  /*────────────────────────────────  (re)compute metrics  ──────────────────*/
+  /*────────────────────────────────  (re)compute metrics (active only)  ────*/
   rows.each(d => {
-    const F   = d.forces ?? [];
+    if (d.isQueued) return;
+    const n = d.node;
+    const F   = n.forces ?? [];
     const sum = F.reduce((s,f)=>s + Math.hypot(f.fx,f.fy), 0);
     const netx= F.reduce((s,f)=>s + f.fx, 0);
     const nety= F.reduce((s,f)=>s + f.fy, 0);
     const net = Math.hypot(netx, nety);
-
-    d._sumF   = sum;
-    d._netF   = net;
-    d._cancel = sum - net;
+    n._sumF   = sum;
+    n._netF   = net;
+    n._cancel = sum - net;
   });
 
-  /*────────────────────── first cell  (label + remove-btn) ─────────────────*/
+  /*────────────────────── first cell  (label + remove-btn or pending)  ─────*/
   rows.selectAll("td.rowLabel")
-      .data(d => [d])                      // one cell per row
+      .data(d => [d])
       .join(
-        enter => enter.append("td").attr("class","rowLabel")
-                       .html(d => `
-         <span class="name">${d.id}</span>
-         <button class="remove-btn"
-                 title="Delete ${d.id}"
-                 data-id="${d.id}">✕</button>`),
-        update => update                   // nothing dynamic inside
+        enter => enter.append("td").attr("class", "rowLabel").each(function(d) {
+          const sel = d3.select(this);
+          if (d.isQueued) {
+            sel.html(`<span class="name">${d.node.id}</span><span class="queued-badge" title="Awaiting introduction">pending</span>`);
+          } else {
+            sel.html(`
+              <span class="name">${d.node.id}</span>
+              <button class="remove-btn" title="Delete ${d.node.id}" data-id="${d.node.id}">✕</button>`);
+          }
+        }),
+        update => update.each(function(d) {
+          const sel = d3.select(this);
+          if (d.isQueued) {
+            sel.html(`<span class="name">${d.node.id}</span><span class="queued-badge" title="Awaiting introduction">pending</span>`);
+          } else {
+            sel.html(`
+              <span class="name">${d.node.id}</span>
+              <button class="remove-btn" title="Delete ${d.node.id}" data-id="${d.node.id}">✕</button>`);
+          }
+        })
       );
 
   /*──────────────────────  fixed checkbox cell  ────────────────────────────*/
   rows.selectAll("td.fixed-cell")
       .data(d => [d])
       .join(
-        enter => enter.append("td").attr("class", "fixed-cell")
-          .append("label").attr("class", "fixed-checkbox-label")
-          .append("input")
-          .attr("type", "checkbox")
-          .attr("title", "Fix/unfix node position")
-          .property("checked", d => d.isFixed)
-          .on("change", function(event, d) {
-            event.stopPropagation();
-            setNodeFixed(d, this.checked);
-          }),
-        update => update.select("input").property("checked", d => d.isFixed)
+        enter => enter.append("td").attr("class", "fixed-cell").each(function(d) {
+          const sel = d3.select(this);
+          if (d.isQueued) {
+            sel.text("—").classed("metric-pending", true);
+          } else {
+            sel.append("label").attr("class", "fixed-checkbox-label")
+              .append("input").attr("type", "checkbox")
+              .attr("title", "Fix/unfix node position")
+              .property("checked", d => d.node.isFixed)
+              .on("change", function(event, rowD) {
+                event.stopPropagation();
+                setNodeFixed(rowD.node, this.checked);
+              });
+          }
+        }),
+        update => update.each(function(d) {
+          const sel = d3.select(this);
+          if (d.isQueued) {
+            sel.text("—").classed("metric-pending", true);
+            sel.selectAll("label").remove();
+          } else {
+            sel.classed("metric-pending", false);
+            sel.select("input").property("checked", d.node.isFixed);
+          }
+        })
       );
 
   /*──────────────────────  numeric metric cells (7 of them)  ───────────────*/
   rows.selectAll("td.metric")
-      .data(d => [
-        (d.x/scaleUnit).toFixed(0),
-        (-d.y/scaleUnit).toFixed(0),
-        d._sumF  .toFixed(0),
-        d._netF  .toFixed(0),
-        d._cancel.toFixed(0),
-        d.vx .toFixed(0),
-        d.vy .toFixed(0)
-      ])
+      .data(d => d.isQueued
+        ? ["—", "—", "—", "—", "—", "—", "—"]
+        : [
+            (d.node.x/scaleUnit).toFixed(0),
+            (-d.node.y/scaleUnit).toFixed(0),
+            d.node._sumF  .toFixed(0),
+            d.node._netF  .toFixed(0),
+            d.node._cancel.toFixed(0),
+            d.node.vx .toFixed(0),
+            d.node.vy .toFixed(0)
+          ])
       .join(
-        enter  => enter.append("td").attr("class","metric").text(t => t),
+        enter => enter.append("td").attr("class", "metric").text(t => t),
         update => update.text(t => t)
       );
 

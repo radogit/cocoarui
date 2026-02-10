@@ -239,6 +239,23 @@ table.metrics thead {
   background: #ffffaa !important;
 }
 
+.metrics tr.metrics-row-queued {
+  background: #e8e8e8;
+  color: #666;
+}
+.metrics tr.metrics-row-queued:hover {
+  background: #e0e0e0 !important;
+}
+.metrics .queued-badge {
+  font-size: 0.85em;
+  color: #888;
+  margin-left: 4px;
+}
+.metrics td.metric-pending {
+  color: #999;
+  font-style: italic;
+}
+
 .metrics tfoot tr:first-child {
   border-top: 2px solid;
 }
