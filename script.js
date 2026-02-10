@@ -1309,19 +1309,50 @@ document.getElementById("removeAllButton").addEventListener("click", () => {
   updateSettingsURLParam(SETTINGS_PARAMS.spawn, "", "");
 });
 document.getElementById("addOneSmartButton").addEventListener("click", addOneSmart);
+/** Build export filename base: YYYYMMDD-HHMM_<param values> (values only, underscore-separated, fixed order). */
+function getExportFilenameBase(extension) {
+  const now = new Date();
+  const datePart = now.getFullYear() +
+    String(now.getMonth() + 1).padStart(2, "0") +
+    String(now.getDate()).padStart(2, "0") + "-" +
+    String(now.getHours()).padStart(2, "0") +
+    String(now.getMinutes()).padStart(2, "0");
+  const params = new URLSearchParams(window.location.search);
+  const collisionVal = params.get(SETTINGS_PARAMS.collision);
+  const collisionStr = (collisionVal === "0" || collisionVal === "false") ? "nocol" : "col";
+  const sequenceStr = params.get(SETTINGS_PARAMS.sequence) || sequenceMode;
+  const spawnStr = params.get(SETTINGS_PARAMS.spawn) || "-";
+  const bgStr = params.get(SETTINGS_PARAMS.background) || "-";
+
+  const parts = [datePart, spawnStr, collisionStr, sequenceStr];
+  const viewToggles = [
+    AppUI.showNodeLabel, AppUI.showCoordinates, AppUI.showForceArrows, AppUI.showForceArrowsLabels,
+    AppUI.showObservations, AppUI.showNodeLines, AppUI.showBackground, AppUI.showWindStress, AppUI.showWindNetForceArrows,
+    AppUI.showCircles, AppUI.showNodeIcon, AppUI.showAxis, AppUI.showHorizontalGrid, AppUI.showVerticalGrid
+  ];
+  viewToggles.forEach((setting) => {
+    const str = setting.boolState ? (setting.filenameStringOn ?? "") : (setting.filenameStringOff ?? "");
+    if (!str) return;
+    if (str === "__bg__") { if (bgStr) parts.push(bgStr); return; }
+    parts.push(str);
+  });
+  const base = parts.join("_");
+  return extension ? `${base}.${extension.replace(/^\./, "")}` : base;
+}
+
 document.getElementById("downloadSVGButton")
   .addEventListener("click", () => {
-    exportSquareSVG("bubblesExportFigure.svg");
+    exportSquareSVG(getExportFilenameBase("svg"));
   });
 
 document.getElementById("downloadPNGButton")
   .addEventListener("click", () => {
-    exportSquarePNG("bubblesExportFigure.png", 4);
+    exportSquarePNG(getExportFilenameBase("png"), 4);
   });
 
 document.getElementById("downloadCSVButton")
   .addEventListener("click", () => {
-    exportMetricsCSV("bubblesMetrics.csv", Datasets.nodes, scaleUnit);
+    exportMetricsCSV(getExportFilenameBase("csv"), Datasets.nodes, scaleUnit);
   });
 
 // View panel: clickable caret in header (same as KeyV)
