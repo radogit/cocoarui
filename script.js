@@ -90,6 +90,20 @@ console.log("scaleUnit " + scaleUnit, "lime");
 const metricsBody = d3.select("#metrics-panel tbody");
 /** Opacity of other nodes' hotspot groups when hovering a node or its metrics row. Lower = more dimmed. */
 const HOTSPOT_OPACITY_OTHERS_ON_HOVER = 0.06;
+
+/** If node label starts with "rado-Simple Interactable(Clone)-", format as VR.{participant}.{firstSegment} e.g. VR.088.7; else return as-is. */
+function formatNodeLabel(label) {
+  if (label == null || typeof label !== "string") return label;
+  const prefix = "rado-Simple Interactable(Clone)-";
+  if (!label.startsWith(prefix)) return label;
+  const rest = label.slice(prefix.length);
+  const parts = rest.split("-");
+  const firstSegment = parts[0] ?? "";
+  const participantMatch = rest.match(/participant(\d+)/i);
+  const participantNum = participantMatch ? String(participantMatch[1]).padStart(3, "0") : "???";
+  return `VR.${participantNum}.${firstSegment}`;
+}
+
 const COLS = [
   { key:"id",     fmt:d=>d.id                     },
   { key:"sum",    fmt:d=>d._sumF.toFixed(1)       },
@@ -262,7 +276,7 @@ function buildOrUpdateNodes(container, nodes) {
           // append ID label (centered in circle; wraps to 2 lines, font scales to fit radius; use d.displayLabel if set e.g. from spawn preset)
           g.each(function(d) {
             const raw = d.displayLabel != null ? String(d.displayLabel) : (typeof d.id === "string" ? d.id : String(d.id));
-            const label = raw;
+            const label = formatNodeLabel(raw);
             const maxWidth = 2 * d.radius * 0.85;
             const split = splitLabelIntoTwoLines(label);
             const lines = split.length > 1 ? split : [label];
@@ -1172,7 +1186,8 @@ function updateMetrics(nodes, queue){
       .join(
         enter => enter.append("td").attr("class", "rowLabel").each(function(d) {
           const sel = d3.select(this);
-          const label = d.node.displayLabel != null ? d.node.displayLabel : d.node.id;
+          const raw = d.node.displayLabel != null ? d.node.displayLabel : d.node.id;
+          const label = formatNodeLabel(raw);
           if (d.isQueued) {
             sel.html(`<span class="name">${label}</span><span class="queued-badge" title="Awaiting introduction">pending</span>`);
           } else {
@@ -1183,7 +1198,8 @@ function updateMetrics(nodes, queue){
         }),
         update => update.each(function(d) {
           const sel = d3.select(this);
-          const label = d.node.displayLabel != null ? d.node.displayLabel : d.node.id;
+          const raw = d.node.displayLabel != null ? d.node.displayLabel : d.node.id;
+          const label = formatNodeLabel(raw);
           if (d.isQueued) {
             sel.html(`<span class="name">${label}</span><span class="queued-badge" title="Awaiting introduction">pending</span>`);
           } else {

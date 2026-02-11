@@ -35,8 +35,39 @@ export function createHeatmapGradients(defs, nodes, colours) {
 }
 
 /**
+ * Format observation name for hotspot label: VR-style ids → "VR.088.7"; others → "PP." + name.
+ */
+function formatHotspotName(name) {
+  if (name == null) return "";
+  const s = String(name);
+  const prefix = "rado-Simple Interactable(Clone)-";
+  if (!s.startsWith(prefix)) return "PP." + s;
+  const rest = s.slice(prefix.length);
+  const parts = rest.split("-");
+  const firstSegment = parts[0] ?? "";
+  const participantMatch = rest.match(/participant(\d+)/i);
+  const participantNum = participantMatch ? String(participantMatch[1]).padStart(3, "0") : "???";
+  return `VR.${participantNum}.${firstSegment}`;
+}
+
+/**
+ * Format effective impact (intensityFactor/divisor) for display on hotspot.
+ * divisor === 1: show number only, no brackets; integer without decimals.
+ * Otherwise: "value (a/b)" e.g. "0.22 (2/11)"; integer value without decimals.
+ */
+function formatHotspotImpact(intensityFactor, divisor) {
+  const ifactor = intensityFactor ?? 1;
+  if (divisor === 0) return "0";
+  const impact = divisor === 1 ? ifactor : ifactor / divisor;
+  if (divisor === 1) return Number.isInteger(impact) ? String(impact) : String(impact);
+  const frac = `${ifactor}/${divisor}`;
+  return Number.isInteger(impact) ? `${impact} (${frac})` : `${impact.toFixed(2)} (${frac})`;
+}
+
+/**
  * Builds hotspot rectangles for each node, placing them in a `<g.hotspot-group>` 
  * with `<rect>` elements inside that group.
+ * Each rect gets two labels: top-left = observation name, bottom-right = impact (intensityFactor/divisor).
  * 
  * @param {d3.Selection} container The main <g> container for your simulation.
  * @param {Array} nodes The array of node objects, each with .hotspots array
@@ -90,10 +121,40 @@ export function buildHeatspotRects(container, nodes, defs){
         .attr("fill", d => ensureColourGradient(defs, d.color))  // Correctly associate hotspot with node's gradient
         .style("stroke", d=>d.color)        // Thin black border
         .style("stroke-width", 2)        // Border thickness
-        //.style("stroke-dasharray", "4,2") // Dashed border (4px dash, 2px space)    
-        //.style("opacity", 0.3)
     ;
-    
+
+    const labelInset = 2;
+    // Top-left: observation name (e.g. "387.6"); fill = node color (same as rect border)
+    hotspotGroups.selectAll("text.hotspot-label-name")
+        .data(d => d.hotspots)
+        .join("text")
+        .attr("class", "hotspot-label-name")
+        .attr("x", d => d.x - d.width / 2 + labelInset)
+        .attr("y", d => d.y - d.height / 2 + labelInset)
+        .attr("text-anchor", "start")
+        .attr("dominant-baseline", "hanging")
+        .style("pointer-events", "none")
+        .style("font-size", "10px")
+        .attr("fill", (d, i, nodes) => d3.select(nodes[i].parentNode).datum().color)
+        .text(d => formatHotspotName(d.name));
+
+    // Bottom-right: impact = intensityFactor/divisor (e.g. "0.22 (2/11)" or "1"); fill = node color
+    hotspotGroups.selectAll("text.hotspot-label-impact")
+        .data(d => d.hotspots)
+        .join("text")
+        .attr("class", "hotspot-label-impact")
+        .attr("x", d => d.x + d.width / 2 - labelInset)
+        .attr("y", d => d.y + d.height / 2 - labelInset)
+        .attr("text-anchor", "end")
+        .attr("dominant-baseline", "auto")
+        .style("pointer-events", "none")
+        .style("font-size", "10px")
+        .attr("fill", (d, i, nodes) => d3.select(nodes[i].parentNode).datum().color)
+        .text((d, i, nodes) => {
+            const node = d3.select(nodes[i].parentNode).datum();
+            const divisor = (node.hotspotForceDivisor && node.hotspotForceDivisor[d.name]) ?? 1;
+            return formatHotspotImpact(d.intensityFactor, divisor);
+        });
 }
 
 /**
