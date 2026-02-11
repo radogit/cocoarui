@@ -34,6 +34,37 @@ This is a D3.js app.
 - **Coordinate scaling**: `scaleUnit = minDim/180`; used to convert between data coordinates and pixel space. Y-axis is flipped (positive Y is up in data space).
 - **Resize handling**: `onResize()` updates SVG to full window dimensions and scales the container uniformly to maintain the same logical data extent.
 
+### App notes: Node radius and hotspot forces
+
+**Radius calculation (spawn presets)**  
+Node radius is computed in `js/spawnPresets.js` (`radiusFromHotspots`) when building nodes for a preset. It is **area-based with split attribution** so that rectangles shared by multiple data types contribute only a fraction of their area to each type:
+
+1. **Per-rectangle effective area**  
+   For each hotspot (rectangle):  
+   - `divisor` = lookup in `hotspotForceDivisor[hotspot.name]` for that dataset (or 1 if missing). If `divisor === 0`, the rectangle contributes 0.  
+   - Fraction = `intensityFactor / divisor` (e.g. 2/7 if this type is “2 out of 7” in the rectangle). `intensityFactor` defaults to 1 if missing.  
+   - **effectiveArea** = fraction × width × height.
+
+2. **Average**  
+   `avgArea` = mean of these effective areas over all hotspots of the node.
+
+3. **Equivalent circle**  
+   `radius = sqrt(avgArea / π)` so the circle has the same area as the averaged effective area.
+
+So rectangles are split by type (intensityFactor/divisor), averaged, then converted to one circle via area. No hotspots → radius 0.
+
+**Hotspot forces**  
+In `js/forces.js`, **Gaussian hotspot force** (`forceGaussianPreferredArea`) pulls (or pushes) each node toward its hotspots:
+
+- **Force magnitude** (per hotspot):  
+  `f = exp(-distance / hotspot.width) * strength * hotspot.intensityFactor / divisor`  
+  - `divisor` = `node.hotspotForceDivisor[hotspot.name] ?? 1` (same per-dataset lookup as radius).  
+  - `intensityFactor` is the hotspot’s own field (default 1).  
+- So both **intensityFactor** and **divisor** scale the force: intensityFactor boosts it, divisor (e.g. “how many types share this rect”) reduces it, matching the idea that a rectangle shared 2/7 ways contributes 2/7 of its “pull” for this type.
+- Direction is along the vector from node to hotspot; `forceType === "attract"` uses that direction, otherwise the opposite.
+
+Collision and repulsion in the simulation use **radius** (e.g. `d.radius + collisionMargin`) for when nodes touch; their strength is constant or significance-based, not area-based.
+
 ### Implementation Preferences & Conventions
 
 - **Prefer explicit D3 scales & joins**: Use explicit `d3.scale*` and `selection.data(...).join(...)` where appropriate; avoid opaque helper abstractions that hide the data binding.

@@ -86,10 +86,10 @@ function buildPresetsFromSources() {
 const combinedPresets = [
     { id: "power-all", label: "Power (PPD+PPA & VR1-VR4)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ddd",
       links: [
-        { fromLabel: "PPD", toLabel: "VR2", color: "cyan" },
-        { fromLabel: "VR1", toLabel: "VR2", color: "cyan" },
-        { fromLabel: "PPA", toLabel: "VR4", color: "magenta" },
-        { fromLabel: "VR3", toLabel: "VR4", color: "magenta" }
+        // { fromLabel: "PPD", toLabel: "VR2", color: "cyan" },
+        // { fromLabel: "VR1", toLabel: "VR2", color: "cyan" },
+        // { fromLabel: "PPA", toLabel: "VR4", color: "magenta" },
+        // { fromLabel: "VR3", toLabel: "VR4", color: "magenta" }
       ],
       entries: [
         { sourceId: "PPD", entryName: "Power-PP-descent", nodeColour: "#00f", nodeLabel: "PPD" },
@@ -102,10 +102,10 @@ const combinedPresets = [
     },
     { id: "distance-all", label: "Distance (PPD+PPA & VR1-VR4)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ddd",
       links: [
-        { fromLabel: "PPD", toLabel: "VR2", color: "cyan" },
-        { fromLabel: "VR1", toLabel: "VR2", color: "cyan" },
-        { fromLabel: "PPA", toLabel: "VR4", color: "magenta" },
-        { fromLabel: "VR3", toLabel: "VR4", color: "magenta" }
+        // { fromLabel: "PPD", toLabel: "VR2", color: "cyan" },
+        // { fromLabel: "VR1", toLabel: "VR2", color: "cyan" },
+        // { fromLabel: "PPA", toLabel: "VR4", color: "magenta" },
+        // { fromLabel: "VR3", toLabel: "VR4", color: "magenta" }
       ],
       entries: [
         { sourceId: "PPD", entryName: "Distance-PP-descent", nodeColour: "#00f", nodeLabel: "PPD" },
@@ -118,10 +118,10 @@ const combinedPresets = [
     },
     { id: "navigation-all", label: "Navigation (PPD+PPA & VR1-VR4)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ddd",
       links: [
-        { fromLabel: "PPD", toLabel: "VR2", color: "cyan" },
-        { fromLabel: "VR1", toLabel: "VR2", color: "cyan" },
-        { fromLabel: "PPA", toLabel: "VR4", color: "magenta" },
-        { fromLabel: "VR3", toLabel: "VR4", color: "magenta" }
+        // { fromLabel: "PPD", toLabel: "VR2", color: "cyan" },
+        // { fromLabel: "VR1", toLabel: "VR2", color: "cyan" },
+        // { fromLabel: "PPA", toLabel: "VR4", color: "magenta" },
+        // { fromLabel: "VR3", toLabel: "VR4", color: "magenta" }
       ],
       entries: [
         { sourceId: "PPD", entryName: "Navigation-PP-descent", nodeColour: "#00f", nodeLabel: "PPD" },
@@ -134,10 +134,10 @@ const combinedPresets = [
     },
     { id: "heartrate-all", label: "Heartrate (PPD+PPA & VR1-VR4)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ddd",
       links: [
-        { fromLabel: "PPD", toLabel: "VR2", color: "cyan" },
-        { fromLabel: "VR1", toLabel: "VR2", color: "cyan" },
-        { fromLabel: "PPA", toLabel: "VR4", color: "magenta" },
-        { fromLabel: "VR3", toLabel: "VR4", color: "magenta" }
+        // { fromLabel: "PPD", toLabel: "VR2", color: "cyan" },
+        // { fromLabel: "VR1", toLabel: "VR2", color: "cyan" },
+        // { fromLabel: "PPA", toLabel: "VR4", color: "magenta" },
+        // { fromLabel: "VR3", toLabel: "VR4", color: "magenta" }
       ],
       entries: [
         { sourceId: "PPD", entryName: "Heartrate-PP-descent", nodeColour: "#00f", nodeLabel: "PPD" },
@@ -150,10 +150,10 @@ const combinedPresets = [
     },
     { id: "speed-all", label: "Speed (PPD+PPA & VR1-VR4)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ddd",
       links: [
-        { fromLabel: "PPD", toLabel: "VR2", color: "cyan" },
-        { fromLabel: "VR1", toLabel: "VR2", color: "cyan" },
-        { fromLabel: "PPA", toLabel: "VR4", color: "magenta" },
-        { fromLabel: "VR3", toLabel: "VR4", color: "magenta" }
+        // { fromLabel: "PPD", toLabel: "VR2", color: "cyan" },
+        // { fromLabel: "VR1", toLabel: "VR2", color: "cyan" },
+        // { fromLabel: "PPA", toLabel: "VR4", color: "magenta" },
+        // { fromLabel: "VR3", toLabel: "VR4", color: "magenta" }
       ],
       entries: [
         { sourceId: "PPD", entryName: "Speed-PP-descent", nodeColour: "#00f", nodeLabel: "PPD" },
@@ -166,10 +166,10 @@ const combinedPresets = [
     },
     { id: "gradient-all", label: "Gradient (PPD+PPA & VR1-VR4)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ddd",
       links: [
-        { fromLabel: "PPD", toLabel: "VR2", color: "cyan" },
-        { fromLabel: "VR1", toLabel: "VR2", color: "cyan" },
-        { fromLabel: "PPA", toLabel: "VR4", color: "magenta" },
-        { fromLabel: "VR3", toLabel: "VR4", color: "magenta" }
+        // { fromLabel: "PPD", toLabel: "VR2", color: "cyan" },
+        // { fromLabel: "VR1", toLabel: "VR2", color: "cyan" },
+        // { fromLabel: "PPA", toLabel: "VR4", color: "magenta" },
+        // { fromLabel: "VR3", toLabel: "VR4", color: "magenta" }
       ],
       entries: [
         { sourceId: "PPD", entryName: "Gradient-PP-descent", nodeColour: "#00f", nodeLabel: "PPD" },
@@ -182,10 +182,10 @@ const combinedPresets = [
     },
     { id: "time-all", label: "Time (PPD+PPA & VR1-VR4)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ddd",
       links: [
-        { fromLabel: "PPD", toLabel: "VR2", color: "cyan" },
-        { fromLabel: "VR1", toLabel: "VR2", color: "cyan" },
-        { fromLabel: "PPA", toLabel: "VR4", color: "magenta" },
-        { fromLabel: "VR3", toLabel: "VR4", color: "magenta" }
+        // { fromLabel: "PPD", toLabel: "VR2", color: "cyan" },
+        // { fromLabel: "VR1", toLabel: "VR2", color: "cyan" },
+        // { fromLabel: "PPA", toLabel: "VR4", color: "magenta" },
+        // { fromLabel: "VR3", toLabel: "VR4", color: "magenta" }
       ],
       entries: [
         { sourceId: "PPD", entryName: "Time-PP-descent", nodeColour: "#00f", nodeLabel: "PPD"},
@@ -289,18 +289,23 @@ export const spawnPresets = [...buildPresetsFromSources(), ...combinedPresets];
  * NOTE: Links should refer to either the node’s original id or its nodeLabel
  * (which becomes displayLabel), there is no separate displayLabel field.
  *
- * Node radius is computed from hotspots: for each observation,
- * sqrt((width² + height²) / divisor) with divisor from hotspotForceDivisor (or 1);
- * radius = (average of those values over all hotspots) / 2. No hotspots → 0.
+ * Node radius from hotspots (area-based, with split attribution):
+ * - Per rectangle: effective area = (intensityFactor / divisor) * width * height.
+ *   divisor from hotspotForceDivisor lookup (or 1); divisor 0 → contribution 0.
+ * - Average these effective areas over the node's hotspots.
+ * - Radius of an equivalent circle: radius = sqrt(avgArea / π).
+ * No hotspots → 0.
  */
 function radiusFromHotspots(node) {
   if (!node.hotspots || !node.hotspots.length) return 0;
-  let sum = 0;
+  let sumEffectiveArea = 0;
   for (const h of node.hotspots) {
     const div = (node.hotspotForceDivisor && node.hotspotForceDivisor[h.name]) ?? 1;
-    sum += Math.sqrt((h.width * h.width + h.height * h.height) / div);
+    const fraction = div > 0 ? (h.intensityFactor ?? 1) / div : 0;
+    sumEffectiveArea += fraction * h.width * h.height;
   }
-  return (sum / node.hotspots.length) / 2;
+  const avgArea = sumEffectiveArea / node.hotspots.length;
+  return Math.sqrt(avgArea / Math.PI);
 }
 
 export function getNodesForPreset(preset) {
