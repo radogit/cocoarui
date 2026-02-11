@@ -88,6 +88,8 @@ console.log("scaleUnit " + scaleUnit, "lime");
 // console.log("width " + width, "lime");
 // console.log("height " + height, "lime");
 const metricsBody = d3.select("#metrics-panel tbody");
+/** Opacity of other nodes' hotspot groups when hovering a node or its metrics row. Lower = more dimmed. */
+const HOTSPOT_OPACITY_OTHERS_ON_HOVER = 0.06;
 const COLS = [
   { key:"id",     fmt:d=>d.id                     },
   { key:"sum",    fmt:d=>d._sumF.toFixed(1)       },
@@ -185,7 +187,7 @@ function buildOrUpdateNodes(container, nodes) {
             .on("mouseenter", function(event, d) {
               tbody.select(`tr[data-id="${d.id}"]`).classed("row-highlight-from-canvas", true);
               // Highlight this node's observations, dim others
-              hotspotLayer.selectAll(".hotspot-group").attr("opacity", 0.15);
+              hotspotLayer.selectAll(".hotspot-group").attr("opacity", HOTSPOT_OPACITY_OTHERS_ON_HOVER);
               d3.select(`#hotspot-group-${d.id}`).attr("opacity", 1);
             })
             .on("mouseleave", function(event, d) {
@@ -1276,7 +1278,7 @@ function handleEnter() {
     .classed("haloSpin", true)
     ;
   // Highlight this node's observations, dim others (same as canvas hover)
-  hotspotLayer.selectAll(".hotspot-group").attr("opacity", 0.15);
+  hotspotLayer.selectAll(".hotspot-group").attr("opacity", HOTSPOT_OPACITY_OTHERS_ON_HOVER);
   d3.select(`#hotspot-group-${id}`).attr("opacity", 1);
 }
 

@@ -49,7 +49,7 @@ export function buildHeatspotRects(container, nodes, defs){
         .data(nodes, d => d.id)
         .join("g")
         .attr("class", showObservations.boolState ? showObservations.DOMObjectString : showObservations.DOMObjectString+" hidden")
-        .attr("id", d=> showObservations.boolState ? showObservations.DOMObjectString+"-"+d.id : showObservations.DOMObjectString+"-"+d.id+" hidden")
+        .attr("id", d => showObservations.DOMObjectString + "-" + d.id)
         .attr("opacity",0.3)
         ;
     
