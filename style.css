@@ -16,7 +16,7 @@ svg {
 /* SVG styling lives in style-svg.css (loaded below); embedded into exported SVG */
 input:disabled+label { opacity: 0.4;}
 div {
-  transition: opacity 0.5s ease;
+  transition: opacity 0.5s ease, height 0.5s ease, max-height 0.5s ease;
 }
 .hidden {
   opacity: 0 !important;
@@ -58,7 +58,17 @@ div {
     display: flex;
     flex-direction: column; 
 }
+/* Hide: max-height first (content collapses), then padding/margin/border shrink */
+.ui-panel-box.hidden {
+  max-height: 0 !important;
+  padding: 0;
+  margin: 0;
+  border-width: 0;
+  min-height: 0;
+  transition: opacity 0.25s ease 0s, max-height 0.25s ease 0s, padding 0.25s ease 0.25s, margin 0.25s ease 0.25s, border-width 0.25s ease 0.25s;
+}
 .ui-panel-right { width: 260px;}
+/* Show: padding/margin/border grow first, then max-height (content appears). Need large max-height so content can determine height. */
 .ui-panel-box{
   background: rgba(255, 255, 255, 0.7);
   padding: 10px;
@@ -67,6 +77,9 @@ div {
   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
   margin-bottom: 10px;
   overflow: hidden;
+  min-height: 0;
+  max-height: 80vh;
+  transition: opacity 0.25s ease 0.25s, max-height 0.25s ease 0.25s, padding 0.25s ease 0s, margin 0.25s ease 0s, border-width 0.25s ease 0s;
 }
 .ui-panel-top { top: 15px;}
 .ui-panel-left { left: 15px;}

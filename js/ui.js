@@ -26,6 +26,7 @@ export let showSpawnPanel =           { keyboardShortcut: 'KeyS',     keyboardSh
 export let showViewPanel =            { keyboardShortcut: 'KeyV',     keyboardShortcutLetter: 'V',  shownInViewPanel: true, defaultState: true, boolState: true, UILabelString: 'View Panel', shorthandString: 'view panel', ToggleObjectString: 'toggleViewPanel', DOMObjectString: 'UIContainer', URLParamString: 'viewPanel', filenameStringOn: '', filenameStringOff: ''};
 export let showSettingsPanel =        { keyboardShortcut: 'KeyT',     keyboardShortcutLetter: 'T',  shownInViewPanel: true, defaultState: true, boolState: true, UILabelString: 'Settings Panel', shorthandString: 'settings panel', ToggleObjectString: 'toggleSettingsPanel', DOMObjectString: 'settings-panel', URLParamString: 'settingsPanel', filenameStringOn: '', filenameStringOff: ''};
 export let showExportPanel =          { keyboardShortcut: 'KeyX',     keyboardShortcutLetter: 'X',  shownInViewPanel: true, defaultState: true, boolState: true, UILabelString: 'Export Panel', shorthandString: 'export panel', ToggleObjectString: 'toggleExportPanel', DOMObjectString: 'export-panel', URLParamString: 'exportPanel', filenameStringOn: '', filenameStringOff: ''};
+export let showFavouritesPanel =     { keyboardShortcut: 'KeyF',     keyboardShortcutLetter: 'F',  shownInViewPanel: true, defaultState: false, boolState: false, UILabelString: 'Favourites', shorthandString: 'favourites panel', ToggleObjectString: 'toggleFavouritesPanel', DOMObjectString: 'favourites-panel', URLParamString: 'favouritesPanel', filenameStringOn: '', filenameStringOff: ''};
 
 /** View-panel toggles in display order for export filename (values only; empty filenameStringOn/Off = skip). */
 export const viewPanelTogglesForFilename = [
@@ -62,6 +63,7 @@ const showSettings = [
   showSettingsPanel,
   showMetricsPanel,
   showExportPanel,
+  showFavouritesPanel,
   showTerminal
 ];
 
