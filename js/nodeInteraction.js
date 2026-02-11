@@ -44,13 +44,9 @@ export function toggleFixed(event, d, simulation) {
       d.fy = null;
     }
 
-    // restyle the circle stroke
-    event.currentTarget.querySelector("circle")
-        ?.setAttribute("stroke", d.isFixed ? "black" : "none");
-    // d3.select(this).select("circle")
-    //     .transition().duration(200)
-    //     .attr("stroke", d.isFixed ? "black" : "none") // Visual cue: Black stroke if fixed
-    //     .attr("stroke-width", d.isFixed ? 3 : 0);
+    // restyle the circle (fixed styling is in CSS .node-circle.node-fixed)
+    const circle = event.currentTarget.querySelector("circle");
+    if (circle) circle.classList.toggle("node-fixed", d.isFixed);
 
     // Reheat the simulation a bit:
     simulation.alpha(0.5).restart();

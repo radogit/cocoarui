@@ -102,7 +102,7 @@ const metPanel = d3.select("#metrics-panel")
                    .attr("class", "metrics");
 
 metPanel.append("thead").append("tr").selectAll("th")
-        .data(["nodeLabel", "fix", "x", "y", "diameter", "Σ|F|", "|ΣF|", "cancel", "vx", "vy"])
+        .data(["nodeLabel", "fix", "x", "y", "⌀", "Σ|F|", "|ΣF|", "cancel", "vx", "vy"])
         .enter().append("th")
         .text(d => d);
 
@@ -209,12 +209,11 @@ function buildOrUpdateNodes(container, nodes) {
           // append the circle (fill: node.fill if set e.g. url(#diag-hatch), else node.color)
           g.append("circle")
             .attr("class", AppUI.showCircles.boolState? AppUI.showCircles.DOMObjectString : AppUI.showCircles.DOMObjectString + " hidden")
+            .classed("node-fixed", d => d.isFixed)
             .attr("fill", d => d.fill != null ? d.fill : d.color)
             .attr("id", d => "circle-"+d.id)
             .attr("opacity", 0.6)
             .attr("r", d => d.radius)
-            .attr("stroke", d => d.isFixed ? "black" : "none")
-            .attr("stroke-width", d => d.isFixed ? 3 : 0)
             .on("mouseover", function(event, d) {
               let targetElement = document.getElementById("spawn-cand-stress-" + d.id);
               if (targetElement) { targetElement.setAttribute("opacity", 0.6); }
@@ -261,7 +260,7 @@ function buildOrUpdateNodes(container, nodes) {
           // append ID label (centered in circle; wraps to 2 lines, font scales to fit radius; use d.displayLabel if set e.g. from spawn preset)
           g.each(function(d) {
             const raw = d.displayLabel != null ? String(d.displayLabel) : (typeof d.id === "string" ? d.id : String(d.id));
-            const label = raw.length > 5 ? raw.slice(0, -5) : raw;
+            const label = raw;
             const maxWidth = 2 * d.radius * 0.85;
             const split = splitLabelIntoTwoLines(label);
             const lines = split.length > 1 ? split : [label];
@@ -937,9 +936,8 @@ function ticked() {
     nodeGroup.selectAll("."+AppUI.showNodeLines.DOMObjectSingleString+", ."+AppUI.showNodeLines.DOMObjectSingleString+"-value, ."+AppUI.showNodeLines.DOMObjectSingleString+"-label-group").remove();  
 
     nodeGroup.select("."+AppUI.showCircles.DOMObjectString)
-      .attr("r",      d => d.radius)
-      .attr("stroke", d => d.isFixed ? "black" : "none")
-      .attr("stroke-width", d => d.isFixed ? 3 : 0);
+      .attr("r", d => d.radius)
+      .classed("node-fixed", d => d.isFixed);
       nodeGroup.select(".highlight-circle")
       .attr("r",      d => d.radius+10)
       ;
@@ -1346,9 +1344,7 @@ function setNodeFixed(node, fixed) {
   }
   const sel = d3.select(`#node-group-${node.id}`).select("circle");
   if (!sel.empty()) {
-    sel.transition().duration(200)
-      .attr("stroke", node.isFixed ? "black" : "none")
-      .attr("stroke-width", node.isFixed ? 3 : 0);
+    sel.classed("node-fixed", node.isFixed);
   }
   simulation.alpha(0.5).restart();
 }

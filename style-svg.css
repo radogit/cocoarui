@@ -56,6 +56,15 @@ svg {
   pointer-events: none;
 }
 
+.node-circle {
+  stroke: none;
+  stroke-width: 0;
+}
+.node-circle.node-fixed {
+  stroke: black;
+  stroke-width: 1px;
+}
+
 .node-circle.hidden {
   pointer-events: initial !important;
   user-select: initial !important;

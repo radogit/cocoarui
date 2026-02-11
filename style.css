@@ -24,6 +24,16 @@ div {
   user-select: none;
 }
 
+/* Node circle: fixed-in-place nodes get a stroke (class toggled in JS) */
+.node-circle {
+  stroke: none;
+  stroke-width: 0;
+}
+.node-circle.node-fixed {
+  stroke: black;
+  stroke-width: 3px;
+}
+
 .remove-btn{
   border:none;
   background:#aaa;
