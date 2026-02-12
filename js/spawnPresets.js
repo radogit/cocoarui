@@ -69,6 +69,7 @@ function buildPresetsFromSources() {
         panelId,
         uiButtonColour: entry.uiButtonColour,
         entries: [{ sourceId, entryName: entry.name }],
+        ...(entry.description != null && { description: entry.description }),
       });
     }
   }
@@ -82,9 +83,11 @@ function buildPresetsFromSources() {
  * - nodeFill (preset/entry): optional SVG fill for the node circle (e.g. "url(#diag-hatch)"); cascade entry > preset.
  * - nodeLabel (preset/entry): optional display name for the node id-label (instead of node.id); cascade entry > preset.
  * - links: optional array of { fromLabel, toLabel, color? }. color is a colour name (e.g. "red", "blue") from the app palette; arrow stroke and arrowhead use it.
+ * - description: optional string; when preset is spawned, the Description panel is shown beneath Favourites with this content. If absent, no panel.
  */
 const combinedPresets = [
     { id: "power-all", label: "Power (PPD+PPA & VR1-VR4)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ddd",
+      description: "Power type comparison across Paper Pano (descent/ascent) and VR (standing/cycling). Orange = descent, purple = ascent.",
       links: [
         // { fromLabel: "PPD", toLabel: "VR2", color: "cyan" },
         // { fromLabel: "VR1", toLabel: "VR2", color: "cyan" },
