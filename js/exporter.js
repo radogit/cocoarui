@@ -9,11 +9,18 @@ import { STYLE_SVG_CSS } from "./style-svg-css.js";
 //  Prefer fetch from the page's stylesheet URL (works with Parcel hashed filenames);
 //  if that returns HTML (SPA fallback) or fails, use bundled STYLE_SVG_CSS.
 //  For PNG export at scale > 1, pass { scale } so every px value in the CSS is
-//  multiplied by scale (keeps text-shadow, font-size, stroke-width etc. proportional).
+//  multiplied by scale (keeps text-shadow, font-size etc. proportional).
+//  stroke-width and stroke-dasharray are excluded: in SVG they use user coordinates
+//  and already scale with the viewport; scaling them again makes PNG export strokes thicker.
 // =======================================
 function scalePxInCss(css, scale) {
   if (scale == null || scale === 1) return css;
-  return css.replace(/(\d+(?:\.\d+)?)px/g, (_, n) => Math.round(parseFloat(n) * scale * 100) / 100 + "px");
+  return css.replace(/(\d+(?:\.\d+)?)px/g, (match, n, offset) => {
+    const before = css.slice(Math.max(0, offset - 80), offset);
+    if (/stroke-width\s*:\s*[\d.]*\s*$|stroke-dasharray\s*:\s*[\d.\s]*$/.test(before))
+      return match;
+    return Math.round(parseFloat(n) * scale * 100) / 100 + "px";
+  });
 }
 
 async function embedSvgStyles(svgClone, options = {}) {
