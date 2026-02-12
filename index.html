@@ -84,13 +84,11 @@
     <div id="favourites-panel" class="favourites-panel ui-panel-box hidden">
       <h2>Favourites <kbd>F</kbd></h2>
       <p class="favourites-placeholder">
-        collision on or off        <br>
-        <br>
-        fixing of floating        <br>
-        <br>
-        links with <code>&autoSvg=1</code>        <br>
-        links with <code>&autoPng=1</code>        <br>
-        links with <code>&autoCsv=1</code>        <br>
+        
+        <a href="#" class="fav-link">fav-link (default)</a>
+        <a href="#" class="fav-link" data-overrides='{"spawn":"power-all","collision":"0"}'>fav-link (power-all, no collision)</a>
+        
+        
       </p>
     </div>
     <div id="description-panel" class="description-panel ui-panel-box hidden">
@@ -154,5 +152,6 @@
         </div>
     </div>
   </div>
+  <script src="js/fav-link.js"></script>
 </body>
 </html>
