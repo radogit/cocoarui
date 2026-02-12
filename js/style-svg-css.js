@@ -54,6 +54,10 @@ svg {
   transition: opacity 0.5s ease;
 }
 
+.hotspot {
+  stroke-width: 1px;
+}
+
 .node-links {
   opacity: 0.4;
 }

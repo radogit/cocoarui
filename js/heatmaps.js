@@ -119,8 +119,7 @@ export function buildHeatspotRects(container, nodes, defs){
         })
         //.attr("fill", d => `url(#forceGradient-${d.color})`)  // Correctly associate hotspot with node's gradient
         .attr("fill", d => ensureColourGradient(defs, d.color))  // Correctly associate hotspot with node's gradient
-        .style("stroke", d=>d.color)        // Thin black border
-        .style("stroke-width", 2)        // Border thickness
+        .style("stroke", d=>d.color)        // Stroke colour from node; stroke-width in .hotspot CSS
     ;
 
     const labelInset = 2;
