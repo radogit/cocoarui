@@ -6,6 +6,8 @@ export let showForceArrows =          { keyboardShortcut: 'Digit3',   keyboardSh
 export let showForceArrowsLabels =    { keyboardShortcut: 'KeyE',     keyboardShortcutLetter: 'E',  shownInViewPanel: true, defaultState: false, boolState: true, UILabelString: 'Force Label', shorthandString: 'labels for arrows of forces', ToggleObjectString: 'toggleForceArrowsLabels', DOMObjectString: 'force-arrows-labels', DOMObjectSingleString: 'force-arrow-labels', URLParamString: 'forceArrowsLabels', filenameStringOn: 'flabels', filenameStringOff: ''};
 export let showNetForce =             { keyboardShortcut: 'KeyN',     keyboardShortcutLetter: 'N',  shownInViewPanel: false, defaultState: true, boolState: true, UILabelString: 'Net Force', shorthandString: 'net force arrows', ToggleObjectString: 'toggleNetForce', DOMObjectString: 'force-arrow-netForce', URLParamString: 'netForceArrows', filenameStringOn: '', filenameStringOff: ''};
 export let showObservations =         { keyboardShortcut: 'Digit4',   keyboardShortcutLetter: '4',  shownInViewPanel: true, defaultState: false, boolState: true, UILabelString: 'Observations', shorthandString: 'observations', ToggleObjectString: 'toggleObservations', DOMObjectString: 'hotspot-group', URLParamString: 'obs', filenameStringOn: 'obs', filenameStringOff: ''};
+export let showObservationName =     { keyboardShortcut: 'BracketLeft',  keyboardShortcutLetter: '[',  shownInViewPanel: true, defaultState: true, boolState: true, UILabelString: 'Observation Name', shorthandString: 'observation name', ToggleObjectString: 'toggleObservationName', DOMObjectString: 'hotspot-label-name', URLParamString: 'obsName', filenameStringOn: '', filenameStringOff: ''};
+export let showObservationImpact =   { keyboardShortcut: 'BracketRight', keyboardShortcutLetter: ']',  shownInViewPanel: true, defaultState: true, boolState: true, UILabelString: 'Observation Impact', shorthandString: 'observation impact', ToggleObjectString: 'toggleObservationImpact', DOMObjectString: 'hotspot-label-impact', URLParamString: 'obsImpact', filenameStringOn: '', filenameStringOff: ''};
 export let showNodeLines =            { keyboardShortcut: 'Digit5',   keyboardShortcutLetter: '5',  shownInViewPanel: true, defaultState: false, boolState: true, UILabelString: 'Breadcrumbs', shorthandString: 'dotted lines to observations', ToggleObjectString: 'toggleNodeLines', DOMObjectString: 'node-relations', DOMObjectSingleString: 'node-relation', URLParamString: 'obsLines', filenameStringOn: 'brdcr', filenameStringOff: ''};
 export let showBackground =           { keyboardShortcut: 'Digit6',   keyboardShortcutLetter: '6',  shownInViewPanel: true, defaultState: true, boolState: false, UILabelString: 'Background', shorthandString: 'background', ToggleObjectString: 'toggleBackground', DOMObjectString: 'background-layer', URLParamString: 'bg', filenameStringOn: '__bg__', filenameStringOff: ''};
 export let showWindStress =           { keyboardShortcut: 'Digit7',   keyboardShortcutLetter: '7',  shownInViewPanel: true, defaultState: false, boolState: true, UILabelString: 'Stress Heatmap', shorthandString: 'stress heatmap', ToggleObjectString: 'stressHeatmap', DOMObjectString: 'wind-layer-stress', URLParamString: 'stressHeatmap', filenameStringOn: 'stress', filenameStringOff: ''};
@@ -45,6 +47,8 @@ const showSettings = [
   showForceArrowsLabels,
   showNetForce,
   showObservations,
+  showObservationName,
+  showObservationImpact,
   showNodeLines,
   showBackground,
   showWindStress,
