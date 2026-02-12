@@ -5,41 +5,50 @@
  */
 (function() {
   const DEFAULT_PARAMS = {
-    spawn: "layout-PPD",
+    spawn: "",
     collision: "1",
     sequenceMode: "fixing",
+    
     nodeLabel: "1",
+    coords: "0",
+    nodeCircles: "1",
+    nodeIcon: "0",
+    nodeLinks: "1",
+
     obs: "1",
     obsLines: "0",
     obsName: "0",
     obsImpact: "0",
-    coords: "0",
+
+
     forceArrows: "0",
     forceArrowsLabels: "0",
     netForceArrows: "1",
+
     bg: "0",
     bgPreset: "base-downhill",
+
     stressHeatmap: "0",
     stressHeatmapLabel: "1",
     windCancel: "0",
     windCancelLabel: "0",
     windNetForce: "0",
-    nodeCircles: "1",
-    nodeIcon: "0",
-    nodeLinks: "1",
+
     axis: "1",
     gridV: "0",
     gridH: "0",
-    simulationPanel: "1",
-    viewPanel: "1",
+
+    simulationPanel: "0",
+    viewPanel: "0",
     settingsPanel: "1",
-    metricsPanel: "1",
-    exportPanel: "1",
-    favouritesPanel: "0",
+    metricsPanel: "0",
+    exportPanel: "0",
+    favouritesPanel: "1",
     cmd: "0",
-    autoSvg: "1",
-    autoPng: "1",
-    autoCsv: "1"
+
+    autoSvg: "0",
+    autoPng: "0",
+    autoCsv: "0"
   };
 
   window.buildFavLinkHref = function(overrides) {

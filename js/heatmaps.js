@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import {showObservations} from "./ui.js";
+import {showObservations, showObservationName, showObservationImpact} from "./ui.js";
 
 /**
  * Creates radial gradients for each node in `nodes`.
@@ -128,7 +128,7 @@ export function buildHeatspotRects(container, nodes, defs){
     hotspotGroups.selectAll("text.hotspot-label-name")
         .data(d => d.hotspots)
         .join("text")
-        .attr("class", "hotspot-label-name")
+        .attr("class", "hotspot-label-name" + (showObservationName.boolState ? "" : " hidden"))
         .attr("x", d => d.x - d.width / 2 + labelInset)
         .attr("y", d => d.y - d.height / 2 + labelInset)
         .attr("text-anchor", "start")
@@ -142,7 +142,7 @@ export function buildHeatspotRects(container, nodes, defs){
     hotspotGroups.selectAll("text.hotspot-label-impact")
         .data(d => d.hotspots)
         .join("text")
-        .attr("class", "hotspot-label-impact")
+        .attr("class", "hotspot-label-impact" + (showObservationImpact.boolState ? "" : " hidden"))
         .attr("x", d => d.x + d.width / 2 - labelInset)
         .attr("y", d => d.y + d.height / 2 - labelInset)
         .attr("text-anchor", "end")
