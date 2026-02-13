@@ -1744,17 +1744,35 @@ if (spawnPresetId) {
         windLayerStress,
         windLayerNetForceArrows,
         1000
-      ).then(() => {
+      ).then(async () => {
         // After auto-spawn finishes and all nodes have settled, trigger any requested auto-downloads.
+        const exportPromises = [];
         if (autoSvg && typeof window.exportSquareSVG === "function") {
-          window.exportSquareSVG(getExportFilenameBase("svg"));
+          exportPromises.push(window.exportSquareSVG(getExportFilenameBase("svg")));
         }
         if (autoPng && typeof window.exportSquarePNG === "function") {
-          window.exportSquarePNG(getExportFilenameBase("png"), 4);
+          exportPromises.push(window.exportSquarePNG(getExportFilenameBase("png"), 4));
         }
         if (autoCsv && typeof window.exportMetricsCSV === "function") {
-          window.exportMetricsCSV(getExportFilenameBase("csv"), Datasets.nodes, scaleUnit);
+          exportPromises.push(Promise.resolve().then(() => window.exportMetricsCSV(getExportFilenameBase("csv"), Datasets.nodes, scaleUnit)));
         }
+        await Promise.all(exportPromises);
+
+        // Fav queue: after downloads complete, advance to next URL or finish
+        try {
+          const raw = sessionStorage.getItem("favQueue");
+          if (raw) {
+            const { urls, index } = JSON.parse(raw);
+            const nextIndex = index + 1;
+            if (nextIndex < urls.length) {
+              sessionStorage.setItem("favQueue", JSON.stringify({ urls, index: nextIndex }));
+              window.location.href = urls[nextIndex];
+            } else {
+              sessionStorage.removeItem("favQueue");
+              console.log("✓ Fav queue complete");
+            }
+          }
+        } catch (_) {}
       });
     }
   }

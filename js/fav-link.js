@@ -56,8 +56,64 @@
     return "?" + new URLSearchParams(params).toString();
   };
 
+  /** Params to show in brackets when they differ from default. Value -> human-readable label; null = default, skip. */
+  const PARAM_LABELS = {
+    collision: { "0": "no collision" },
+    obs: { "0": "no obs" },
+    obsLines: { "1": "obs lines" },
+    obsName: { "1": "obs names" },
+    obsImpact: { "1": "obs impact" },
+    sequenceMode: { "floating": "floating" },
+    bg: { "1": "bg" },
+    nodeLabel: { "0": "no labels" },
+    netForceArrows: { "0": "no net force" },
+    axis: { "0": "no axis" }
+  };
+
+  function buildFavLinkLabel(overrides) {
+    const params = { ...DEFAULT_PARAMS, ...overrides };
+    const spawn = params.spawn || "?";
+    const mods = [];
+    for (const [key, labels] of Object.entries(PARAM_LABELS)) {
+      const val = String(params[key] ?? "");
+      if (labels[val]) mods.push(labels[val]);
+    }
+    return mods.length ? spawn + " [" + mods.join(", ") + "]" : spawn;
+  }
+
   document.querySelectorAll(".fav-link").forEach(function(el) {
     const overrides = el.dataset.overrides ? JSON.parse(el.dataset.overrides) : {};
     el.href = window.buildFavLinkHref(overrides);
+    el.textContent = buildFavLinkLabel(overrides);
   });
+
+  const runQueueBtn = document.getElementById("run-queue-btn");
+  if (runQueueBtn) {
+    runQueueBtn.addEventListener("click", function() {
+      const links = Array.from(document.querySelectorAll(".fav-link"));
+      const base = window.location.origin + window.location.pathname;
+      const urls = links.map(function(link) {
+        const href = link.getAttribute("href") || "";
+        const [path, query] = href.split("?");
+        const params = new URLSearchParams(query || "");
+        params.set("autoSvg", "1");
+        params.set("autoPng", "1");
+        params.set("autoCsv", "1");
+        return base + "?" + params.toString();
+      }).filter(function(u) {
+        const params = new URLSearchParams(u.split("?")[1] || "");
+        return params.get("spawn");
+      });
+      if (!urls.length) {
+        console.warn("No fav links with spawn param");
+        return;
+      }
+      try {
+        sessionStorage.setItem("favQueue", JSON.stringify({ urls: urls, index: 0 }));
+        window.location.href = urls[0];
+      } catch (e) {
+        console.error("Run queue failed:", e);
+      }
+    });
+  }
 })();

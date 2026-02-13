@@ -83,32 +83,37 @@
     </div>
     <div id="favourites-panel" class="favourites-panel ui-panel-box hidden">
       <h2>Favourites <kbd>F</kbd></h2>
+      <button type="button" id="run-queue-btn">Run queue</button>
       <p class="favourites-placeholder">
-        
-        <a href="#" class="fav-link" data-overrides='{"spawn":"power-all","collision":"0"}'>power-all (no collision)</a><br>
-        <a href="#" class="fav-link" data-overrides='{"spawn":"distance-all","collision":"0"}'>distance-all (no collision)</a><br>
-        <a href="#" class="fav-link" data-overrides='{"spawn":"navigation-all","collision":"0"}'>navigation-all (no collision)</a><br>
-        <a href="#" class="fav-link" data-overrides='{"spawn":"heartrate-all","collision":"0"}'>heartrate-all (no collision)</a><br>
-        <a href="#" class="fav-link" data-overrides='{"spawn":"speed-all","collision":"0"}'>speed-all (no collision)</a><br>
-        <a href="#" class="fav-link" data-overrides='{"spawn":"gradient-all","collision":"0"}'>gradient-all (no collision)</a><br>
-        <a href="#" class="fav-link" data-overrides='{"spawn":"time-all","collision":"0"}'>time-all (no collision)</a><br>
-      <br>
-        <a href="#" class="fav-link" data-overrides='{"spawn":"power-all","collision":"0", "obs":"0"}'>power-all (no collision, on observations)</a><br>
-        <a href="#" class="fav-link" data-overrides='{"spawn":"distance-all","collision":"0", "obs":"0"}'>distance-all (no collision, on observations)</a><br>
-        <a href="#" class="fav-link" data-overrides='{"spawn":"navigation-all","collision":"0", "obs":"0"}'>navigation-all (no collision, on observations)</a><br>
-        <a href="#" class="fav-link" data-overrides='{"spawn":"heartrate-all","collision":"0", "obs":"0"}'>heartrate-all (no collision, on observations)</a><br>
-        <a href="#" class="fav-link" data-overrides='{"spawn":"speed-all","collision":"0", "obs":"0"}'>speed-all (no collision, on observations)</a><br>
-        <a href="#" class="fav-link" data-overrides='{"spawn":"gradient-all","collision":"0", "obs":"0"}'>gradient-all (no collision, on observations)</a><br>
-        <a href="#" class="fav-link" data-overrides='{"spawn":"time-all","collision":"0", "obs":"0"}'>time-all (no collision, on observations)</a><br>
-      <br>
-        <a href="#" class="fav-link" data-overrides='{"spawn":"layout-PPD"}'>layout-PPD</a><br>
-        <a href="#" class="fav-link" data-overrides='{"spawn":"layout-PPA"}'>layout-PPA</a><br>
-        <a href="#" class="fav-link" data-overrides='{"spawn":"layout-VR1"}'>layout-VR1</a><br>
-        <a href="#" class="fav-link" data-overrides='{"spawn":"layout-VR2"}'>layout-VR2</a><br>
-        <a href="#" class="fav-link" data-overrides='{"spawn":"layout-VR3"}'>layout-VR3</a><br>
-        <a href="#" class="fav-link" data-overrides='{"spawn":"layout-VR4"}'>layout-VR4</a><br>
-      <br>
-        
+        <a href="#" class="fav-link" data-overrides='{"spawn":"power-all","collision":"0"}'></a><br>
+        <a href="#" class="fav-link" data-overrides='{"spawn":"distance-all","collision":"0"}'></a><br>
+        <a href="#" class="fav-link" data-overrides='{"spawn":"navigation-all","collision":"0"}'></a><br>
+        <a href="#" class="fav-link" data-overrides='{"spawn":"heartrate-all","collision":"0"}'></a><br>
+        <a href="#" class="fav-link" data-overrides='{"spawn":"speed-all","collision":"0"}'></a><br>
+        <a href="#" class="fav-link" data-overrides='{"spawn":"gradient-all","collision":"0"}'></a><br>
+        <a href="#" class="fav-link" data-overrides='{"spawn":"time-all","collision":"0"}'></a><br>
+        <br>
+        <a href="#" class="fav-link" data-overrides='{"spawn":"power-all","collision":"0","obs":"0"}'></a><br>
+        <a href="#" class="fav-link" data-overrides='{"spawn":"distance-all","collision":"0","obs":"0"}'></a><br>
+        <a href="#" class="fav-link" data-overrides='{"spawn":"navigation-all","collision":"0","obs":"0"}'></a><br>
+        <a href="#" class="fav-link" data-overrides='{"spawn":"heartrate-all","collision":"0","obs":"0"}'></a><br>
+        <a href="#" class="fav-link" data-overrides='{"spawn":"speed-all","collision":"0","obs":"0"}'></a><br>
+        <a href="#" class="fav-link" data-overrides='{"spawn":"gradient-all","collision":"0","obs":"0"}'></a><br>
+        <a href="#" class="fav-link" data-overrides='{"spawn":"time-all","collision":"0","obs":"0"}'></a><br>
+        <br>
+        <a href="#" class="fav-link" data-overrides='{"spawn":"layout-PPD"}'></a><br>
+        <a href="#" class="fav-link" data-overrides='{"spawn":"layout-PPA"}'></a><br>
+        <a href="#" class="fav-link" data-overrides='{"spawn":"layout-VR1"}'></a><br>
+        <a href="#" class="fav-link" data-overrides='{"spawn":"layout-VR2"}'></a><br>
+        <a href="#" class="fav-link" data-overrides='{"spawn":"layout-VR3"}'></a><br>
+        <a href="#" class="fav-link" data-overrides='{"spawn":"layout-VR4"}'></a><br>
+        <br>
+        <a href="#" class="fav-link" data-overrides='{"spawn":"layout-PPD","obs":"0"}'></a><br>
+        <a href="#" class="fav-link" data-overrides='{"spawn":"layout-PPA","obs":"0"}'></a><br>
+        <a href="#" class="fav-link" data-overrides='{"spawn":"layout-VR1","obs":"0"}'></a><br>
+        <a href="#" class="fav-link" data-overrides='{"spawn":"layout-VR2","obs":"0"}'></a><br>
+        <a href="#" class="fav-link" data-overrides='{"spawn":"layout-VR3","obs":"0"}'></a><br>
+        <a href="#" class="fav-link" data-overrides='{"spawn":"layout-VR4","obs":"0"}'></a><br>
       </p>
     </div>
     <div id="description-panel" class="description-panel ui-panel-box hidden">

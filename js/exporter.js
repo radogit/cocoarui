@@ -334,25 +334,30 @@ window.exportSquarePNG = async function (
   const svgBlob = new Blob([svgString], { type: "image/svg+xml" });
   const url = URL.createObjectURL(svgBlob);
 
-  const img = new Image();
-  img.onload = () => {
-    const canvas = document.createElement("canvas");
-    canvas.width  = pixelSize;
-    canvas.height = pixelSize;
+  await new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width  = pixelSize;
+      canvas.height = pixelSize;
 
-    const ctx = canvas.getContext("2d");
-    ctx.drawImage(img, 0, 0);
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0);
 
-    canvas.toBlob(blob => {
-      const pngUrl = URL.createObjectURL(blob);
-      triggerDownload(pngUrl, filename);
-      URL.revokeObjectURL(pngUrl);
-    });
-
-    URL.revokeObjectURL(url);
-  };
-
-  img.src = url;
+      canvas.toBlob(blob => {
+        const pngUrl = URL.createObjectURL(blob);
+        triggerDownload(pngUrl, filename);
+        URL.revokeObjectURL(pngUrl);
+        URL.revokeObjectURL(url);
+        resolve();
+      });
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("Failed to load SVG for PNG export"));
+    };
+    img.src = url;
+  });
 };
 
 // =======================================
