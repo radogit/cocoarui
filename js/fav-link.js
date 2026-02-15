@@ -46,9 +46,9 @@
     favouritesPanel: "1",
     cmd: "0",
 
-    autoSvg: "0",
-    autoPng: "0",
-    autoCsv: "0"
+    autoSvg: "1",
+    autoPng: "1",
+    autoCsv: "1"
   };
 
   window.buildFavLinkHref = function(overrides) {
