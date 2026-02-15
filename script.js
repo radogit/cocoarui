@@ -228,7 +228,7 @@ function buildOrUpdateNodes(container, nodes) {
             .classed("node-fixed", d => d.isFixed)
             .attr("fill", d => d.fill != null ? d.fill : d.color)
             .attr("id", d => "circle-"+d.id)
-            .attr("opacity", 0.6)
+            .attr("opacity", d => d.circleOpacity != null ? d.circleOpacity : 0.6)
             .attr("r", d => d.radius)
             .on("mouseover", function(event, d) {
               let targetElement = document.getElementById("spawn-cand-stress-" + d.id);

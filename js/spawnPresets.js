@@ -68,7 +68,11 @@ function buildPresetsFromSources() {
         label: entry.name,
         panelId,
         uiButtonColour: entry.uiButtonColour,
-        entries: [{ sourceId, entryName: entry.name }],
+        entries: [{
+          sourceId,
+          entryName: entry.name,
+          ...(entry.nodeCircleOpacity != null && { nodeCircleOpacity: entry.nodeCircleOpacity }),
+        }],
         ...(entry.description != null && { description: entry.description }),
       });
     }
@@ -82,6 +86,7 @@ function buildPresetsFromSources() {
  * - nodeColour (preset/entry): fill colour for nodes; cascade entry > preset > dataset. Heatmaps use node.color.
  * - nodeFill (preset/entry): optional SVG fill for the node circle (e.g. "url(#diag-hatch)"); cascade entry > preset.
  * - nodeLabel (preset/entry): optional display name for the node id-label (instead of node.id); cascade entry > preset.
+ * - nodeCircleOpacity (preset/entry): optional number 0–1 for node circle opacity; cascade entry > preset.
  * - links: optional array of { fromLabel, toLabel, color? }. color is a colour name (e.g. "red", "blue") from the app palette; arrow stroke and arrowhead use it.
  * - description: optional string; when preset is spawned, the Description panel is shown beneath Favourites with this content. If absent, no panel.
  */
@@ -265,15 +270,15 @@ const combinedPresets = [
     },
     { id: "layout-VR4", label: "Layout (VR4) (AAM)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#900090", nodeColour: "#900090", 
       entries: [
-        { sourceId: "VR4", entryName: "type-speed", nodeLabel: "speed" },
-        { sourceId: "VR4", entryName: "type-power", nodeLabel: "power" },
-        { sourceId: "VR4", entryName: "type-distance", nodeLabel: "distance" },
-        { sourceId: "VR4", entryName: "type-navigation", nodeLabel: "navigation" },
-        { sourceId: "VR4", entryName: "type-heartrate", nodeLabel: "heartrate" },
-        { sourceId: "VR4", entryName: "type-gradient", nodeLabel: "gradient" },
-        { sourceId: "VR4", entryName: "type-speed", nodeLabel: "speed" },
-        { sourceId: "VR4", entryName: "type-power", nodeLabel: "power" },
-        { sourceId: "VR4", entryName: "type-time", nodeLabel: "time" },
+        { sourceId: "VR4", entryName: "type-speed",      nodeLabel: "speed",      nodeCircleOpacity: 0.6 },
+        { sourceId: "VR4", entryName: "type-power",      nodeLabel: "power",      nodeCircleOpacity: 0.55 },
+        { sourceId: "VR4", entryName: "type-distance",   nodeLabel: "distance",   nodeCircleOpacity: 0.5 },
+        { sourceId: "VR4", entryName: "type-navigation", nodeLabel: "navigation", nodeCircleOpacity: 0.45 },
+        { sourceId: "VR4", entryName: "type-heartrate",  nodeLabel: "heartrate",  nodeCircleOpacity: 0.40 },
+        { sourceId: "VR4", entryName: "type-gradient",   nodeLabel: "gradient",   nodeCircleOpacity: 0.35 },
+        { sourceId: "VR4", entryName: "type-speed",      nodeLabel: "speed",      nodeCircleOpacity: 0.3 },
+        { sourceId: "VR4", entryName: "type-power",      nodeLabel: "power",      nodeCircleOpacity: 0.25 },
+        { sourceId: "VR4", entryName: "type-time",       nodeLabel: "time",       nodeCircleOpacity: 0.2 },
       ] 
     },
 
@@ -315,6 +320,7 @@ export function getNodesForPreset(preset) {
   const presetNodeColour = preset.nodeColour;
   const presetNodeFill = preset.nodeFill;
   const presetNodeLabel = preset.nodeLabel;
+  const presetNodeCircleOpacity = preset.nodeCircleOpacity;
   const nodes = [];
   for (const entryRef of preset.entries) {
     const {
@@ -323,10 +329,12 @@ export function getNodesForPreset(preset) {
       nodeColour: entryNodeColour,
       nodeFill: entryNodeFill,
       nodeLabel: entryNodeLabel,
+      nodeCircleOpacity: entryNodeCircleOpacity,
     } = entryRef;
     const effectiveColour = entryNodeColour != null ? entryNodeColour : presetNodeColour;
     const effectiveFill = entryNodeFill != null ? entryNodeFill : presetNodeFill;
     const effectiveLabel = entryNodeLabel != null ? entryNodeLabel : presetNodeLabel;
+    const effectiveCircleOpacity = entryNodeCircleOpacity != null ? entryNodeCircleOpacity : presetNodeCircleOpacity;
     const entry = getEntry(sourceId, entryName);
     if (!entry || !Array.isArray(entry.nodes)) continue;
     const cloned = structuredClone(entry.nodes);
@@ -339,6 +347,7 @@ export function getNodesForPreset(preset) {
         // and what link labels should refer to.
         n.displayLabel = effectiveLabel;
       }
+      if (effectiveCircleOpacity != null) n.circleOpacity = effectiveCircleOpacity;
       n.entryName = entryName;
       n.hotspotForceDivisor = forceDivisor;
       const hardcoded = n.radius;
