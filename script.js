@@ -1481,6 +1481,13 @@ document.getElementById("downloadCSVButton")
     exportMetricsCSV(getExportFilenameBase("csv"), Datasets.nodes, scaleUnit);
   });
 
+document.getElementById("downloadJSONButton")
+  .addEventListener("click", () => {
+    if (typeof window.exportLayoutJSON === "function") {
+      window.exportLayoutJSON(getExportFilenameBase("json"), Datasets.nodes, scaleUnit);
+    }
+  });
+
 // View panel: clickable caret in header (same as KeyV)
 const viewPanelCaret = document.getElementById("view-panel-caret");
 const viewPanelCheckbox = document.getElementById("toggleViewPanel");
@@ -1516,7 +1523,8 @@ const SETTINGS_PARAMS = {
   spawn: "spawn",             // preset id to auto-start on load (e.g. ?spawn=power-all)
   autoSvg: "autoSvg",         // 1 = auto-download SVG after auto-spawn completes
   autoPng: "autoPng",         // 1 = auto-download PNG after auto-spawn completes
-  autoCsv: "autoCsv",         // 1 = auto-download CSV after auto-spawn completes
+  autoCsv: "autoCsv",        // 1 = auto-download CSV after auto-spawn completes
+  autoJson: "autoJson",       // 1 = auto-download JSON layout after auto-spawn completes
 };
 const urlParams = new URLSearchParams(window.location.search);
 
@@ -1723,6 +1731,7 @@ if (spawnPresetId) {
   const autoSvg = urlParams.get(SETTINGS_PARAMS.autoSvg) === "1";
   const autoPng = urlParams.get(SETTINGS_PARAMS.autoPng) === "1";
   const autoCsv = urlParams.get(SETTINGS_PARAMS.autoCsv) === "1";
+  const autoJson = urlParams.get(SETTINGS_PARAMS.autoJson) === "1";
   const preset = spawnPresets.find((p) => p.id === spawnPresetId);
   if (preset) {
     const nodes = getNodesForPreset(preset);
@@ -1755,6 +1764,9 @@ if (spawnPresetId) {
         }
         if (autoCsv && typeof window.exportMetricsCSV === "function") {
           exportPromises.push(Promise.resolve().then(() => window.exportMetricsCSV(getExportFilenameBase("csv"), Datasets.nodes, scaleUnit)));
+        }
+        if (autoJson && typeof window.exportLayoutJSON === "function") {
+          exportPromises.push(Promise.resolve().then(() => window.exportLayoutJSON(getExportFilenameBase("json"), Datasets.nodes, scaleUnit)));
         }
         await Promise.all(exportPromises);
 

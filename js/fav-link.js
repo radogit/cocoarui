@@ -48,7 +48,8 @@
 
     autoSvg: "1",
     autoPng: "1",
-    autoCsv: "1"
+    autoCsv: "1",
+    autoJson: "1"
   };
 
   window.buildFavLinkHref = function(overrides) {
@@ -99,6 +100,7 @@
         params.set("autoSvg", "1");
         params.set("autoPng", "1");
         params.set("autoCsv", "1");
+        params.set("autoJson", "1");
         return base + "?" + params.toString();
       }).filter(function(u) {
         const params = new URLSearchParams(u.split("?")[1] || "");

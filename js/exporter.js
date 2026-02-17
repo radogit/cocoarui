@@ -426,3 +426,65 @@ window.exportMetricsCSV = function (filename = "bubblesMetrics.csv", nodes, scal
   URL.revokeObjectURL(url);
   console.log("CSV exported:", filename, rows.length, "rows");
 };
+
+// =======================================
+//  EXPORT LAYOUT AS JSON  (dataset format for datasetsLayouts.js)
+// =======================================
+/**
+ * Export current nodes as JSON in dataset format. Each node gets a single square hotspot
+ * at its current position with area = π*r², so the layout can be re-imported into datasetsLayouts.
+ * Coordinates and dimensions are in universal (degree) units; y is stored with positive = UP.
+ * @param {string} filename - e.g. "layout.json"
+ * @param {Array} nodes - Datasets.nodes (simulation coords: pixels, y-down)
+ * @param {number} scaleUnit - pixels per data unit; divide sim values by this for storage
+ */
+window.exportLayoutJSON = function (filename = "layout.json", nodes, scaleUnit) {
+  if (!nodes || !nodes.length) {
+    console.warn("No nodes to export as JSON");
+    return;
+  }
+  const sqrtPi = Math.sqrt(Math.PI);
+  const su = scaleUnit != null && scaleUnit !== 0 ? scaleUnit : 1;
+  const entries = nodes.map((n) => {
+    const r = n.radius ?? 0;
+    const rData = r / su;
+    const side = rData * sqrtPi; // square with area π*r² in data units
+    const xData = n.x / su;
+    const yData = -n.y / su; // flip y: stored as positive-up for import
+    const shorthand = n.sourceId ?? "layout";
+    const nodeLabel = n.displayLabel ?? n.id;
+    const exportedId = shorthand + "-" + nodeLabel;
+    return {
+      name: exportedId,
+      nodes: [
+        {
+          id: exportedId,
+          representation: n.representation ?? "number",
+          x: xData,
+          y: yData,
+          color: n.color,
+          radius: 0,
+          isFixed: true,
+          significance: n.significance ?? 100,
+          hotspots: [
+            {
+              name: nodeLabel,
+              x: xData,
+              y: yData,
+              intensityFactor: 1,
+              width: side,
+              height: side,
+              forceType: "attract"
+            }
+          ]
+        }
+      ]
+    };
+  });
+  const json = JSON.stringify(entries, null, 2);
+  const blob = new Blob([json], { type: "application/json;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  triggerDownload(url, filename);
+  URL.revokeObjectURL(url);
+  console.log("Layout JSON exported:", filename, entries.length, "entries");
+};

@@ -12,6 +12,7 @@ import * as DatasetsVR1 from "../personal/datasetsVR1.js";
 import * as DatasetsVR2 from "../personal/datasetsVR2.js";
 import * as DatasetsVR3 from "../personal/datasetsVR3.js";
 import * as DatasetsVR4 from "../personal/datasetsVR4.js";
+import * as DatasetsLayouts from "../personal/datasetsLayouts.js";
 
 /** Map sourceId -> array of { name, nodes, uiButtonColour?, ... } (same shape as current preppedNodes). */
 export const datasetSources = {
@@ -23,6 +24,7 @@ export const datasetSources = {
   VR3: DatasetsVR3.preppedNodesVR3,
   VR4: DatasetsVR4.preppedNodesVR4,
   KeepFree: Datasets.preppedNodesKeepFreeSamples,
+  Layouts: DatasetsLayouts.preppedLayouts,
 };
 
 /** Map sourceId -> { hotspotName: divisor }. Used to divide hotspot force by divisor; missing name = 1. */
@@ -41,6 +43,7 @@ const sourceToPanelId = {
   VR3: "spawnButtonContainerVR3",
   VR4: "spawnButtonContainerVR4",
   KeepFree: "spawnButtonContainerKeepFreeSamples",
+  Layouts: "spawnButtonContainerLayouts",
 };
 
 /**
@@ -204,7 +207,7 @@ const combinedPresets = [
         { sourceId: "VR4", entryName: "type-time", nodeColour: "#900090", nodeLabel: "VR4" },
       ] 
     },
-    { id: "layout-PPD", label: "Layout (Paper Pano Descent) (AAM)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#66f", nodeColour: "#00f", 
+    { id: "layout-PPD", label: "Layout (Paper Pano Descent)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#66f", nodeColour: "#00f", 
       entries: [
         { sourceId: "PPD", entryName: "Speed-PP-descent", nodeLabel: "speed"},
         { sourceId: "PPD", entryName: "Distance-PP-descent", nodeLabel: "distance"},
@@ -216,7 +219,7 @@ const combinedPresets = [
         { sourceId: "PPD", entryName: "Heartrate-PP-descent", nodeLabel: "heartrate"},
       ] 
     },
-    { id: "layout-PPA", label: "Layout (Paper Pano Ascent) (AAM)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ff0000", nodeColour: "#f00", 
+    { id: "layout-PPA", label: "Layout (Paper Pano Ascent)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ff0000", nodeColour: "#f00", 
       entries: [
         { sourceId: "PPA", entryName: "Speed-PP-ascent", nodeLabel: "speed"},
         { sourceId: "PPA", entryName: "Distance-PP-ascent", nodeLabel: "distance"},
@@ -230,7 +233,7 @@ const combinedPresets = [
         { sourceId: "PPA", entryName: "Navigation-PP-ascent", nodeLabel: "navigation"},
       ] 
     },
-    { id: "layout-VR1", label: "Layout (VR1) (AAM)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ff8000", nodeColour: "#ff8000", nodeFill: "url(#diag-hatch-orange)",
+    { id: "layout-VR1", label: "Layout (VR1)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ff8000", nodeColour: "#ff8000", nodeFill: "url(#diag-hatch-orange)",
       entries: [
         { sourceId: "VR1", entryName: "type-speed", nodeLabel: "speed" },
         { sourceId: "VR1", entryName: "type-navigation", nodeLabel: "navigation" },
@@ -242,7 +245,7 @@ const combinedPresets = [
         { sourceId: "VR1", entryName: "type-navigation", nodeLabel: "navigation" },
       ] 
     },
-    { id: "layout-VR2", label: "Layout (VR2) (AAM)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ff8000", nodeColour: "#ff8000", 
+    { id: "layout-VR2", label: "Layout (VR2)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#ff8000", nodeColour: "#ff8000", 
       entries: [
         { sourceId: "VR2", entryName: "type-speed", nodeLabel: "speed" },
         { sourceId: "VR2", entryName: "type-navigation", nodeLabel: "navigation" },
@@ -255,7 +258,7 @@ const combinedPresets = [
         { sourceId: "VR2", entryName: "type-time", nodeLabel: "time" },
       ] 
     },
-    { id: "layout-VR3", label: "Layout (VR3) (AAM)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#900090", nodeColour: "#900090", nodeFill: "url(#diag-hatch-purple)",
+    { id: "layout-VR3", label: "Layout (VR3)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#900090", nodeColour: "#900090", nodeFill: "url(#diag-hatch-purple)",
       entries: [
         { sourceId: "VR3", entryName: "type-speed", nodeLabel: "speed" },
         { sourceId: "VR3", entryName: "type-power", nodeLabel: "power" },
@@ -268,7 +271,7 @@ const combinedPresets = [
         { sourceId: "VR3", entryName: "type-time", nodeLabel: "time" },
       ] 
     },
-    { id: "layout-VR4", label: "Layout (VR4) (AAM)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#900090", nodeColour: "#900090", 
+    { id: "layout-VR4", label: "Layout (VR4)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#900090", nodeColour: "#900090", 
       entries: [
         { sourceId: "VR4", entryName: "type-speed",      nodeLabel: "speed",      nodeCircleOpacity: 0.6 },
         { sourceId: "VR4", entryName: "type-power",      nodeLabel: "power",      nodeCircleOpacity: 0.55 },
@@ -281,7 +284,27 @@ const combinedPresets = [
         { sourceId: "VR4", entryName: "type-time",       nodeLabel: "time",       nodeCircleOpacity: 0.2 },
       ] 
     },
+    { id: "layout-descent", label: "Descent (PPD+VR2) (prepped)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#808080", nodeColour: "#808080", 
+      entries: [
+        { sourceId: "Layouts", entryName: "PPD-speed", nodeLabel: "PPD-speed"},
+        { sourceId: "Layouts", entryName: "PPD-distance", nodeLabel: "PPD-distance"},
+        { sourceId: "Layouts", entryName: "PPD-navigation", nodeLabel: "PPD-navigation"},
+        { sourceId: "Layouts", entryName: "PPD-speed2", nodeLabel: "PPD-speed2"},
+        { sourceId: "Layouts", entryName: "PPD-time", nodeLabel: "PPD-time"},
+        { sourceId: "Layouts", entryName: "PPD-power", nodeLabel: "PPD-power"},
+        { sourceId: "Layouts", entryName: "PPD-distance2", nodeLabel: "PPD-distance2"},
+        { sourceId: "Layouts", entryName: "PPD-heartrate", nodeLabel: "PPD-heartrate"},
 
+
+        { sourceId: "Layouts", entryName: "VR2-speed", nodeLabel: "VR2-speed" },
+        { sourceId: "Layouts", entryName: "VR2-navigation", nodeLabel: "VR2-navigation" },
+        { sourceId: "Layouts", entryName: "VR2-distance", nodeLabel: "VR2-distance" },
+        { sourceId: "Layouts", entryName: "VR2-power", nodeLabel: "VR2-power" },
+        { sourceId: "Layouts", entryName: "VR2-heartrate", nodeLabel: "VR2-heartrate" },
+        { sourceId: "Layouts", entryName: "VR2-gradient", nodeLabel: "VR2-gradient" },
+        { sourceId: "Layouts", entryName: "VR2-time", nodeLabel: "VR2-time" },
+      ]
+    },
 ];
 
 /** All spawn presets: per-source entries plus combined groups. Each preset = one button. */
@@ -349,6 +372,7 @@ export function getNodesForPreset(preset) {
       }
       if (effectiveCircleOpacity != null) n.circleOpacity = effectiveCircleOpacity;
       n.entryName = entryName;
+      n.sourceId = sourceId;
       n.hotspotForceDivisor = forceDivisor;
       const hardcoded = n.radius;
       const calculated = radiusFromHotspots(n);
