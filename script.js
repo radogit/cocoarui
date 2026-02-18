@@ -179,7 +179,7 @@ let nodeGroup;
 
 /** Split label into at most 2 lines for node circle; prefer split at space near midpoint. */
 function splitLabelIntoTwoLines(label) {
-  if (!label || label.length <= 8) return [label];
+  if (!label || label.length <= 5) return [label];
   const mid = Math.ceil(label.length / 2);
   const before = label.lastIndexOf(" ", mid);
   const splitAt = before >= Math.ceil(label.length * 0.3) ? before : mid;
@@ -277,11 +277,11 @@ function buildOrUpdateNodes(container, nodes) {
           g.each(function(d) {
             const raw = d.displayLabel != null ? String(d.displayLabel) : (typeof d.id === "string" ? d.id : String(d.id));
             const label = formatNodeLabel(raw);
-            const maxWidth = 2 * d.radius * 0.85;
+            const maxWidth = 2 * d.radius * 0.75;
             const split = splitLabelIntoTwoLines(label);
             const lines = split.length > 1 ? split : [label];
             const charsPerLine = Math.max(1, Math.ceil(label.length / lines.length));
-            const fontSize = Math.min(12, Math.max(4, maxWidth / (charsPerLine * 0.55)));
+            const fontSize = Math.min(18, Math.max(4, maxWidth / (charsPerLine * 0.55)));
             const textEl = d3.select(this).append("text")
               .attr("class", AppUI.showNodeLabel.boolState ? AppUI.showNodeLabel.DOMObjectString : AppUI.showNodeLabel.DOMObjectString + " hidden")
               .attr("id", AppUI.showNodeLabel.DOMObjectString + "-" + d.id)

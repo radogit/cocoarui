@@ -49,7 +49,7 @@
     autoSvg: "1",
     autoPng: "1",
     autoCsv: "1",
-    autoJson: "1"
+    autoJson: "0"
   };
 
   window.buildFavLinkHref = function(overrides) {
