@@ -75,6 +75,8 @@ function buildPresetsFromSources() {
           sourceId,
           entryName: entry.name,
           ...(entry.nodeCircleOpacity != null && { nodeCircleOpacity: entry.nodeCircleOpacity }),
+          ...(entry.nodeStroke != null && { nodeStroke: entry.nodeStroke }),
+          ...(entry.nodeStrokeWidth != null && { nodeStrokeWidth: entry.nodeStrokeWidth }),
         }],
         ...(entry.description != null && { description: entry.description }),
       });
@@ -90,6 +92,8 @@ function buildPresetsFromSources() {
  * - nodeFill (preset/entry): optional SVG fill for the node circle (e.g. "url(#diag-hatch)"); cascade entry > preset.
  * - nodeLabel (preset/entry): optional display name for the node id-label (instead of node.id); cascade entry > preset.
  * - nodeCircleOpacity (preset/entry): optional number 0–1 for node circle opacity; cascade entry > preset.
+ * - nodeStroke (preset/entry): optional stroke colour for the node circle (e.g. "black", "#333"); cascade entry > preset.
+ * - nodeStrokeWidth (preset/entry): optional stroke width in px (e.g. 1, 2); cascade entry > preset.
  * - links: optional array of { fromLabel, toLabel, color? }. color is a colour name (e.g. "red", "blue") from the app palette; arrow stroke and arrowhead use it.
  * - description: optional string; when preset is spawned, the Description panel is shown beneath Favourites with this content. If absent, no panel.
  */
@@ -314,25 +318,25 @@ const combinedPresets = [
     },
     { id: "layout-ascent", label: "Ascent (PPA+VR4) (prepped)", panelId: "spawnButtonContainerDynamicGroups", uiButtonColour: "#a0a0a0", nodeColour: "#808080", 
       entries: [
-        { sourceId: "Layouts", entryName: "PPA-speed",      nodeLabel: "1-speed",         nodeCircleOpacity: 0.60, nodeColour: "#f00" },
-        { sourceId: "Layouts", entryName: "VR4-speed",      nodeLabel: "1-speed",      nodeCircleOpacity: 0.60, nodeColour: "#900090" },
-        { sourceId: "Layouts", entryName: "PPA-distance",   nodeLabel: "2-distance",      nodeCircleOpacity: 0.55, nodeColour: "#f00" },
-        { sourceId: "Layouts", entryName: "VR4-power",      nodeLabel: "2-power",      nodeCircleOpacity: 0.55, nodeColour: "#900090" },
-        { sourceId: "Layouts", entryName: "PPA-navigation", nodeLabel: "3-navigation",    nodeCircleOpacity: 0.50, nodeColour: "#f00" },
-        { sourceId: "Layouts", entryName: "VR4-distance",   nodeLabel: "3-distance",   nodeCircleOpacity: 0.50, nodeColour: "#900090" },
-        { sourceId: "Layouts", entryName: "PPA-power",      nodeLabel: "4-power",         nodeCircleOpacity: 0.45, nodeColour: "#f00" },
-        { sourceId: "Layouts", entryName: "VR4-navigation", nodeLabel: "4-navigation", nodeCircleOpacity: 0.45, nodeColour: "#900090" },
-        { sourceId: "Layouts", entryName: "PPA-time",       nodeLabel: "5-time",          nodeCircleOpacity: 0.40, nodeColour: "#f00" },
-        { sourceId: "Layouts", entryName: "VR4-heartrate",  nodeLabel: "5-heartrate",  nodeCircleOpacity: 0.40, nodeColour: "#900090" },
-        { sourceId: "Layouts", entryName: "PPA-gradient",   nodeLabel: "6-gradient",      nodeCircleOpacity: 0.35, nodeColour: "#f00" },
-        { sourceId: "Layouts", entryName: "VR4-gradient",   nodeLabel: "6-gradient",   nodeCircleOpacity: 0.35, nodeColour: "#900090" },
-        { sourceId: "Layouts", entryName: "PPA-heartrate",  nodeLabel: "7-heartrate",     nodeCircleOpacity: 0.30, nodeColour: "#f00" },
-        { sourceId: "Layouts", entryName: "VR4-speed2",     nodeLabel: "7-speed #2",   nodeCircleOpacity: 0.30, nodeColour: "#900090" },
-        { sourceId: "Layouts", entryName: "PPA-speed2",     nodeLabel: "8-speed #2",      nodeCircleOpacity: 0.25, nodeColour: "#f00" },
-        { sourceId: "Layouts", entryName: "VR4-power2",     nodeLabel: "8-power #2",   nodeCircleOpacity: 0.25, nodeColour: "#900090" },
-        { sourceId: "Layouts", entryName: "PPA-distance2",  nodeLabel: "9-distance #2",   nodeCircleOpacity: 0.20, nodeColour: "#f00" },
-        { sourceId: "Layouts", entryName: "VR4-time",       nodeLabel: "9-time",       nodeCircleOpacity: 0.20, nodeColour: "#900090" },
-        { sourceId: "Layouts", entryName: "PPA-navigation2",nodeLabel: "10-navigation #2", nodeCircleOpacity: 0.15, nodeColour: "#f00" },
+        { sourceId: "Layouts", entryName: "PPA-speed",      nodeLabel: "1-speed",          nodeCircleOpacity: 0.60, nodeColour: "#ff000000", nodeStroke: "#f00", nodeStrokeWidth: 2 },
+        { sourceId: "Layouts", entryName: "VR4-speed",      nodeLabel: "1-speed",          nodeCircleOpacity: 0.60, nodeColour: "#900090" },
+        { sourceId: "Layouts", entryName: "PPA-distance",   nodeLabel: "2-distance",       nodeCircleOpacity: 0.55, nodeColour: "#ff000000", nodeStroke: "#f00", nodeStrokeWidth: 2 },
+        { sourceId: "Layouts", entryName: "VR4-power",      nodeLabel: "2-power",          nodeCircleOpacity: 0.55, nodeColour: "#900090" },
+        { sourceId: "Layouts", entryName: "PPA-navigation", nodeLabel: "3-navigation",     nodeCircleOpacity: 0.50, nodeColour: "#ff000000", nodeStroke: "#f00", nodeStrokeWidth: 2 },
+        { sourceId: "Layouts", entryName: "VR4-distance",   nodeLabel: "3-distance",       nodeCircleOpacity: 0.50, nodeColour: "#900090" },
+        { sourceId: "Layouts", entryName: "PPA-power",      nodeLabel: "4-power",          nodeCircleOpacity: 0.45, nodeColour: "#ff000000", nodeStroke: "#f00", nodeStrokeWidth: 2 },
+        { sourceId: "Layouts", entryName: "VR4-navigation", nodeLabel: "4-navigation",     nodeCircleOpacity: 0.45, nodeColour: "#900090" },
+        { sourceId: "Layouts", entryName: "PPA-time",       nodeLabel: "5-time",           nodeCircleOpacity: 0.40, nodeColour: "#ff000000", nodeStroke: "#f00", nodeStrokeWidth: 2 },
+        { sourceId: "Layouts", entryName: "VR4-heartrate",  nodeLabel: "5-heartrate",      nodeCircleOpacity: 0.40, nodeColour: "#900090" },
+        { sourceId: "Layouts", entryName: "PPA-gradient",   nodeLabel: "6-gradient",       nodeCircleOpacity: 0.35, nodeColour: "#ff000000", nodeStroke: "#f00", nodeStrokeWidth: 2 },
+        { sourceId: "Layouts", entryName: "VR4-gradient",   nodeLabel: "6-gradient",       nodeCircleOpacity: 0.35, nodeColour: "#900090" },
+        { sourceId: "Layouts", entryName: "PPA-heartrate",  nodeLabel: "7-heartrate",      nodeCircleOpacity: 0.30, nodeColour: "#ff000000", nodeStroke: "#f00", nodeStrokeWidth: 2 },
+        { sourceId: "Layouts", entryName: "VR4-speed2",     nodeLabel: "7-speed #2",       nodeCircleOpacity: 0.30, nodeColour: "#900090" },
+        { sourceId: "Layouts", entryName: "PPA-speed2",     nodeLabel: "8-speed #2",       nodeCircleOpacity: 0.25, nodeColour: "#ff000000", nodeStroke: "#f00", nodeStrokeWidth: 2 },
+        { sourceId: "Layouts", entryName: "VR4-power2",     nodeLabel: "8-power #2",       nodeCircleOpacity: 0.25, nodeColour: "#900090" },
+        { sourceId: "Layouts", entryName: "PPA-distance2",  nodeLabel: "9-distance #2",    nodeCircleOpacity: 0.20, nodeColour: "#ff000000", nodeStroke: "#f00", nodeStrokeWidth: 2 },
+        { sourceId: "Layouts", entryName: "VR4-time",       nodeLabel: "9-time",           nodeCircleOpacity: 0.20, nodeColour: "#900090" },
+        { sourceId: "Layouts", entryName: "PPA-navigation2",nodeLabel: "10-navigation #2", nodeCircleOpacity: 0.15, nodeColour: "#ff000000", nodeStroke: "#f00", nodeStrokeWidth: 2 },
 
 
       ]
@@ -376,6 +380,8 @@ export function getNodesForPreset(preset) {
   const presetNodeFill = preset.nodeFill;
   const presetNodeLabel = preset.nodeLabel;
   const presetNodeCircleOpacity = preset.nodeCircleOpacity;
+  const presetNodeStroke = preset.nodeStroke;
+  const presetNodeStrokeWidth = preset.nodeStrokeWidth;
   const nodes = [];
   for (const entryRef of preset.entries) {
     const {
@@ -385,11 +391,15 @@ export function getNodesForPreset(preset) {
       nodeFill: entryNodeFill,
       nodeLabel: entryNodeLabel,
       nodeCircleOpacity: entryNodeCircleOpacity,
+      nodeStroke: entryNodeStroke,
+      nodeStrokeWidth: entryNodeStrokeWidth,
     } = entryRef;
     const effectiveColour = entryNodeColour != null ? entryNodeColour : presetNodeColour;
     const effectiveFill = entryNodeFill != null ? entryNodeFill : presetNodeFill;
     const effectiveLabel = entryNodeLabel != null ? entryNodeLabel : presetNodeLabel;
     const effectiveCircleOpacity = entryNodeCircleOpacity != null ? entryNodeCircleOpacity : presetNodeCircleOpacity;
+    const effectiveStroke = entryNodeStroke != null ? entryNodeStroke : presetNodeStroke;
+    const effectiveStrokeWidth = entryNodeStrokeWidth != null ? entryNodeStrokeWidth : presetNodeStrokeWidth;
     const entry = getEntry(sourceId, entryName);
     if (!entry || !Array.isArray(entry.nodes)) continue;
     const cloned = structuredClone(entry.nodes);
@@ -403,6 +413,8 @@ export function getNodesForPreset(preset) {
         n.displayLabel = effectiveLabel;
       }
       if (effectiveCircleOpacity != null) n.circleOpacity = effectiveCircleOpacity;
+      if (effectiveStroke != null) n.stroke = effectiveStroke;
+      if (effectiveStrokeWidth != null) n.strokeWidth = effectiveStrokeWidth;
       n.entryName = entryName;
       n.sourceId = sourceId;
       n.hotspotForceDivisor = forceDivisor;

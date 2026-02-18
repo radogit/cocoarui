@@ -230,6 +230,8 @@ function buildOrUpdateNodes(container, nodes) {
             .attr("id", d => "circle-"+d.id)
             .attr("opacity", d => d.circleOpacity != null ? d.circleOpacity : 0.6)
             .attr("r", d => d.radius)
+            .style("stroke", d => d.stroke != null ? d.stroke : null)
+            .style("stroke-width", d => d.strokeWidth != null ? d.strokeWidth : null)
             .on("mouseover", function(event, d) {
               let targetElement = document.getElementById("spawn-cand-stress-" + d.id);
               if (targetElement) { targetElement.setAttribute("opacity", 0.6); }
@@ -953,7 +955,9 @@ function ticked() {
 
     nodeGroup.select("."+AppUI.showCircles.DOMObjectString)
       .attr("r", d => d.radius)
-      .classed("node-fixed", d => d.isFixed);
+      .classed("node-fixed", d => d.isFixed)
+      .style("stroke", d => d.stroke != null ? d.stroke : null)
+      .style("stroke-width", d => d.strokeWidth != null ? d.strokeWidth : null);
       nodeGroup.select(".highlight-circle")
       .attr("r",      d => d.radius+10)
       ;
