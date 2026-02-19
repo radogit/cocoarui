@@ -1594,6 +1594,19 @@ if (collisionCheckbox) {
   });
 }
 
+// Settings panel: Auto-download checkboxes (autoSvg, autoPng, autoCsv, autoJson)
+const autoDownloadIds = ["autoSvg", "autoPng", "autoCsv", "autoJson"];
+autoDownloadIds.forEach((key) => {
+  const checkbox = document.getElementById("setting-" + key);
+  const paramKey = SETTINGS_PARAMS[key];
+  if (!checkbox || !paramKey) return;
+  const fromUrl = urlParams.get(paramKey);
+  checkbox.checked = fromUrl === "1";
+  checkbox.addEventListener("change", () => {
+    updateSettingsURLParam(paramKey, checkbox.checked ? "1" : "0", "");
+  });
+});
+
 // Settings panel: Background preset dropdown (each preset shows a set of images)
 function applyBackgroundSelection(presetId) {
   const preset = presetId ? backgroundPresets.find(p => p.id === presetId) : null;
@@ -1780,10 +1793,6 @@ buildSpawnButtonsFromPresets();
 // Auto-start a spawn preset from URL (e.g. ?spawn=power-all)
 const spawnPresetId = urlParams.get(SETTINGS_PARAMS.spawn);
 if (spawnPresetId) {
-  const autoSvg = urlParams.get(SETTINGS_PARAMS.autoSvg) === "1";
-  const autoPng = urlParams.get(SETTINGS_PARAMS.autoPng) === "1";
-  const autoCsv = urlParams.get(SETTINGS_PARAMS.autoCsv) === "1";
-  const autoJson = urlParams.get(SETTINGS_PARAMS.autoJson) === "1";
   const preset = spawnPresets.find((p) => p.id === spawnPresetId);
   if (preset) {
     const nodes = getNodesForPreset(preset);
@@ -1806,7 +1815,12 @@ if (spawnPresetId) {
         windLayerNetForceArrows,
         1000
       ).then(async () => {
-        // After auto-spawn finishes and all nodes have settled, trigger any requested auto-downloads.
+        // After auto-spawn finishes, read current auto-download state from URL (user may have changed checkboxes during spawn).
+        const currentParams = new URLSearchParams(window.location.search);
+        const autoSvg = currentParams.get(SETTINGS_PARAMS.autoSvg) === "1";
+        const autoPng = currentParams.get(SETTINGS_PARAMS.autoPng) === "1";
+        const autoCsv = currentParams.get(SETTINGS_PARAMS.autoCsv) === "1";
+        const autoJson = currentParams.get(SETTINGS_PARAMS.autoJson) === "1";
         const exportPromises = [];
         if (autoSvg && typeof window.exportSquareSVG === "function") {
           exportPromises.push(window.exportSquareSVG(getExportFilenameBase("svg")));
