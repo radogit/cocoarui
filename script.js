@@ -617,20 +617,31 @@ export async function addNodeWithMultistartVisual(
   }
 
   // adjust the sizes and opacities of circles, rectangles and lines
+  const safeHighestCancel = highestCancel > 0 && isFinite(highestCancel) ? highestCancel : 1;
+  const safeHighestStress = highestStress > 0 && isFinite(highestStress) ? highestStress : 1;
   const spawnCandCancel = document.getElementById("spawn-cand-cancel-"+template.id).childNodes;
     spawnCandCancel.forEach((child, index) => {
-      child.firstChild.setAttribute("fill-opacity",0.5*child.firstChild.getAttribute("cancel")/highestCancel);
-      child.firstChild.setAttribute("r",dx/2*child.firstChild.getAttribute("cancel")/highestCancel);
+      const cancel = Number(child.firstChild.getAttribute("cancel")) || 0;
+      child.firstChild.setAttribute("fill-opacity", 0.5 * cancel / safeHighestCancel);
+      child.firstChild.setAttribute("r", dx / 2 * cancel / safeHighestCancel);
     });
   const spawnCandStress = document.getElementById("spawn-cand-stress-"+template.id).childNodes;
     spawnCandStress.forEach((child, index) => {
-      child.firstChild.setAttribute("fill-opacity",0.5*child.firstChild.getAttribute("stress")/highestStress);
+      const stress = Number(child.firstChild.getAttribute("stress")) || 0;
+      child.firstChild.setAttribute("fill-opacity", 0.5 * stress / safeHighestStress);
     });
   const spawnCandNetForce = document.getElementById("spawn-cand-netForceArrow-"+template.id).childNodes;
+    const safeLongest = longestArrow > 0 && isFinite(longestArrow) ? longestArrow : 1;
     spawnCandNetForce.forEach((child, index) => {
-      const netForceArrowRank = child.firstChild.getAttribute("netLength")/longestArrow;
-      child.firstChild.setAttribute("x2",child.firstChild.getAttribute("x2")/longestArrow * netForceArrowRank * dx/2);
-      child.firstChild.setAttribute("y2",child.firstChild.getAttribute("y2")/longestArrow * netForceArrowRank * dy/2);
+      const line = child.firstChild;
+      const netLength = Number(line.getAttribute("netLength")) || 0;
+      const netForceArrowRank = netLength / safeLongest;
+      const x2 = Number(line.getAttribute("x2")) || 0;
+      const y2 = Number(line.getAttribute("y2")) || 0;
+      const newX2 = (x2 / safeLongest) * netForceArrowRank * dx / 2;
+      const newY2 = (y2 / safeLongest) * netForceArrowRank * dy / 2;
+      line.setAttribute("x2", isFinite(newX2) ? newX2 : 0);
+      line.setAttribute("y2", isFinite(newY2) ? newY2 : 0);
     });
   
   // 8 ‧ commit winner -------------------------------------------------------
