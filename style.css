@@ -377,3 +377,17 @@ button#view-panel-caret {
 .settings-panel label, .settings-panel select {
   font-size: 9px;
 }
+.settings-panel .background-opacity-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+.settings-panel #background-opacity {
+  flex: 1;
+  min-width: 60px;
+}
+.settings-panel #background-opacity-value {
+  font-size: 9px;
+  min-width: 2.5em;
+}

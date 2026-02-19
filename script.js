@@ -1534,6 +1534,7 @@ function updateSettingsURLParam(param, value, defaultValue) {
 const SETTINGS_PARAMS = {
   sequence: "sequenceMode",   // fixing | floating, default fixing
   background: "bgPreset",     // preset id, default first preset
+  bgOpacity: "bgOpacity",     // 0–100, default 100
   collision: "collision",     // 1 = on, 0 = off, default on
   spawn: "spawn",             // preset id to auto-start on load (e.g. ?spawn=power-all)
   autoSvg: "autoSvg",         // 1 = auto-download SVG after auto-spawn completes
@@ -1602,6 +1603,12 @@ function applyBackgroundSelection(presetId) {
     return showNames.has(name) ? "visible" : "hidden";
   });
 }
+
+// Settings panel: Background opacity slider
+function applyBackgroundOpacity(value) {
+  const opacity = Math.max(0, Math.min(1, Number(value) / 100));
+  container.select("#background-layer").attr("opacity", opacity);
+}
 const bgSelect = document.getElementById("background-select");
 if (bgSelect) {
   backgroundPresets.forEach(({ id, label }) => {
@@ -1629,6 +1636,36 @@ if (bgSelect) {
     bgSelect.disabled = !bgToggle.checked;
     bgToggle.addEventListener("change", () => {
       bgSelect.disabled = !bgToggle.checked;
+    });
+  }
+}
+
+// Settings panel: Background opacity slider
+const bgOpacitySlider = document.getElementById("background-opacity");
+const bgOpacityValue = document.getElementById("background-opacity-value");
+if (bgOpacitySlider && bgOpacityValue) {
+  const bgOpacityFromUrl = urlParams.get(SETTINGS_PARAMS.bgOpacity);
+  const defaultBgOpacity = "100";
+  const validOpacity = bgOpacityFromUrl != null && !isNaN(Number(bgOpacityFromUrl))
+    ? Math.max(0, Math.min(100, Number(bgOpacityFromUrl)))
+    : 100;
+  bgOpacitySlider.value = validOpacity;
+  bgOpacityValue.textContent = validOpacity + "%";
+  applyBackgroundOpacity(validOpacity);
+  updateSettingsURLParam(SETTINGS_PARAMS.bgOpacity, String(validOpacity), defaultBgOpacity);
+
+  bgOpacitySlider.addEventListener("input", () => {
+    const v = bgOpacitySlider.value;
+    bgOpacityValue.textContent = v + "%";
+    applyBackgroundOpacity(v);
+    updateSettingsURLParam(SETTINGS_PARAMS.bgOpacity, v, defaultBgOpacity);
+  });
+
+  const bgToggleForOpacity = document.getElementById("toggleBackground");
+  if (bgToggleForOpacity) {
+    bgOpacitySlider.disabled = !bgToggleForOpacity.checked;
+    bgToggleForOpacity.addEventListener("change", () => {
+      bgOpacitySlider.disabled = !bgToggleForOpacity.checked;
     });
   }
 }
