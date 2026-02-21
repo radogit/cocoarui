@@ -16,6 +16,7 @@ import { createMetricsUpdater } from './js/metrics.js';
 import { addDefaultHatchPatterns } from './js/patterns.js';
 import { createOnResize } from './js/viewport.js';
 import { createNodeRendering } from './js/nodeRendering.js';
+import { runAutoSpawnFromUrl } from './js/autoSpawn.js';
 
 
 window.Datasets = Datasets;   // <-- makes Datasets visible in DevTools
@@ -80,9 +81,6 @@ Heatmaps.buildHeatspotRects(hotspotLayer, Datasets.nodes, defs);
 AppUI.setupUI();
 
 
-// ================================================================================================================
-// =============== SPAWN ===============================================================================
-// ================================================================================================================
 // buildOrUpdateNodes, ticked moved to js/nodeRendering.js
 // addOneSmart moved to js/nodeSpawn.js
 // waitForNodeToSettle, clearSpawnQueue, dripSpawnSmart moved to js/nodeSpawn.js
@@ -217,57 +215,14 @@ setupListeners({
 
 // buildSpawnButtonsFromPresets, collapse headers moved to js/listeners.js
 
-// Auto-start a spawn preset from URL (e.g. ?spawn=power-all)
-const spawnPresetId = urlParams.get(SETTINGS_PARAMS.spawn);
-if (spawnPresetId) {
-  const preset = spawnPresets.find((p) => p.id === spawnPresetId);
-  if (preset) {
-    const nodes = getNodesForPreset(preset);
-    if (nodes.length) {
-      if (Array.isArray(preset.links) && preset.links.length) {
-        activeLinks.push(...preset.links);
-      }
-      AppUI.updateDescriptionPanel(preset.description);
-      nodeOps.dripSpawnSmart(nodes, 1000).then(async () => {
-        // After auto-spawn finishes, read current auto-download state from URL (user may have changed checkboxes during spawn).
-        const currentParams = new URLSearchParams(window.location.search);
-        const autoSvg = currentParams.get(SETTINGS_PARAMS.autoSvg) === "1";
-        const autoPng = currentParams.get(SETTINGS_PARAMS.autoPng) === "1";
-        const autoCsv = currentParams.get(SETTINGS_PARAMS.autoCsv) === "1";
-        const autoJson = currentParams.get(SETTINGS_PARAMS.autoJson) === "1";
-        const exportPromises = [];
-        if (autoSvg && typeof window.exportSquareSVG === "function") {
-          exportPromises.push(window.exportSquareSVG(getExportFilenameBase("svg")));
-        }
-        if (autoPng && typeof window.exportSquarePNG === "function") {
-          exportPromises.push(window.exportSquarePNG(getExportFilenameBase("png"), 4));
-        }
-        if (autoCsv && typeof window.exportMetricsCSV === "function") {
-          exportPromises.push(Promise.resolve().then(() => window.exportMetricsCSV(getExportFilenameBase("csv"), Datasets.nodes, scaleUnit)));
-        }
-        if (autoJson && typeof window.exportLayoutJSON === "function") {
-          exportPromises.push(Promise.resolve().then(() => window.exportLayoutJSON(getExportFilenameBase("json"), Datasets.nodes, scaleUnit)));
-        }
-        await Promise.all(exportPromises);
-
-        // Fav queue: after downloads complete, advance to next URL or finish
-        try {
-          const raw = sessionStorage.getItem("favQueue");
-          if (raw) {
-            const { urls, index } = JSON.parse(raw);
-            const nextIndex = index + 1;
-            if (nextIndex < urls.length) {
-              sessionStorage.setItem("favQueue", JSON.stringify({ urls, index: nextIndex }));
-              window.location.href = urls[nextIndex];
-            } else {
-              sessionStorage.removeItem("favQueue");
-              console.log("✓ Fav queue complete");
-            }
-          }
-        } catch (_) {}
-      });
-    }
-  }
-}
-
-// Metrics table, tbody, resize, keydown listeners moved to js/listeners.js
+runAutoSpawnFromUrl(urlParams, {
+  SETTINGS_PARAMS,
+  spawnPresets,
+  getNodesForPreset,
+  activeLinks,
+  updateDescriptionPanel: AppUI.updateDescriptionPanel,
+  nodeOps,
+  getExportFilenameBase,
+  Datasets,
+  scaleUnit,
+});
