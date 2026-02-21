@@ -13,6 +13,7 @@ import * as AppUI from "./js/ui.js";
 import * as Icons from "./js/icons.js";
 import { setupLogger } from './js/logger.js';
 import * as Exporter from './js/exporter.js';
+import { getExportFilenameBase as getExportFilenameBaseFromExporter } from './js/exporter.js';
 import { imagePaths, backgroundPresets } from './js/backgrounds.js';
 import { spawnPresets, getNodesForPreset } from './js/spawnPresets.js';
 import { colours, colourNameForArrowhead, getArrowheadId } from './js/colours.js';
@@ -20,6 +21,9 @@ import { addNodeWithMultistartVisual } from './js/addNodeMultistart.js';
 import { SETTINGS_PARAMS, updateSettingsURLParam, setupSettingsPanel } from './js/settings.js';
 import { createNodeSpawn, clearSpawnQueue, getCurrentSpawnQueue } from './js/nodeSpawn.js';
 import { setupListeners } from './js/listeners.js';
+import { createMetricsUpdater, formatNodeLabel, splitLabelIntoTwoLines } from './js/metrics.js';
+import { addDefaultHatchPatterns } from './js/patterns.js';
+import * as NodeInteraction from './js/nodeInteraction.js';
 
 
 window.Datasets = Datasets;   // <-- makes Datasets visible in DevTools
@@ -41,35 +45,9 @@ setupLogger();
 
 // 1) Create the SVG, container
 const { svg, container, nodeLayer, hotspotLayer, linkLayer, windLayerCancel, windLayerStress, windLayerNetForceArrows, width, height, minDim, scaleUnit } = Drawing.createSvgAndContainer();
-// console.log("minDim " + minDim, "lime");
-console.log("scaleUnit " + scaleUnit, "lime");
-// console.log("width " + width, "lime");
-// console.log("height " + height, "lime");
-const metricsBody = d3.select("#metrics-panel tbody");
 /** Opacity of other nodes' hotspot groups when hovering a node or its metrics row. Lower = more dimmed. */
 const HOTSPOT_OPACITY_OTHERS_ON_HOVER = 0.06;
 
-/** If node label starts with "rado-Simple Interactable(Clone)-", format as VR.{participant}.{firstSegment} e.g. VR.088.7; else return as-is. */
-function formatNodeLabel(label) {
-  if (label == null || typeof label !== "string") return label;
-  const prefix = "rado-Simple Interactable(Clone)-";
-  if (!label.startsWith(prefix)) return label;
-  const rest = label.slice(prefix.length);
-  const parts = rest.split("-");
-  const firstSegment = parts[0] ?? "";
-  const participantMatch = rest.match(/participant(\d+)/i);
-  const participantNum = participantMatch ? String(participantMatch[1]).padStart(3, "0") : "???";
-  return `VR.${participantNum}.${firstSegment}`;
-}
-
-const COLS = [
-  { key:"id",     fmt:d=>d.id                     },
-  { key:"sum",    fmt:d=>d._sumF.toFixed(1)       },
-  { key:"net",    fmt:d=>d._netF.toFixed(1)       },
-  { key:"cancel", fmt:d=>d._cancel.toFixed(1)     },
-  { key:"vx",     fmt:d=>d.vx.toFixed(1)          },
-  { key:"vy",     fmt:d=>d.vy.toFixed(1)          }
-];
 // build the metrics panel once ──────────────────────────────────────────
 const metPanel = d3.select("#metrics-panel")
                    .append("table")
@@ -94,27 +72,7 @@ const defs = svg.append("defs").attr("id","defs").attr("width",100).attr("height
 Drawing.createArrowheads(defs, colours);
 
 // Shared hatch patterns for nodeFill (can be referenced as url(#...))
-const patterns = defs.append("g").attr("id", "patterns");
-function addDiagHatchPattern(id, stroke) {
-  const p = patterns.append("pattern")
-    .attr("id", id)
-    .attr("width", 6).attr("height", 6)
-    .attr("patternUnits", "userSpaceOnUse")
-    .attr("patternTransform", "rotate(45)");
-  p.append("rect")
-    .attr("width", 6)
-    .attr("height", 6)
-    .attr("fill", "transparent");
-  p.append("line")
-    .attr("x1", 0).attr("y1", 0)
-    .attr("x2", 0).attr("y2", 6)
-    .attr("stroke", stroke)
-    .attr("stroke-width", 11);
-}
-// Default + a few colour variants for presets to pick from
-addDiagHatchPattern("diag-hatch",         "#ff8000"); // legacy/default
-addDiagHatchPattern("diag-hatch-orange",  "#ff8000");
-addDiagHatchPattern("diag-hatch-purple",  "#900090");
+addDefaultHatchPatterns(defs);
 
 // 3+) Backgrounds
 //Backgrounds.createBackgroundDefs(defs, scaleUnit);
@@ -168,9 +126,9 @@ function buildOrUpdateNodes(container, nodes) {
               hotspotLayer.selectAll(".hotspot-group").attr("opacity", 0.3);
             })
             .call(d3.drag()
-              .on("start", dragStart)
-              .on("drag", dragging)
-              .on("end", dragEnd)
+              .on("start", (e, d) => NodeInteraction.dragStart(e, d, simulation))
+              .on("drag", (e, d) => NodeInteraction.dragging(e, d, simulation))
+              .on("end", (e, d) => NodeInteraction.dragEnd(e, d, simulation))
             );
           // highlight circle
           g.append("circle")
@@ -542,202 +500,15 @@ function ticked() {
       }
     }
 
-    updateMetrics(Datasets.nodes, getCurrentSpawnQueue());   //
+    metricsUpdater.updateMetrics(Datasets.nodes, getCurrentSpawnQueue());
 }
     
-let lastMetricsUpdate = 0;
-function updateMetrics(nodes, queue){
-  queue = queue || [];
-  const combined = [
-    ...nodes.map(d => ({ key: d.id, isQueued: false, node: d })),
-    ...queue.map((d, i) => ({ key: "queue-" + i, isQueued: true, node: d }))
-  ];
-
-  /*────────────────────────────────────────  ROWS  ─────────────────────────*/
-  const rows = tbody.selectAll("tr")
-      .data(combined, d => d.key)
-      .join("tr")
-        .attr("data-id", d => d.node.id)
-        .classed("metrics-row-queued", d => d.isQueued)
-        .on("mouseenter", handleEnter)
-        .on("mouseleave", handleLeave);
-
-  /*────────────────────────────────  (re)compute metrics (active only)  ────*/
-  rows.each(d => {
-    if (d.isQueued) return;
-    const n = d.node;
-    const F   = n.forces ?? [];
-    const sum = F.reduce((s,f)=>s + Math.hypot(f.fx,f.fy), 0);
-    const netx= F.reduce((s,f)=>s + f.fx, 0);
-    const nety= F.reduce((s,f)=>s + f.fy, 0);
-    const net = Math.hypot(netx, nety);
-    n._sumF   = sum;
-    n._netF   = net;
-    n._cancel = sum - net;
-  });
-
-  /*────────────────────── first cell  (label + remove-btn or pending)  ─────*/
-  rows.selectAll("td.rowLabel")
-      .data(d => [d])
-      .join(
-        enter => enter.append("td").attr("class", "rowLabel").each(function(d) {
-          const sel = d3.select(this);
-          const raw = d.node.displayLabel != null ? d.node.displayLabel : d.node.id;
-          const label = formatNodeLabel(raw);
-          if (d.isQueued) {
-            sel.html(`<span class="name">${label}</span><span class="queued-badge" title="Awaiting introduction">pending</span>`);
-          } else {
-            sel.html(`
-              <span class="name">${label}</span>
-              <button class="remove-btn" title="Delete ${d.node.id}" data-id="${d.node.id}">✕</button>`);
-          }
-        }),
-        update => update.each(function(d) {
-          const sel = d3.select(this);
-          const raw = d.node.displayLabel != null ? d.node.displayLabel : d.node.id;
-          const label = formatNodeLabel(raw);
-          if (d.isQueued) {
-            sel.html(`<span class="name">${label}</span><span class="queued-badge" title="Awaiting introduction">pending</span>`);
-          } else {
-            sel.html(`
-              <span class="name">${label}</span>
-              <button class="remove-btn" title="Delete ${d.node.id}" data-id="${d.node.id}">✕</button>`);
-          }
-        })
-      );
-
-  /*──────────────────────  fixed checkbox cell  ────────────────────────────*/
-  rows.selectAll("td.fixed-cell")
-      .data(d => [d])
-      .join(
-        enter => enter.append("td").attr("class", "fixed-cell").each(function(d) {
-          const sel = d3.select(this);
-          if (d.isQueued) {
-            sel.text("—").classed("metric-pending", true);
-          } else {
-            sel.append("label").attr("class", "fixed-checkbox-label")
-              .append("input").attr("type", "checkbox")
-              .attr("title", "Fix/unfix node position")
-              .property("checked", d => d.node.isFixed)
-              .on("change", function(event, rowD) {
-                event.stopPropagation();
-                setNodeFixed(rowD.node, this.checked);
-              });
-          }
-        }),
-        update => update.each(function(d) {
-          const sel = d3.select(this);
-          if (d.isQueued) {
-            sel.text("—").classed("metric-pending", true);
-            sel.selectAll("label").remove();
-          } else {
-            sel.classed("metric-pending", false);
-            sel.select("input").property("checked", d.node.isFixed);
-          }
-        })
-      );
-
-  /*──────────────────────  numeric metric cells (8: x, y, diameter, sum, net, cancel, vx, vy)  ─────*/
-  rows.selectAll("td.metric")
-      .data(d => d.isQueued
-        ? ["—", "—", "—", "—", "—", "—", "—", "—"]
-        : [
-            (d.node.x/scaleUnit).toFixed(0),
-            (-d.node.y/scaleUnit).toFixed(0),
-            (2 * (d.node.radius ?? 0) / scaleUnit).toFixed(0),
-            d.node._sumF  .toFixed(0),
-            d.node._netF  .toFixed(0),
-            d.node._cancel.toFixed(0),
-            d.node.vx .toFixed(0),
-            d.node.vy .toFixed(0)
-          ])
-      .join(
-        enter => enter.append("td").attr("class", "metric").text(t => t),
-        update => update.text(t => t)
-      );
-
-  /*──────────────────────────────  FOOTER  Σ and μ  ────────────────────────*/
-  const {sum, avg} = summarise(nodes);
-  const footData = [
-    ["Σ", null, null, null, 2 * sum.radius / scaleUnit, sum.sumF,sum.netF,sum.cancel, sum.vx,sum.vy],
-    ["μ", null, null, null, 2 * avg.radius / scaleUnit, avg.sumF,avg.netF,avg.cancel, avg.vx,avg.vy]
-  ];
-
-  const footRows = tfoot.selectAll("tr")
-      .data(footData)
-      .join("tr");
-
-  footRows.selectAll("td")
-      .data(d => d)
-      .join("td")
-      .text(d => (Number.isFinite(d) ? d.toFixed(0) : d ?? ""));
-
-}
-
-
-function handleEnter() {
-  const id = this.dataset.id;                        // row / th data-id
-  d3.select(`#node-group-${id} .highlight-circle`)
-    .classed("hidden", false)
-    .classed("haloSpin", true)
-    ;
-  // Highlight this node's observations, dim others (same as canvas hover)
-  hotspotLayer.selectAll(".hotspot-group").attr("opacity", HOTSPOT_OPACITY_OTHERS_ON_HOVER);
-  d3.select(`#hotspot-group-${id}`).attr("opacity", 1);
-}
-
-function handleLeave() {
-  const id = this.dataset.id;
-  d3.select(`#node-group-${id} .highlight-circle`)
-    .classed("hidden", true)
-    .classed("haloSpin", false)
-    ;
-  // Restore all observations to default opacity
-  hotspotLayer.selectAll(".hotspot-group").attr("opacity", 0.3);
-}
-
-function summarise(nodes){
-  const n = nodes.length || 1;                         // avoid /0
-  const sum = {x:0,y:0,radius:0,sumF:0,netF:0,cancel:0,vx:0,vy:0};
-  nodes.forEach(d=>{
-    sum.x      += d.x;
-    sum.y      += d.y;
-    sum.radius += d.radius ?? 0;
-    sum.sumF   += d._sumF;
-    sum.netF   += d._netF;
-    sum.cancel += d._cancel;
-    sum.vx     += d.vx;
-    sum.vy     += d.vy;
-  });
-  const avg = Object.fromEntries(
-    Object.entries(sum).map(([k,v]) => [k,v/n])
-  );
-  return {sum,avg};
-}
+// updateMetrics, handleEnter, handleLeave, summarise moved to js/metrics.js
 
 // ================================================================================================================
 // =============== Dragging & Toggling =======================================================================================
 // ================================================================================================================
-
-// Dragging behavior
-function dragStart(event, d) {
-  simulation.alphaTarget(0.3).restart();
-  d.fx = d.x;
-  d.fy = d.y;
-}
-
-function dragging(event, d) {
-  d.fx = event.x;
-  d.fy = event.y;
-}
-
-function dragEnd(event, d) {
-  if (!d.isFixed) { // Only release normal nodes
-    d.fx = null;
-    d.fy = null;
-    simulation.alphaTarget(0);
-  }
-}
+// dragStart, dragging, dragEnd from js/nodeInteraction.js
 
 function setNodeFixed(node, fixed) {
   node.isFixed = !!fixed;
@@ -759,39 +530,17 @@ function toggleFixed(event, d) {
   setNodeFixed(d, !d.isFixed);
 }
 
+const metricsUpdater = createMetricsUpdater({
+  tbody,
+  tfoot,
+  scaleUnit,
+  hotspotLayer,
+  hotspotOpacityOthersOnHover: HOTSPOT_OPACITY_OTHERS_ON_HOVER,
+  setNodeFixed,
+});
+
 // setupDragAndDropForSpawnButtons, button listeners moved to js/listeners.js
-/** Build export filename base: YYYYMMDD-HHMM_<param values> (values only, underscore-separated, fixed order). */
-function getExportFilenameBase(extension) {
-  const now = new Date();
-  const datePart = now.getFullYear() +
-    String(now.getMonth() + 1).padStart(2, "0") +
-    String(now.getDate()).padStart(2, "0") + "-" +
-    String(now.getHours()).padStart(2, "0") +
-    String(now.getMinutes()).padStart(2, "0");
-  const params = new URLSearchParams(window.location.search);
-  const collisionVal = params.get(SETTINGS_PARAMS.collision);
-  const collisionStr = (collisionVal === "0" || collisionVal === "false") ? "nocol" : "col";
-  const sequenceStr = params.get(SETTINGS_PARAMS.sequence) || sequenceMode;
-  const spawnStr = params.get(SETTINGS_PARAMS.spawn) || "-";
-  const bgStr = params.get(SETTINGS_PARAMS.background) || "-";
-
-  const parts = [datePart, spawnStr, collisionStr, sequenceStr];
-  const viewToggles = [
-    AppUI.showNodeLabel, AppUI.showCoordinates, AppUI.showForceArrows, AppUI.showForceArrowsLabels,
-    AppUI.showObservations, AppUI.showNodeLines, AppUI.showBackground, AppUI.showWindStress, AppUI.showWindNetForceArrows,
-    AppUI.showCircles, AppUI.showNodeIcon, AppUI.showAxis, AppUI.showHorizontalGrid, AppUI.showVerticalGrid
-  ];
-  viewToggles.forEach((setting) => {
-    const str = setting.boolState ? (setting.filenameStringOn ?? "") : (setting.filenameStringOff ?? "");
-    if (!str) return;
-    if (str === "__bg__") { if (bgStr) parts.push(bgStr); return; }
-    parts.push(str);
-  });
-  const base = parts.join("_");
-  return extension ? `${base}.${extension.replace(/^\./, "")}` : base;
-}
-
-// Export buttons, view panel moved to js/listeners.js
+const getExportFilenameBase = (ext) => getExportFilenameBaseFromExporter(ext, { sequenceMode });
 
 // Settings panel: URL params and wiring (see js/settings.js)
 const urlParams = new URLSearchParams(window.location.search);

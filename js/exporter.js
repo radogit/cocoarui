@@ -3,6 +3,59 @@
 // exportSquarePNG("figure-4x.png", 4); // publication-quality
 
 import { STYLE_SVG_CSS } from "./style-svg-css.js";
+import { SETTINGS_PARAMS } from "./settings.js";
+import * as AppUI from "./ui.js";
+
+/**
+ * Build export filename base: YYYYMMDD-HHMM_<param values>.
+ * @param {string} [extension] - e.g. "svg", "png"
+ * @param {Object} [opts] - { sequenceMode } for sequence param
+ */
+export function getExportFilenameBase(extension, opts = {}) {
+  const now = new Date();
+  const datePart =
+    now.getFullYear() +
+    String(now.getMonth() + 1).padStart(2, "0") +
+    String(now.getDate()).padStart(2, "0") +
+    "-" +
+    String(now.getHours()).padStart(2, "0") +
+    String(now.getMinutes()).padStart(2, "0");
+  const params = new URLSearchParams(window.location.search);
+  const collisionVal = params.get(SETTINGS_PARAMS.collision);
+  const collisionStr = collisionVal === "0" || collisionVal === "false" ? "nocol" : "col";
+  const sequenceStr = params.get(SETTINGS_PARAMS.sequence) || opts.sequenceMode || "fixing";
+  const spawnStr = params.get(SETTINGS_PARAMS.spawn) || "-";
+  const bgStr = params.get(SETTINGS_PARAMS.background) || "-";
+
+  const parts = [datePart, spawnStr, collisionStr, sequenceStr];
+  const viewToggles = [
+    AppUI.showNodeLabel,
+    AppUI.showCoordinates,
+    AppUI.showForceArrows,
+    AppUI.showForceArrowsLabels,
+    AppUI.showObservations,
+    AppUI.showNodeLines,
+    AppUI.showBackground,
+    AppUI.showWindStress,
+    AppUI.showWindNetForceArrows,
+    AppUI.showCircles,
+    AppUI.showNodeIcon,
+    AppUI.showAxis,
+    AppUI.showHorizontalGrid,
+    AppUI.showVerticalGrid,
+  ];
+  viewToggles.forEach((setting) => {
+    const str = setting.boolState ? setting.filenameStringOn ?? "" : setting.filenameStringOff ?? "";
+    if (!str) return;
+    if (str === "__bg__") {
+      if (bgStr) parts.push(bgStr);
+      return;
+    }
+    parts.push(str);
+  });
+  const base = parts.join("_");
+  return extension ? `${base}.${String(extension).replace(/^\./, "")}` : base;
+}
 
 // =======================================
 //  Embed style-svg.css into cloned SVG so export matches screen (font, .id-label, etc.)
