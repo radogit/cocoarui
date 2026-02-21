@@ -14,7 +14,7 @@ import * as Icons from "./js/icons.js";
 import { setupLogger } from './js/logger.js';
 import * as Exporter from './js/exporter.js';
 import { getExportFilenameBase as getExportFilenameBaseFromExporter } from './js/exporter.js';
-import { imagePaths, backgroundPresets } from './js/backgrounds.js';
+import { imagePaths, backgroundPresets, createBackgroundAppliers } from './js/backgrounds.js';
 import { spawnPresets, getNodesForPreset } from './js/spawnPresets.js';
 import { colours, colourNameForArrowhead, getArrowheadId } from './js/colours.js';
 import { addNodeWithMultistartVisual } from './js/addNodeMultistart.js';
@@ -544,20 +544,7 @@ const getExportFilenameBase = (ext) => getExportFilenameBaseFromExporter(ext, { 
 
 // Settings panel: URL params and wiring (see js/settings.js)
 const urlParams = new URLSearchParams(window.location.search);
-
-function applyBackgroundSelection(presetId) {
-  const preset = presetId ? backgroundPresets.find(p => p.id === presetId) : null;
-  const showNames = preset ? new Set(preset.imageNames) : new Set();
-  container.select("#background-layer").selectAll("image").attr("visibility", function () {
-    const name = d3.select(this).attr("data-background-name");
-    return showNames.has(name) ? "visible" : "hidden";
-  });
-}
-
-function applyBackgroundOpacity(value) {
-  const opacity = Math.max(0, Math.min(1, Number(value) / 100));
-  container.select("#background-layer").attr("opacity", opacity);
-}
+const { applyBackgroundSelection, applyBackgroundOpacity } = createBackgroundAppliers(container);
 
 const sequenceModeRef = { get value() { return sequenceMode; }, set value(v) { sequenceMode = v; } };
 setupSettingsPanel({
