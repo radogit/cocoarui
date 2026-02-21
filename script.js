@@ -28,7 +28,7 @@ window.Datasets = Datasets;   // <-- makes Datasets visible in DevTools
 // "fixing" → fix node after it settles; "floating" → leave free.
 let sequenceMode = "fixing";
 
-// Explicit node-to-node links spawned from presets (by label), e.g. 1<-2, 1<-3
+// define container for explicit node-to-node links spawned from presets (by label), e.g. 1<-2, 1<-3
 // Each entry: { fromLabel: string, toLabel: string }
 let activeLinks = [];
 
@@ -285,8 +285,7 @@ function buildOrUpdateNodes(container, nodes) {
           return g;
         },
         update => {
-          // If you want to handle updated nodes, set or transition them here
-          // e.g., update.attr(...).transition(...) 
+          // If we want to handle updated nodes, set or transition them here, e.g., update.attr(...).transition(...) 
           return update;
         },
         exit => {
@@ -301,62 +300,9 @@ function buildOrUpdateNodes(container, nodes) {
     return nodeGroup; // return the selection if you want
   }
 
-// ====== ADD ONE ==========================================================================================================
-
-
 // randomHotspots moved to js/nodeSpawn.js
-
-// function addOne() {
-//   const newNode = {
-//     id: "random-"+Date.now().toString(36).substring(2, 8),
-//     x : minDim * (Math.random() - 0.5),
-//     y : minDim * (Math.random() - 0.5),
-//     color: colours[Math.floor(Math.random() * colours.length)],
-//     radius: 10+30 * Math.random(),
-//     isFixed: false,
-//     significance: 1,
-//     hotspots: randomHotspots(1+Math.floor(Math.random()*4))
-//   };
-  
-//   Datasets.nodes.push(newNode);
-//   // (A) Re-run hotspot data-join to create rects for newNode.hotspots
-//   Heatmaps.buildHeatspotRects(hotspotLayer, Datasets.nodes, defs);
-
-//   // (B) Re-run node data-join to create circles, labels, etc.
-//   buildOrUpdateNodes(nodeLayer, Datasets.nodes);
-
-//   // (C) Let the simulation know about new node
-//   simulation.nodes(Datasets.nodes);       
-//   simulation.alpha(1).restart(); 
-// }
-
 // addOneSmart moved to js/nodeSpawn.js
-
-// ======= DRIP =========================================================================================================
-
-/**
- * Spawn every node in `queue` one–by–one.
- * Each node is positioned with addNodeWithMultistartVisual, waiting
- * `intervalMs` between completions so you see them appear sequentially.
- *
- * @param {Object[]} nodesQueue           array of *raw* node objects
- * @param {Object[]} nodes      the real nodes array that drives D3
- * @param {d3.Simulation} simulation your running force simulation
- * @param {Number} width,height      canvas extent (needed by smart placer)
- * @param {d3.Selection} defs        <defs> for gradients
- * @param {d3.Selection} hotspotLayer  <g>   – already created in main file
- * @param {d3.Selection} nodeLayer      <g>
- * @param {d3.Selection} windCancelLayer   <g> debug
- * @param {d3.Selection} windStressLayer   <g> debug
- * @param {d3.Selection} windNetLayer      <g> debug
- * @param {Number} intervalMs         delay **after** each spawn (default 1 s)  (old timed mode, now unused)
- */
-
-// Helper: wait until a node “settles” (speed below threshold for some time).
 // waitForNodeToSettle, clearSpawnQueue, dripSpawnSmart moved to js/nodeSpawn.js
-
-// ======== REMOVE ========================================================================================================
-
 // removeNodeById, removeAllNodes moved to js/nodeSpawn.js (use nodeOps)
 
 
@@ -393,7 +339,6 @@ function ticked() {
     // Update coordinates label
     if (AppUI.showCoordinates.boolState) {
       nodeGroup.select("."+AppUI.showCoordinates.DOMObjectString)
-        //.text(d => `(${Math.round(d.x * scaleUnit)}, ${Math.round(-d.y * scaleUnit)})`);
         .text(d => `(${Math.round(d.x / scaleUnit)}, ${Math.round(-d.y / scaleUnit)})`);
     }
     
@@ -459,7 +404,6 @@ function ticked() {
           .style("opacity", 0.5);
         // 2) The arrow magnitude text, Append a group to hold the label & background
         const labelGroup = arrowGroup.append("g")
-          //.attr("class", AppUI.showForceArrows.boolState? AppUI.showForceArrows.DOMObjectSingleString+"-label-group" : AppUI.showForceArrows.DOMObjectSingleString+"-label-group hidden")
           .attr("class", (AppUI.showForceArrows.boolState && AppUI.showForceArrowsLabels.boolState)? AppUI.showForceArrows.DOMObjectSingleString+"-label-group" : AppUI.showForceArrows.DOMObjectSingleString+"-label-group hidden")
           .attr("transform", `translate(${labelPosX},${labelPosY})`)
           .attr("opacity", 0.3)
@@ -728,14 +672,6 @@ function updateMetrics(nodes, queue){
       .join("td")
       .text(d => (Number.isFinite(d) ? d.toFixed(0) : d ?? ""));
 
-  /*──────────────────────── delegated click → remove  ──────────────────────*/
-  // d3.select("#metrics-panel")
-  //   .on("click", function(e){
-  //     if (e.target.classList.contains("remove-btn")){
-  //       console.log("remove node "+e.target.dataset.id);
-  //       nodeOps.removeNodeById(e.target.dataset.id);
-  //     }
-  //   });
 }
 
 
@@ -1011,20 +947,8 @@ function onResize() {
     `translate(${newWidth/2}, ${newHeight/2}) scale(${scaleFactor})`
     );
 
-    // 4) You can redraw axes or call `ticked()` if needed
-    //redrawAxes(); // if you have an axis you want to keep consistent
+    // 4) we can redraw axes or call `ticked()` if needed
+    //redrawAxes(); // if we have an axis we want to keep consistent
 }
 
 // Keyboard shortcuts moved to js/listeners.js
-
-async function initUnityDatasets() {
-  // NOTE: paths are examples; adjust to wherever you put the .txt files
-  await Datasets.loadUnityDataset(
-    "data/2025-12-06-00-48-34-type-power-visualisations-flattened(22).txt",
-    "type",
-    "power",
-    "Power - VR - descent - cycling",
-    { color: "red" }
-  );
-
-}
