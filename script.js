@@ -19,6 +19,7 @@ import { colours, colourNameForArrowhead, getArrowheadId } from './js/colours.js
 import { addNodeWithMultistartVisual } from './js/addNodeMultistart.js';
 import { SETTINGS_PARAMS, updateSettingsURLParam, setupSettingsPanel } from './js/settings.js';
 import { createNodeSpawn, clearSpawnQueue, getCurrentSpawnQueue } from './js/nodeSpawn.js';
+import { setupListeners } from './js/listeners.js';
 
 
 window.Datasets = Datasets;   // <-- makes Datasets visible in DevTools
@@ -822,70 +823,7 @@ function toggleFixed(event, d) {
   setNodeFixed(d, !d.isFixed);
 }
 
-let draggedContainer = null; // Declare draggedContainer outside
-
-function setupDragAndDropForSpawnButtons() {
-  const buttonContainers = document.querySelectorAll('.button-container');
-
-  buttonContainers.forEach(container => {
-      const dragIcon = container.querySelector('.drag-icon');
-      if (dragIcon){
-        dragIcon.addEventListener('dragstart', (e) => {
-            e.stopPropagation(); // Prevent event from bubbling up to the canvas
-            draggedContainer = container; // Store the currently dragged container
-            e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('text/plain', container.innerHTML); // Store the inner HTML for drop
-            container.classList.add('dragging'); // Optional: Add a class for styling
-        });
-
-        dragIcon.addEventListener('dragend', () => {
-            if (draggedContainer) {
-                draggedContainer.classList.remove('dragging'); // Remove the dragging class
-            }
-        });
-
-        container.addEventListener('dragover', (e) => {
-            e.preventDefault(); // Allow drop
-            e.stopPropagation(); // Prevent event from bubbling up to the canvas
-            container.classList.add('highlight'); // Add highlight class
-        });
-
-        container.addEventListener('dragleave', () => {
-            container.classList.remove('highlight'); // Remove highlight class when leaving
-        });
-
-        container.addEventListener('drop', (e) => {
-            e.stopPropagation(); // Prevent event from bubbling up to the canvas
-            e.preventDefault();
-            if (draggedContainer && draggedContainer !== container) {
-                // Insert the dragged container before or after the current container
-                const bounding = container.getBoundingClientRect();
-                const offset = bounding.y + bounding.height / 2;
-                if (e.clientY - offset > 0) {
-                    container.after(draggedContainer); // Move dragged container after the current one
-                } else {
-                    container.before(draggedContainer); // Move dragged container before the current one
-                }
-            }
-            container.classList.remove('highlight'); // Remove highlight class after drop
-        });
-      }
-
-  });
-}
-
-
-// ================================================================================================================
-// =============== LISTENERS =======================================================================================
-// ================================================================================================================
-
-//document.getElementById("spawnOneButton").addEventListener("click", addOne);
-document.getElementById("removeAllButton").addEventListener("click", () => {
-  clearSpawnQueue();
-  nodeOps.removeAllNodes();
-  updateSettingsURLParam(SETTINGS_PARAMS.spawn, "", "");
-});
-document.getElementById("addOneSmartButton").addEventListener("click", () => nodeOps.addOneSmart());
+// setupDragAndDropForSpawnButtons, button listeners moved to js/listeners.js
 /** Build export filename base: YYYYMMDD-HHMM_<param values> (values only, underscore-separated, fixed order). */
 function getExportFilenameBase(extension) {
   const now = new Date();
@@ -917,44 +855,7 @@ function getExportFilenameBase(extension) {
   return extension ? `${base}.${extension.replace(/^\./, "")}` : base;
 }
 
-document.getElementById("downloadSVGButton")
-  .addEventListener("click", () => {
-    exportSquareSVG(getExportFilenameBase("svg"));
-  });
-
-document.getElementById("downloadPNGButton")
-  .addEventListener("click", () => {
-    exportSquarePNG(getExportFilenameBase("png"), 4);
-  });
-
-document.getElementById("downloadCSVButton")
-  .addEventListener("click", () => {
-    exportMetricsCSV(getExportFilenameBase("csv"), Datasets.nodes, scaleUnit);
-  });
-
-document.getElementById("downloadJSONButton")
-  .addEventListener("click", () => {
-    if (typeof window.exportLayoutJSON === "function") {
-      window.exportLayoutJSON(getExportFilenameBase("json"), Datasets.nodes, scaleUnit);
-    }
-  });
-
-// View panel: clickable caret in header (same as KeyV)
-const viewPanelCaret = document.getElementById("view-panel-caret");
-const viewPanelCheckbox = document.getElementById("toggleViewPanel");
-if (viewPanelCaret && viewPanelCheckbox) {
-  function updateViewPanelCaret() {
-    viewPanelCaret.textContent = AppUI.showViewPanel.boolState ? "\u25BC" : "\u25B2"; // ▼ expanded, ▲ collapsed
-  }
-  updateViewPanelCaret();
-  viewPanelCaret.addEventListener("click", () => {
-    AppUI.showViewPanel.boolState = !AppUI.showViewPanel.boolState;
-    AppUI.showOrHideElement(AppUI.showViewPanel.boolState, "." + AppUI.showViewPanel.DOMObjectString, AppUI.showViewPanel.shorthandString, AppUI.showViewPanel.URLParamString, AppUI.showViewPanel.defaultState);
-    viewPanelCheckbox.checked = AppUI.showViewPanel.boolState;
-    updateViewPanelCaret();
-  });
-  viewPanelCheckbox.addEventListener("change", updateViewPanelCaret);
-}
+// Export buttons, view panel moved to js/listeners.js
 
 // Settings panel: URL params and wiring (see js/settings.js)
 const urlParams = new URLSearchParams(window.location.search);
@@ -1003,6 +904,23 @@ const nodeOps = createNodeSpawn({
   sequenceModeRef,
 });
 
+setupListeners({
+  nodeOps,
+  clearSpawnQueue,
+  updateSettingsURLParam,
+  SETTINGS_PARAMS,
+  getExportFilenameBase,
+  Datasets,
+  scaleUnit,
+  updateDescriptionPanel,
+  activeLinks,
+  container,
+  svg,
+  minDim,
+  tbody,
+  onResize,
+});
+
 /**
  * Show or hide the Description panel based on spawn preset description.
  * Call with a truthy string to show the panel and populate it; call with falsy to hide.
@@ -1021,81 +939,7 @@ export function updateDescriptionPanel(description) {
   }
 }
 
-/** Build spawn buttons from spawnPresets (dataset registry). Each preset = one button; presets with same panelId go in that container. */
-function buildSpawnButtonsFromPresets() {
-  const containersByPanelId = {};
-  spawnPresets.forEach((preset) => {
-    const panelId = preset.panelId;
-    if (!panelId) return;
-    if (!containersByPanelId[panelId]) {
-      const el = document.getElementById(panelId);
-      if (el) containersByPanelId[panelId] = el;
-    }
-  });
-
-  spawnPresets.forEach((preset) => {
-    const target = containersByPanelId[preset.panelId];
-    if (!target) return;
-
-    const wrapper = document.createElement("div");
-    wrapper.className = "button-container";
-
-    const btn = document.createElement("button");
-    btn.textContent = preset.label;
-    btn.id = `spawnButton-${preset.id}`;
-    const baseColour = preset.uiButtonColour || "#ddd";
-    if (preset.nodeFill && String(preset.nodeFill).includes("hatch")) {
-      btn.classList.add("spawn-btn-hatch");
-      btn.style.setProperty("--spawn-btn-hatch-color", baseColour);
-      btn.style.backgroundColor = baseColour;
-    } else {
-      btn.style.backgroundColor = baseColour;
-    }
-
-    btn.addEventListener("click", () => {
-      const nodes = getNodesForPreset(preset);
-      if (!nodes.length) return;
-      // Accumulate any explicit node-to-node links defined on this preset
-      if (Array.isArray(preset.links) && preset.links.length) {
-        activeLinks.push(...preset.links);
-      }
-      updateDescriptionPanel(preset.description);
-      updateSettingsURLParam(SETTINGS_PARAMS.spawn, preset.id, "");
-      nodeOps.dripSpawnSmart(nodes, 1000);
-    });
-
-    const handle = document.createElement("span");
-    handle.className = "drag-icon";
-    handle.draggable = true;
-    handle.textContent = "☰";
-    wrapper.append(btn, handle);
-    target.append(wrapper);
-  });
-
-  setupDragAndDropForSpawnButtons();
-}
-document.querySelectorAll('.collapse-header').forEach(header => {
-    header.addEventListener('click', function () {
-        const container = this.parentElement; // Get the parent container
-        const buttons = container.querySelectorAll('.button-container'); // Get all button containers
-        const caret = this.querySelector('.caret');
-
-        // Toggle active state for buttons
-        buttons.forEach(button => {
-            button.classList.toggle('active'); // Toggle visibility
-        });
-
-        // Check if any button is active and set max height
-        const isAnyActive = Array.from(buttons).some(button => button.classList.contains('active'));
-        container.style.height = isAnyActive ? `${buttons.length * 20+20}px` : '20px'; // Adjust height
-
-        // Change caret direction
-        caret.classList.toggle('active'); // Toggle rotation on caret
-    });
-});
-
-
-buildSpawnButtonsFromPresets();
+// buildSpawnButtonsFromPresets, collapse headers moved to js/listeners.js
 
 // Auto-start a spawn preset from URL (e.g. ?spawn=power-all)
 const spawnPresetId = urlParams.get(SETTINGS_PARAMS.spawn);
@@ -1150,50 +994,7 @@ if (spawnPresetId) {
   }
 }
 
-// ======== Metrics table ========================================
-
-const table = document.querySelector('.metrics');
-
-table.addEventListener('mouseover', (event) => {
-    const cell = event.target;
-    if (cell.tagName === 'TD' || cell.tagName === 'TH') {
-        const index = cell.cellIndex; // Get the index of the hovered cell
-        const rows = table.querySelectorAll('tr');
-
-        rows.forEach(row => {
-            const cells = row.querySelectorAll('td, th');
-            if (cells[index]) {
-                cells[index].style.backgroundColor = '#ffffaa'; // Change background color
-            }
-        });
-    }
-});
-
-table.addEventListener('mouseout', (event) => {
-    const cell = event.target;
-    if (cell.tagName === 'TD' || cell.tagName === 'TH') {
-        const index = cell.cellIndex; // Get the index of the hovered cell
-        const rows = table.querySelectorAll('tr');
-
-        rows.forEach(row => {
-            const cells = row.querySelectorAll('td, th');
-            if (cells[index]) {
-                cells[index].style.backgroundColor = ''; // Reset background color
-            }
-        });
-    }
-});
-
-tbody.on("click", function (e) {
-  if (e.target.classList.contains("remove-btn")) {
-    console.log("remove node" + e.target.dataset.id, "red");
-    nodeOps.removeNodeById(e.target.dataset.id);
-  }
-  });
-
-// ======== Browser window resize ================================
-
-window.addEventListener("resize", onResize);
+// Metrics table, tbody, resize, keydown listeners moved to js/listeners.js
 
 function onResize() {
     // 1) Calculate new width/height
@@ -1214,29 +1015,7 @@ function onResize() {
     //redrawAxes(); // if you have an axis you want to keep consistent
 }
 
-// ======== Keyboard ==================================================
-
-addEventListener('keydown', function(event) {
-  const inputs = document.querySelectorAll('input[keyboardShortcut]');
-  for (const input of inputs) {
-    if (event.code === input.getAttribute("keyboardShortcut")) {
-      input.checked = !input.checked;
-      input.dispatchEvent(new Event('change'));
-      event.preventDefault();
-      return;
-    }
-  }
-  const buttons = document.querySelectorAll('#debug-panel button[keyboardShortcut]');
-  for (const button of buttons) {
-    if (event.code === button.getAttribute("keyboardShortcut")) {
-      button.click();
-      event.preventDefault();
-      return;
-    }
-  }
-});
-
-
+// Keyboard shortcuts moved to js/listeners.js
 
 async function initUnityDatasets() {
   // NOTE: paths are examples; adjust to wherever you put the .txt files
