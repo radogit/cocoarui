@@ -11,11 +11,13 @@ import * as Drawing from "./js/drawing.js";
 import * as Heatmaps from "./js/heatmaps.js";
 import * as AppUI from "./js/ui.js";
 import * as Icons from "./js/icons.js";
-//import { dragging, dragEnd, dragStart, toggleFixed } from "./js/nodeInteraction.js";
 import { setupLogger } from './js/logger.js';
 import * as Exporter from './js/exporter.js';
 import { imagePaths, backgroundPresets } from './js/backgrounds.js';
 import { spawnPresets, getNodesForPreset } from './js/spawnPresets.js';
+import { colours, colourNameForArrowhead, getArrowheadId } from './js/colours.js';
+import { addNodeWithMultistartVisual } from './js/addNodeMultistart.js';
+import { SETTINGS_PARAMS, updateSettingsURLParam, setupSettingsPanel } from './js/settings.js';
 
 
 window.Datasets = Datasets;   // <-- makes Datasets visible in DevTools
@@ -30,52 +32,6 @@ let activeLinks = [];
 
 // Set up the logger
 setupLogger();
-
-// ========= parameters =========
-
-const colours = [
-  'red', 
-  'green', 
-  'blue', 
-  'cyan',
-  'orange', 
-  'purple', 
-  'magenta', 
-//  'yellow', 
-  'darkblue', 
-  'darkgreen', 
-//  'lightblue', 
-//  'lightgreen', 
-  'coral', 
-//  'gold', 
-  'salmon', 
-  'slateblue', 
-  'teal', 
-  'olive', 
-  'brown', 
-  'darkorange'
-];
-
-/** Arrowheads are defined by colour name (e.g. arrowhead-blue). Use this so marker-end works when node.color is a name or a hex from presets. */
-const hexToColourName = {
-  "#f00": "red", "#ff0000": "red", "#c00": "red", "#e88": "red",
-  "#0f0": "green", "#00ff00": "green", "#0c0": "green", "#8e8": "green", "#00aa55": "green",
-  "#00f": "blue", "#0000ff": "blue", "#00aaff": "blue",
-  "#ff8000": "orange", "#ff5000": "orange", "#f80": "orange",
-  "#80f": "purple", "#800080": "purple", "#900090": "purple",
-  "#f0f": "magenta", "#ff00ff": "magenta",
-  "#0ff": "cyan", "#00ffff": "cyan"
-};
-function colourNameForArrowhead(c) {
-  if (!c || typeof c !== "string") return "white";
-  const key = c.toLowerCase();
-  if (colours.includes(key)) return key;
-  if (key.startsWith("#") && hexToColourName[key]) return hexToColourName[key];
-  return "white";
-}
-function getArrowheadId(color) {
-  return "arrowhead-" + colourNameForArrowhead(color);
-}
 
 // ================================================================================================================
 // =============== ONE TIME =======================================================================================
@@ -402,9 +358,8 @@ async function addOneSmart(){
       simulation,
       width, height, defs,
       windLayerCancel, windLayerStress, windLayerNetForceArrows,
-      /* ticks   */ 80,
-      /* cols    */ 18,
-      /* rows    */ 18
+      minDim, scaleUnit, nodeLayer,
+      80, 18, 18
   );
   // redraw DOM
   Heatmaps.buildHeatspotRects(hotspotLayer, Datasets.nodes, defs);
@@ -414,245 +369,8 @@ async function addOneSmart(){
   simulation.alpha(1).restart();
 }
 
-/**
- * Try every point of a grid, keep the location with the highest
- * “cancellation” score  (  Σ|Fi| − |ΣFi|  ).
- * A small marker + label is left in windLayerCancel for every trial.
- *
- * @param {Array} nodes          main data array (is mutated)
- * @param {Object} template      blueprint of the new node (is cloned)
- * @param {d3.Simulation} simulation  your running force simulation
- * @param {Number} width  current canvas extent
- * @param {Number} height  current canvas extent
- * @param {d3.Selection} defs    <defs> where gradients live
- * @param {d3.Selection} windLayerCancel  <g> used for debug crumbs
- * @param {d3.Selection} windLayerStress  <g> used for debug crumbs
- * @param {d3.Selection} windLayerNetForceArrows  <g> used for debug crumbs
- * @param {Number} ticks         mini–ticks per candidate   (default 80)
- * @param {Number} gridCols      lattice columns            (default 18)
- * @param {Number} gridRows      lattice rows               (default 18)
- */
-export async function addNodeWithMultistartVisual(
-  nodes, template, simulation,
-  width, height, defs, 
-  windLayerCancel, windLayerStress, windLayerNetForceArrows,
-  ticks      = 80,
-  gridCols   = 18,
-  gridRows   = 18
-){
+// addNodeWithMultistartVisual moved to js/addNodeMultistart.js
 
-  const snapshot = nodes.map(n=>({x:n.x,y:n.y,vx:n.vx,vy:n.vy}));
-  let highestStress = -Infinity;
-  let lowestStress = Infinity;
-  let highestCancel = -Infinity;
-  let longestArrow = -Infinity;
-  let bestClone  = null;
-  const dx = minDim  / gridCols;
-  const dy = minDim / gridRows;
-  
-  // hide other heatmaps
-  const windLayerCancelChildren = document.getElementById(AppUI.showWindCancel.DOMObjectString).childNodes;
-  if(windLayerCancelChildren){
-    windLayerCancelChildren.forEach((child) => {
-      child.setAttribute("opacity",0);
-    });
-  }
-  const windLayerStressChildren = document.getElementById(AppUI.showWindStress.DOMObjectString).childNodes;
-  if(windLayerStressChildren){
-    windLayerStressChildren.forEach((child) => {
-      child.setAttribute("opacity",0);
-    });
-  }
-  const windLayerNetForceArrowChildren = document.getElementById(AppUI.showWindNetForceArrows.DOMObjectString).childNodes;
-  if(windLayerNetForceArrowChildren){
-    windLayerNetForceArrowChildren.forEach((child) => {
-      child.setAttribute("opacity",0);
-    });
-  }
-  
-  const gCancel = windLayerCancel.append("g")
-    .attr("id","spawn-cand-cancel-"+template.id)
-    .attr("class", AppUI.showWindCancel.boolState? AppUI.showWindCancel.DOMObjectString : AppUI.showWindCancel.DOMObjectString + " hidden")
-    .attr("style","transition: all ease-in-out 0.2s;")
-    .attr("opacity","0.5")
-    ;
-  const gStress = windLayerStress.append("g")
-    .attr("id","spawn-cand-stress-"+template.id)
-    .attr("class", AppUI.showWindStress.boolState? AppUI.showWindStress.DOMObjectString : AppUI.showWindStress.DOMObjectString + " hidden")
-    .attr("style","transition: all ease-in-out 0.2s;")
-    .attr("opacity","0.5")
-    ;
-  const gNetForceArrows = windLayerNetForceArrows.append("g")
-    .attr("id","spawn-cand-netForceArrow-"+template.id)
-    .attr("class", AppUI.showWindNetForceArrows.boolState? AppUI.showWindNetForceArrows.DOMObjectString : AppUI.showWindNetForceArrows.DOMObjectString + " hidden")
-    .attr("style","transition: all ease-in-out 0.2s;")
-    .attr("opacity","0.5")
-    ;
-    
-  for (let gy = 0; gy < gridRows; gy++){
-    for (let gx = 0; gx < gridCols; gx++){
-      // cx,cy is the centre of the current grid cell (0,0) in canvas centre
-      let cx = (gx + 0.5) * dx - minDim  / 2;
-      let cy = (gy + 0.5) * dy - minDim / 2;
-
-      // 1 ‧ clone template & position ---------------------------------------
-        let cand = structuredClone(template);
-        cand.x = cx;
-        cand.y = cy;
-        cand.id += `-g${gx}-${gy}`;
-
-      // 2 ‧ ensure gradients -------------------------------------------------
-        cand.hotspots.forEach(h=>Heatmaps.ensureColourGradient(defs,cand.color));
-
-      // 3 ‧ push ghost & run a few ticks ------------------------------------
-        nodes.push(cand);
-        //buildOrUpdateNodes(nodeLayer, nodes);
-        //simulation.nodes(nodes); // <- this made everything jump each time
-        // approach to fix the jumping: A. before the mini–ticks
-        const mini = d3.forceSimulation(nodes.concat(cand))
-          .force("gauss", Forces.forceGaussianPreferredArea(1.5))
-          .force("coll", Forces.forceCustomCollision)
-          ;
-        mini.tick(); // single tick to capture immediate forces, for net arrows
-          const netForceX = cand.vx;
-          const netForceY = cand.vy;
-        for (let t=1; t<ticks; t++) mini.tick(); // and now the rest of the ticks
-        //for (let t=0; t<ticks; t++) mini.tick();
-        mini.stop(); // dispose
-        //approach to fix the jumping: B: for (let t=0; t<ticks; t++) simulation.tick();
-
-      // reposition the <g>s back to their original position as they may have moved in the few ticks just now
-        // cand.x = cx;
-        // cand.y = cy;
-        
-      // 4 ‧ scores and metrics  ------------------------------
-        const stress = cand.forces.reduce((s, f) => s + Math.hypot(f.fx, f.fy), 0); // old metric
-        //const totMag = cand.forces.reduce((s,f)=>s+Math.hypot(f.fx,f.fy),0);
-        const sx     = cand.forces.reduce((s,f)=>s+f.fx,0);
-        const sy     = cand.forces.reduce((s,f)=>s+f.fy,0);
-        const netMag = Math.hypot(sx,sy);
-        const cancel = stress - netMag; // Σ|Fi| − |ΣFi|
-
-      // 5 ‧ breadcrumb ------------------------------------------------------
-      // 5.1 breadcrumb cancel
-        const trialGCancel = gCancel.append("g")
-          .attr("transform",`translate(${cx},${cy})`);
-        trialGCancel.append("rect")
-          .attr("cancel",cancel)
-          .attr("width",dx)
-          .attr("height",dy)
-          .attr("x",-dx/2)
-          .attr("y",-dy/2)
-          .attr("fill",cand.color).attr("fill-opacity",0.125*cancel/10)
-          ;
-        const gTextCancel = trialGCancel.append("text")
-          .attr("class", AppUI.showWindCancelLabel.boolState? AppUI.showWindCancelLabel.DOMObjectString + " graph-label" : AppUI.showWindCancelLabel.DOMObjectString + " graph-label hidden")
-          .attr("x",0).attr("dy","20px");
-        gTextCancel.append("tspan").text(`${cancel.toFixed(1)}`).attr("dy","0em");
-      
-      // 5.2 breadcrumb stress
-        const trialGStress = gStress.append("g")
-          .attr("transform",`translate(${cx},${cy})`);
-        trialGStress.append("rect")
-          .attr("stress",stress)
-          .attr("width",dx)
-          .attr("height",dy)
-          .attr("x",-dx/2)
-          .attr("y",-dy/2)
-          .attr("fill",cand.color).attr("fill-opacity",0.125*stress/10)
-          ;
-        const gTextStress = trialGStress.append("text")
-          .attr("class", AppUI.showWindStressLabel.boolState? AppUI.showWindStressLabel.DOMObjectString + " graph-label" : AppUI.showWindStressLabel.DOMObjectString + " graph-label hidden")
-          .attr("x",0).attr("dy","20px");
-        gTextStress.append("tspan").text(`${stress.toFixed(1)}`).attr("dy","1.2em");
-
-      // 5.3 breadcrumb netForceArrow
-        const trialGNetForceArrows = gNetForceArrows.append("g")
-        .attr("transform",`translate(${cx},${cy})`);
-        // const netForceX = cand.vx;
-        // const netForceY = cand.vy;
-        const netForceMagnitude = Math.sqrt(netForceX ** 2 + netForceY ** 2);
-
-        //if (netForceMagnitude > 0.1) {
-          const netLength = Math.min(netForceMagnitude * 5, 1000);
-          const netAngle = Math.atan2(netForceY, netForceX);
-
-          trialGNetForceArrows.append("line")
-              //.attr("class", (AppUI.showNetForce.boolState) ? AppUI.showForceArrows.DOMObjectSingleString+" net-force-arrow" : AppUI.showForceArrows.DOMObjectSingleString+" net-force-arrow hidden")
-              .attr("x1", 0)
-              .attr("y1", 0)
-              .attr("x2", netLength * Math.cos(netAngle))
-              .attr("y2", netLength * Math.sin(netAngle))
-              .attr("netForceMagnitude", netForceMagnitude)
-              .attr("netLength", netLength)
-              .attr("stroke", cand.color)
-              .attr("stroke-width", 3)
-              .attr("marker-end", "url(#"+getArrowheadId(cand.color)+")")
-              .style("opacity", netForceMagnitude > 0.9 ? 0.8 : 0.5);
-        //}
-
-      // 6 ‧ keep best --------------------------------------------------------
-        if (cancel > highestCancel){
-          highestCancel = cancel;
-          //bestClone  = structuredClone(cand);
-        }
-        if (stress < lowestStress){
-          lowestStress = stress;
-          // bestClone  = structuredClone(cand);
-        }
-        if (stress > highestStress){
-          highestStress = stress;
-          bestClone  = structuredClone(cand);
-        }
-        if (netLength > longestArrow){
-          longestArrow = netLength;
-        }
-
-      // 7 ‧ pop ghost -------------------------------------------------------
-        nodes.pop();
-        nodeLayer.selectAll(".node-group")
-          .filter(d => d.id === cand.id)
-          .remove();
-    }
-  }
-
-  // adjust the sizes and opacities of circles, rectangles and lines
-  const safeHighestCancel = highestCancel > 0 && isFinite(highestCancel) ? highestCancel : 1;
-  const safeHighestStress = highestStress > 0 && isFinite(highestStress) ? highestStress : 1;
-  const spawnCandCancel = document.getElementById("spawn-cand-cancel-"+template.id).childNodes;
-    spawnCandCancel.forEach((child, index) => {
-      const cancel = Number(child.firstChild.getAttribute("cancel")) || 0;
-      child.firstChild.setAttribute("fill-opacity", 0.5 * cancel / safeHighestCancel);
-      child.firstChild.setAttribute("r", dx / 2 * cancel / safeHighestCancel);
-    });
-  const spawnCandStress = document.getElementById("spawn-cand-stress-"+template.id).childNodes;
-    spawnCandStress.forEach((child, index) => {
-      const stress = Number(child.firstChild.getAttribute("stress")) || 0;
-      child.firstChild.setAttribute("fill-opacity", 0.5 * stress / safeHighestStress);
-    });
-  const spawnCandNetForce = document.getElementById("spawn-cand-netForceArrow-"+template.id).childNodes;
-    const safeLongest = longestArrow > 0 && isFinite(longestArrow) ? longestArrow : 1;
-    spawnCandNetForce.forEach((child, index) => {
-      const line = child.firstChild;
-      const netLength = Number(line.getAttribute("netLength")) || 0;
-      const netForceArrowRank = netLength / safeLongest;
-      const x2 = Number(line.getAttribute("x2")) || 0;
-      const y2 = Number(line.getAttribute("y2")) || 0;
-      const newX2 = (x2 / safeLongest) * netForceArrowRank * dx / 2;
-      const newY2 = (y2 / safeLongest) * netForceArrowRank * dy / 2;
-      line.setAttribute("x2", isFinite(newX2) ? newX2 : 0);
-      line.setAttribute("y2", isFinite(newY2) ? newY2 : 0);
-    });
-  
-  // 8 ‧ commit winner -------------------------------------------------------
-    bestClone.id = template.id;
-    console.log('spawned '+bestClone.id+' at ' + (bestClone.x/scaleUnit).toFixed(0) + ', '+(-bestClone.y/scaleUnit).toFixed(0));
-    //B snapshot.forEach((p,i)=>Object.assign(nodes[i],p));
-    //nodes.push(bestClone);
-    nodes.splice(nodes.length, 0, bestClone);   // push on the real array
-    //buildOrUpdateNodes(nodeLayer, nodes);
-    simulation.nodes(nodes).alpha(1).restart();
-}
 
 
 // ======= DRIP =========================================================================================================
@@ -829,9 +547,8 @@ export function dripSpawnSmart(
         nodes, raw, simulation,
         width, height, defs,
         windCancelLayer, windStressLayer, windNetLayer,
-        /* ticks  */ 80,
-        /* cols   */ 18,
-        /* rows   */ 18
+        minDim, scaleUnit, nodeLayer,
+        80, 18, 18
       );
 
       // --- refresh DOM / forces --------------------------------------------
@@ -1520,94 +1237,9 @@ if (viewPanelCaret && viewPanelCheckbox) {
   viewPanelCheckbox.addEventListener("change", updateViewPanelCaret);
 }
 
-// Settings panel: persist to URL (same pattern as View panel)
-function updateSettingsURLParam(param, value, defaultValue) {
-  const url = new URL(window.location);
-  // Always persist the current state explicitly, even if it matches the default,
-  // so historical URLs remain accurate if defaults change later.
-  // Null/undefined become an empty string so the param still reflects "no value".
-  const str = value === undefined || value === null ? "" : String(value);
-  url.searchParams.set(param, str);
-  window.history.replaceState({}, "", url);
-}
-
-const SETTINGS_PARAMS = {
-  sequence: "sequenceMode",   // fixing | floating, default fixing
-  background: "bgPreset",     // preset id, default first preset
-  bgOpacity: "bgOpacity",     // 0–100, default 100
-  collision: "collision",     // 1 = on, 0 = off, default on
-  spawn: "spawn",             // preset id to auto-start on load (e.g. ?spawn=power-all)
-  autoSvg: "autoSvg",         // 1 = auto-download SVG after auto-spawn completes
-  autoPng: "autoPng",         // 1 = auto-download PNG after auto-spawn completes
-  autoCsv: "autoCsv",        // 1 = auto-download CSV after auto-spawn completes
-  autoJson: "autoJson",       // 1 = auto-download JSON layout after auto-spawn completes
-};
+// Settings panel: URL params and wiring (see js/settings.js)
 const urlParams = new URLSearchParams(window.location.search);
 
-// Settings panel: Sequence behaviour (fixing vs floating)
-const seqFix = document.getElementById("sequence-fixing");
-const seqFloat = document.getElementById("sequence-floating");
-if (seqFix && seqFloat) {
-  const seqFromUrl = urlParams.get(SETTINGS_PARAMS.sequence);
-  if (seqFromUrl === "floating") {
-    sequenceMode = "floating";
-    seqFloat.checked = true;
-  } else {
-    sequenceMode = "fixing";
-    seqFix.checked = true;
-  }
-
-  seqFix.addEventListener("change", () => {
-    if (seqFix.checked) {
-      sequenceMode = "fixing";
-      updateSettingsURLParam(SETTINGS_PARAMS.sequence, "fixing", "fixing");
-    }
-  });
-  seqFloat.addEventListener("change", () => {
-    if (seqFloat.checked) {
-      sequenceMode = "floating";
-      updateSettingsURLParam(SETTINGS_PARAMS.sequence, "floating", "fixing");
-    }
-  });
-}
-
-// Settings panel: Collision detection
-const collisionCheckbox = document.getElementById("setting-collision");
-if (collisionCheckbox) {
-  const collFromUrl = urlParams.get(SETTINGS_PARAMS.collision);
-  if (collFromUrl === "0" || collFromUrl === "false") {
-    collisionEnabled = false;
-    Forces.nodeNodeCollisionInGaussian = false;
-    simulation.force("repel", null);
-    simulation.force("collide", null);
-    simulation.force("customCollision", null);
-    collisionCheckbox.checked = false;
-  } else {
-    collisionEnabled = true;
-    Forces.nodeNodeCollisionInGaussian = true;
-    collisionCheckbox.checked = true;
-  }
-  collisionCheckbox.addEventListener("change", () => {
-    const enabled = collisionCheckbox.checked;
-    setCollisionEnabled(enabled);
-    updateSettingsURLParam(SETTINGS_PARAMS.collision, enabled ? "1" : "0", "1");
-  });
-}
-
-// Settings panel: Auto-download checkboxes (autoSvg, autoPng, autoCsv, autoJson)
-const autoDownloadIds = ["autoSvg", "autoPng", "autoCsv", "autoJson"];
-autoDownloadIds.forEach((key) => {
-  const checkbox = document.getElementById("setting-" + key);
-  const paramKey = SETTINGS_PARAMS[key];
-  if (!checkbox || !paramKey) return;
-  const fromUrl = urlParams.get(paramKey);
-  checkbox.checked = fromUrl === "1";
-  checkbox.addEventListener("change", () => {
-    updateSettingsURLParam(paramKey, checkbox.checked ? "1" : "0", "");
-  });
-});
-
-// Settings panel: Background preset dropdown (each preset shows a set of images)
 function applyBackgroundSelection(presetId) {
   const preset = presetId ? backgroundPresets.find(p => p.id === presetId) : null;
   const showNames = preset ? new Set(preset.imageNames) : new Set();
@@ -1617,71 +1249,21 @@ function applyBackgroundSelection(presetId) {
   });
 }
 
-// Settings panel: Background opacity slider
 function applyBackgroundOpacity(value) {
   const opacity = Math.max(0, Math.min(1, Number(value) / 100));
   container.select("#background-layer").attr("opacity", opacity);
 }
-const bgSelect = document.getElementById("background-select");
-if (bgSelect) {
-  backgroundPresets.forEach(({ id, label }) => {
-    const opt = document.createElement("option");
-    opt.value = id;
-    opt.textContent = label;
-    bgSelect.appendChild(opt);
-  });
 
-  const defaultPresetId = backgroundPresets[0] ? backgroundPresets[0].id : "";
-  const bgFromUrl = urlParams.get(SETTINGS_PARAMS.background);
-  const validPresetId = backgroundPresets.some(p => p.id === bgFromUrl) ? bgFromUrl : defaultPresetId;
-  bgSelect.value = validPresetId;
-  applyBackgroundSelection(validPresetId);
-
-  bgSelect.addEventListener("change", () => {
-    const id = bgSelect.value;
-    applyBackgroundSelection(id);
-    updateSettingsURLParam(SETTINGS_PARAMS.background, id, defaultPresetId);
-  });
-
-  // Keep dropdown enabled only when the Background layer is visible.
-  const bgToggle = document.getElementById("toggleBackground");
-  if (bgToggle) {
-    bgSelect.disabled = !bgToggle.checked;
-    bgToggle.addEventListener("change", () => {
-      bgSelect.disabled = !bgToggle.checked;
-    });
-  }
-}
-
-// Settings panel: Background opacity slider
-const bgOpacitySlider = document.getElementById("background-opacity");
-const bgOpacityValue = document.getElementById("background-opacity-value");
-if (bgOpacitySlider && bgOpacityValue) {
-  const bgOpacityFromUrl = urlParams.get(SETTINGS_PARAMS.bgOpacity);
-  const defaultBgOpacity = "100";
-  const validOpacity = bgOpacityFromUrl != null && !isNaN(Number(bgOpacityFromUrl))
-    ? Math.max(0, Math.min(100, Number(bgOpacityFromUrl)))
-    : 100;
-  bgOpacitySlider.value = validOpacity;
-  bgOpacityValue.textContent = validOpacity + "%";
-  applyBackgroundOpacity(validOpacity);
-  updateSettingsURLParam(SETTINGS_PARAMS.bgOpacity, String(validOpacity), defaultBgOpacity);
-
-  bgOpacitySlider.addEventListener("input", () => {
-    const v = bgOpacitySlider.value;
-    bgOpacityValue.textContent = v + "%";
-    applyBackgroundOpacity(v);
-    updateSettingsURLParam(SETTINGS_PARAMS.bgOpacity, v, defaultBgOpacity);
-  });
-
-  const bgToggleForOpacity = document.getElementById("toggleBackground");
-  if (bgToggleForOpacity) {
-    bgOpacitySlider.disabled = !bgToggleForOpacity.checked;
-    bgToggleForOpacity.addEventListener("change", () => {
-      bgOpacitySlider.disabled = !bgToggleForOpacity.checked;
-    });
-  }
-}
+const sequenceModeRef = { get value() { return sequenceMode; }, set value(v) { sequenceMode = v; } };
+setupSettingsPanel({
+  container,
+  urlParams,
+  sequenceModeRef,
+  setCollisionEnabled,
+  backgroundPresets,
+  applyBackgroundSelection,
+  applyBackgroundOpacity,
+});
 
 /**
  * Show or hide the Description panel based on spawn preset description.
