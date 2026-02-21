@@ -18,6 +18,7 @@ import { spawnPresets, getNodesForPreset } from './js/spawnPresets.js';
 import { colours, colourNameForArrowhead, getArrowheadId } from './js/colours.js';
 import { addNodeWithMultistartVisual } from './js/addNodeMultistart.js';
 import { SETTINGS_PARAMS, updateSettingsURLParam, setupSettingsPanel } from './js/settings.js';
+import { createNodeSpawn, clearSpawnQueue, getCurrentSpawnQueue } from './js/nodeSpawn.js';
 
 
 window.Datasets = Datasets;   // <-- makes Datasets visible in DevTools
@@ -302,20 +303,7 @@ function buildOrUpdateNodes(container, nodes) {
 // ====== ADD ONE ==========================================================================================================
 
 
-function randomHotspots(n=1){
-  const arr = [];
-  for (let i = 0; i < n; i++){
-    arr.push({
-      x : minDim * (Math.random() - 0.5),
-      y : minDim * (Math.random() - 0.5),
-      intensityFactor : 1.0,
-      width  : 40 + 160 * Math.random(),
-      height : 40 + 160 * Math.random(),
-      forceType : "attract"
-    });
-  }
-  return arr;
-}
+// randomHotspots moved to js/nodeSpawn.js
 
 // function addOne() {
 //   const newNode = {
@@ -341,111 +329,9 @@ function randomHotspots(n=1){
 //   simulation.alpha(1).restart(); 
 // }
 
-async function addOneSmart(){
-  const template = {
-    id   : "random-"+Date.now().toString(36).slice(-4),
-    color: colours[Math.floor(Math.random()*colours.length)],
-    radius: 10+30 * Math.random(),
-    representation: Icons.randomRepresentation(),
-    isFixed:false,
-    significance:1,
-    hotspots: randomHotspots(Math.floor(Math.random()*4)+2)
-  };
-
-  await addNodeWithMultistartVisual(
-      Datasets.nodes,
-      template,
-      simulation,
-      width, height, defs,
-      windLayerCancel, windLayerStress, windLayerNetForceArrows,
-      minDim, scaleUnit, nodeLayer,
-      80, 18, 18
-  );
-  // redraw DOM
-  Heatmaps.buildHeatspotRects(hotspotLayer, Datasets.nodes, defs);
-  buildOrUpdateNodes(nodeLayer,      Datasets.nodes);
-  //simulation.nodes(Datasets.nodes).alpha(1).restart();
-  simulation.nodes(Datasets.nodes);
-  simulation.alpha(1).restart();
-}
-
-// addNodeWithMultistartVisual moved to js/addNodeMultistart.js
-
-
+// addOneSmart moved to js/nodeSpawn.js
 
 // ======= DRIP =========================================================================================================
-let nodesQueue = [];
-
-// // Then define a function to handle a button click or something:
-// function spawnOneByOne(someDataArray) {
-//   console.log('spawning set: ', "green");
-//   // 1) Clear the array
-//   nodesQueue.splice(0, nodesQueue.length);
-
-//   // 2) put the items from someDataArray to the queue
-//   nodesQueue = structuredClone(someDataArray);
-
-//   // 3) Flip Y to treat up as positive
-//   Datasets.flipYCoordinates(nodesQueue);
-
-//   // 4) Fix initial nodes that are isFixed
-//   Datasets.fixInitially(nodesQueue);
-
-//   // 5) let it drip 
-//   dripSpawnNodes(
-//     nodesQueue,
-//     Datasets.nodes,
-//     hotspotLayer,
-//     nodeLayer,
-//     simulation,
-//     1000 // 1 second between spawns
-//   );
-// }
-
-// /**
-//  * Timed "drip" approach to spawn nodes from a queue one at a time.
-//  * @param {Array} nodesQueue     The array of node data to spawn over time.
-//  * @param {Array} nodes          The main node array in the simulation.
-//  * @param {d3.Selection} hotspotLayer The <g> container for hotspot rects.
-//  * @param {d3.Selection} nodeLayer    The <g> container for node groups.
-//  * @param {d3.Simulation} simulation  The d3 force simulation.
-//  * @param {number} intervalMs    How many milliseconds between spawns, default 1000.
-//  */
-// export function dripSpawnNodes(
-//   nodesQueue,
-//   nodes,
-//   hotspotLayer,
-//   nodeLayer,
-//   simulation,
-//   intervalMs = 1000
-// ) {
-//   let i = 0; 
-//   const intervalId = setInterval(() => {
-//     if (i >= nodesQueue.length) {
-//       clearInterval(intervalId);
-//       return;
-//     }
-
-//     // Take the next node from the queue
-//     const newNode = nodesQueue[i];
-//     i++;
-//     newNode.id = newNode.id + '-' + Date.now().toString(36).substring(2, 8);
-
-//     // Add to the main node array
-//     nodes.push(newNode);
-
-//     // Re-run the hotspot data-join so new hotspots appear
-//     Heatmaps.buildHeatspotRects(hotspotLayer, nodes, defs);
-
-//     // Re-run the node data-join so new node circles/labels appear
-//     buildOrUpdateNodes(nodeLayer, nodes);
-
-//     // Let the simulation know about the new array
-//     simulation.nodes(nodes);
-//     simulation.alpha(1).restart();
-
-//   }, intervalMs);
-// }
 
 /**
  * Spawn every node in `queue` one–by–one.
@@ -466,179 +352,12 @@ let nodesQueue = [];
  */
 
 // Helper: wait until a node “settles” (speed below threshold for some time).
-// Does NOT change isFixed/fx/fy – caller decides what to do once settled,
-// based on e.g. `sequenceMode` (fixing vs floating).
-async function waitForNodeToSettle(node, simulation, {
-  speedThreshold = 0.5,     // px per tick (in simulation units)
-  stableMs       = 800,     // how long it must stay below threshold
-  checkInterval  = 80       // ms between checks
-} = {}) {
-  return new Promise(resolve => {
-    if (!node) return resolve();
-
-    let stableFor = 0;
-    const id = node.id;
-
-    const intervalId = setInterval(() => {
-      // Node might have been removed
-      if (!Datasets.nodes.includes(node)) {
-        clearInterval(intervalId);
-        return resolve();
-      }
-
-      const vx = node.vx ?? 0;
-      const vy = node.vy ?? 0;
-      const speed = Math.hypot(vx, vy);
-
-      if (speed < speedThreshold) {
-        stableFor += checkInterval;
-        if (stableFor >= stableMs) {
-          clearInterval(intervalId);
-          resolve();
-        }
-      } else {
-        stableFor = 0; // reset timer if it speeds up again
-      }
-    }, checkInterval);
-  });
-}
-
-/** Queue of the current spawn run; cleared by Delete All so no more nodes are spawned. */
-let currentSpawnQueue = null;
-
-export function clearSpawnQueue() {
-  if (currentSpawnQueue) currentSpawnQueue.length = 0;
-  currentSpawnQueue = null;
-}
-
-export function dripSpawnSmart(
-  nodesQueue,
-  nodes,
-  simulation,
-  width, height, defs,
-  hotspotLayer, nodeLayer,
-  windCancelLayer, windStressLayer, windNetLayer,
-  intervalMs = 1000   // NOTE: kept for reference; old timed mode was using this
-){
-  // Return a promise that resolves when all nodes are spawned and settled.
-  return new Promise((resolve) => {
-    // make a shallow clone so we can shift() without mutating the original
-    const todo = nodesQueue.slice();
-    currentSpawnQueue = todo;
-
-    async function next () {
-      if (todo.length === 0) {
-        currentSpawnQueue = null;
-        resolve();
-        return;
-      }
-
-      const raw = structuredClone(todo.shift());           // fresh copy
-      raw.id += '-' + Date.now().toString(36).slice(-4);   // unique-ify id
-      
-      if (raw.color === "random") { raw.color = colours[Math.floor(Math.random()*colours.length)]; }
-      
-      Datasets.adjustCoordinatesToScale([raw], scaleUnit);
-      Datasets.flipYCoordinates([raw]);                    // keep y-up
-      Datasets.fixInitially([raw]);
-
-      // --- run the lattice search ------------------------------------------
-      await addNodeWithMultistartVisual(
-        nodes, raw, simulation,
-        width, height, defs,
-        windCancelLayer, windStressLayer, windNetLayer,
-        minDim, scaleUnit, nodeLayer,
-        80, 18, 18
-      );
-
-      // --- refresh DOM / forces --------------------------------------------
-      Heatmaps.buildHeatspotRects(hotspotLayer, nodes, defs);
-      buildOrUpdateNodes(nodeLayer,      nodes);
-      simulation.nodes(nodes).alpha(1).restart();
-
-      // Find the just-added node by id (after multistart it should be present in `nodes`)
-      const spawned = nodes.find(n => n.id === raw.id);
-
-      // NEW MODE: wait until this node settles, then (optionally) fix it and move on
-      await waitForNodeToSettle(spawned, simulation, {
-        speedThreshold: 0.5,
-        stableMs: 800,
-        checkInterval: 80
-      });
-
-      // Depending on the global sequenceMode, either fix the node
-      // (like a double–click) or leave it floating.
-      if (spawned && sequenceMode === "fixing") {
-        spawned.isFixed = true;
-        spawned.fx = spawned.x;
-        spawned.fy = spawned.y;
-
-        // Visual cue (black stroke) – mirror toggleFixed behaviour
-        const sel = d3.select(`#node-group-${spawned.id}`).select("circle");
-        sel.attr("stroke", "black").attr("stroke-width", 3);
-
-        simulation.alpha(0.5).restart();
-      }
-
-      // OLD MODE (timed drip), kept here for reference:
-      // setTimeout(next, intervalMs);
-
-      // Spawn the next as soon as this one has settled
-      next();
-    }
-
-    next();    // kick-off
-  });
-}
+// waitForNodeToSettle, clearSpawnQueue, dripSpawnSmart moved to js/nodeSpawn.js
 
 // ======== REMOVE ========================================================================================================
 
-function removeNodeById(id){
-  /* 1 ▸ delete from the data array */
-  const idx = Datasets.nodes.findIndex(n => n.id === id);
-  if(idx === -1) return;                       // safety
-  Datasets.nodes.splice(idx,1);
+// removeNodeById, removeAllNodes moved to js/nodeSpawn.js (use nodeOps)
 
-  /* 2 ▸ scrub ALL SVG fragments that carry that id */
-  d3.select(`#node-group-${id}`).remove();       // main glyph
-  d3.select(`#hotspot-group-${id}`).remove();    // its heatmaps
-  d3.select(`#spawn-cand-stress-${id}`).remove();// wind breadcrumbs
-  d3.select(`#spawn-cand-cancel-${id}`).remove();
-  d3.select(`#spawn-cand-netForceArrow-${id}`).remove();
-
-  /* 3 ▸ refresh joins + forces */
-  Heatmaps.buildHeatspotRects(hotspotLayer, Datasets.nodes, defs);
-  buildOrUpdateNodes(nodeLayer,           Datasets.nodes);
-
-  simulation.nodes(Datasets.nodes).alpha(1).restart();
-}
-
-function removeAllNodes() {
-
-  console.log('removed all nodes.','red');
-  // 1) Clear the array
-  Datasets.nodes.splice(0, Datasets.nodes.length);
-  activeLinks = [];
-  if (linkLayer) {
-    linkLayer.selectAll("*").remove();
-  }
-
-  // clear the wind-force groups
-  document.getElementById(AppUI.showWindStress.DOMObjectString).innerHTML='';
-  document.getElementById(AppUI.showWindCancel.DOMObjectString).innerHTML='';
-  document.getElementById(AppUI.showWindNetForceArrows.DOMObjectString).innerHTML='';
-
-  // 2) Re-run the data join for nodes and hotspots
-  buildOrUpdateNodes(nodeLayer, Datasets.nodes);
-  Heatmaps.buildHeatspotRects(hotspotLayer, Datasets.nodes, defs);
-
-  // 3) Notify the simulation we have no nodes
-  simulation.nodes(Datasets.nodes);
-
-  // 4) Optionally reheat the simulation 
-  //    (with 0 nodes, there won’t be motion, but it can forcibly update)
-  simulation.alpha(1).restart();
-}
 
 // ================================================================================================================
 // =============== SIMULATION LOGIC =======================================================================================
@@ -878,7 +597,7 @@ function ticked() {
       }
     }
 
-    updateMetrics(Datasets.nodes, currentSpawnQueue);   //
+    updateMetrics(Datasets.nodes, getCurrentSpawnQueue());   //
 }
     
 let lastMetricsUpdate = 0;
@@ -1013,7 +732,7 @@ function updateMetrics(nodes, queue){
   //   .on("click", function(e){
   //     if (e.target.classList.contains("remove-btn")){
   //       console.log("remove node "+e.target.dataset.id);
-  //       removeNodeById(e.target.dataset.id);
+  //       nodeOps.removeNodeById(e.target.dataset.id);
   //     }
   //   });
 }
@@ -1163,10 +882,10 @@ function setupDragAndDropForSpawnButtons() {
 //document.getElementById("spawnOneButton").addEventListener("click", addOne);
 document.getElementById("removeAllButton").addEventListener("click", () => {
   clearSpawnQueue();
-  removeAllNodes();
+  nodeOps.removeAllNodes();
   updateSettingsURLParam(SETTINGS_PARAMS.spawn, "", "");
 });
-document.getElementById("addOneSmartButton").addEventListener("click", addOneSmart);
+document.getElementById("addOneSmartButton").addEventListener("click", () => nodeOps.addOneSmart());
 /** Build export filename base: YYYYMMDD-HHMM_<param values> (values only, underscore-separated, fixed order). */
 function getExportFilenameBase(extension) {
   const now = new Date();
@@ -1265,6 +984,25 @@ setupSettingsPanel({
   applyBackgroundOpacity,
 });
 
+const nodeOps = createNodeSpawn({
+  nodes: Datasets.nodes,
+  activeLinks,
+  linkLayer,
+  hotspotLayer,
+  nodeLayer,
+  windLayerCancel,
+  windLayerStress,
+  windLayerNetForceArrows,
+  simulation,
+  buildOrUpdateNodes,
+  defs,
+  width,
+  height,
+  minDim,
+  scaleUnit,
+  sequenceModeRef,
+});
+
 /**
  * Show or hide the Description panel based on spawn preset description.
  * Call with a truthy string to show the panel and populate it; call with falsy to hide.
@@ -1323,20 +1061,7 @@ function buildSpawnButtonsFromPresets() {
       }
       updateDescriptionPanel(preset.description);
       updateSettingsURLParam(SETTINGS_PARAMS.spawn, preset.id, "");
-      dripSpawnSmart(
-        nodes,
-        Datasets.nodes,
-        simulation,
-        width,
-        height,
-        defs,
-        hotspotLayer,
-        nodeLayer,
-        windLayerCancel,
-        windLayerStress,
-        windLayerNetForceArrows,
-        1000
-      );
+      nodeOps.dripSpawnSmart(nodes, 1000);
     });
 
     const handle = document.createElement("span");
@@ -1383,20 +1108,7 @@ if (spawnPresetId) {
         activeLinks.push(...preset.links);
       }
       updateDescriptionPanel(preset.description);
-      dripSpawnSmart(
-        nodes,
-        Datasets.nodes,
-        simulation,
-        width,
-        height,
-        defs,
-        hotspotLayer,
-        nodeLayer,
-        windLayerCancel,
-        windLayerStress,
-        windLayerNetForceArrows,
-        1000
-      ).then(async () => {
+      nodeOps.dripSpawnSmart(nodes, 1000).then(async () => {
         // After auto-spawn finishes, read current auto-download state from URL (user may have changed checkboxes during spawn).
         const currentParams = new URLSearchParams(window.location.search);
         const autoSvg = currentParams.get(SETTINGS_PARAMS.autoSvg) === "1";
@@ -1475,7 +1187,7 @@ table.addEventListener('mouseout', (event) => {
 tbody.on("click", function (e) {
   if (e.target.classList.contains("remove-btn")) {
     console.log("remove node" + e.target.dataset.id, "red");
-    removeNodeById(e.target.dataset.id);
+    nodeOps.removeNodeById(e.target.dataset.id);
   }
   });
 
@@ -1537,11 +1249,3 @@ async function initUnityDatasets() {
   );
 
 }
-
-// // Kick off the loading right away
-// initUnityDatasets().then(() => {
-//   // Once loaded, hook them into one of your spawn panels
-//   if (spawnButtonContainerVR2) {
-//     addSpawnButtons(Datasets.unityPreppedNodes, spawnButtonContainerVR2);
-//   }
-// });
