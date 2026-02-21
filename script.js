@@ -1,17 +1,10 @@
 import * as d3 from "d3";
 import * as Datasets from "./js/datasets.js";
-import * as DatasetsVR1 from "./personal/datasetsVR1.js";
-import * as DatasetsVR2 from "./personal/datasetsVR2.js";
-import * as DatasetsVR3 from "./personal/datasetsVR3.js";
-import * as DatasetsVR4 from "./personal/datasetsVR4.js";
-import * as DatasetsPPD from "./personal/datasetsPPD.js";
-import * as DatasetsPPA from "./personal/datasetsPPA.js";
 import * as Forces from "./js/forces.js";
 import * as Drawing from "./js/drawing.js";
 import * as Heatmaps from "./js/heatmaps.js";
 import * as AppUI from "./js/ui.js";
 import { setupLogger } from './js/logger.js';
-import * as Exporter from './js/exporter.js';
 import { getExportFilenameBase as getExportFilenameBaseFromExporter } from './js/exporter.js';
 import { imagePaths, backgroundPresets, createBackgroundAppliers } from './js/backgrounds.js';
 import { spawnPresets, getNodesForPreset } from './js/spawnPresets.js';
@@ -213,7 +206,7 @@ setupListeners({
   getExportFilenameBase,
   Datasets,
   scaleUnit,
-  updateDescriptionPanel,
+  updateDescriptionPanel: AppUI.updateDescriptionPanel,
   activeLinks,
   container,
   svg,
@@ -221,24 +214,6 @@ setupListeners({
   tbody,
   onResize,
 });
-
-/**
- * Show or hide the Description panel based on spawn preset description.
- * Call with a truthy string to show the panel and populate it; call with falsy to hide.
- * @param {string|undefined} description - Optional description text (HTML-safe) from preset.description
- */
-export function updateDescriptionPanel(description) {
-  const panel = document.getElementById("description-panel");
-  const content = document.getElementById("description-content");
-  if (!panel || !content) return;
-  if (description && String(description).trim()) {
-    content.innerHTML = String(description).trim();
-    panel.classList.remove("hidden");
-  } else {
-    content.innerHTML = "";
-    panel.classList.add("hidden");
-  }
-}
 
 // buildSpawnButtonsFromPresets, collapse headers moved to js/listeners.js
 
@@ -252,7 +227,7 @@ if (spawnPresetId) {
       if (Array.isArray(preset.links) && preset.links.length) {
         activeLinks.push(...preset.links);
       }
-      updateDescriptionPanel(preset.description);
+      AppUI.updateDescriptionPanel(preset.description);
       nodeOps.dripSpawnSmart(nodes, 1000).then(async () => {
         // After auto-spawn finishes, read current auto-download state from URL (user may have changed checkboxes during spawn).
         const currentParams = new URLSearchParams(window.location.search);

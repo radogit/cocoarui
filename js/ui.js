@@ -167,3 +167,21 @@ function updateURLParam(param, bool, defaultState) {
   // Update the browser's URL bar but don’t reload or add a new history entry:
   window.history.replaceState({}, "", url);
 }
+
+/**
+ * Show or hide the Description panel based on spawn preset description.
+ * Call with a truthy string to show the panel and populate it; call with falsy to hide.
+ * @param {string|undefined} description - Optional description text (HTML-safe) from preset.description
+ */
+export function updateDescriptionPanel(description) {
+  const panel = document.getElementById("description-panel");
+  const content = document.getElementById("description-content");
+  if (!panel || !content) return;
+  if (description && String(description).trim()) {
+    content.innerHTML = String(description).trim();
+    panel.classList.remove("hidden");
+  } else {
+    content.innerHTML = "";
+    panel.classList.add("hidden");
+  }
+}

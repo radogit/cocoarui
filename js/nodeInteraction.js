@@ -29,25 +29,3 @@ export function dragEnd(event, d, simulation) {
       simulation.alphaTarget(0);
     }
   }
-
-/**
- * When a user double-clicks a node, toggle its isFixed state
- * and adjust .fx, .fy as needed.
- */
-export function toggleFixed(event, d, simulation) {
-    d.isFixed = !d.isFixed;
-    if (d.isFixed) {
-      d.fx = d.x;
-      d.fy = d.y;
-    } else {
-      d.fx = null;
-      d.fy = null;
-    }
-
-    // restyle the circle (fixed styling is in CSS .node-circle.node-fixed)
-    const circle = event.currentTarget.querySelector("circle");
-    if (circle) circle.classList.toggle("node-fixed", d.isFixed);
-
-    // Reheat the simulation a bit:
-    simulation.alpha(0.5).restart();
-}

@@ -6,12 +6,7 @@
  */
 
 import * as Datasets from "./datasets.js";
-import * as DatasetsPPD from "../personal/datasetsPPD.js";
-import * as DatasetsPPA from "../personal/datasetsPPA.js";
-import * as DatasetsVR1 from "../personal/datasetsVR1.js";
-import * as DatasetsVR2 from "../personal/datasetsVR2.js";
-import * as DatasetsVR3 from "../personal/datasetsVR3.js";
-import * as DatasetsVR4 from "../personal/datasetsVR4.js";
+import { DatasetsVR1, DatasetsVR2, DatasetsVR3, DatasetsVR4, DatasetsPPD, DatasetsPPA } from "../personal/datasets.js";
 import * as DatasetsLayouts from "../personal/datasetsLayouts.js";
 
 /** Map sourceId -> array of { name, nodes, uiButtonColour?, ... } (same shape as current preppedNodes). */
