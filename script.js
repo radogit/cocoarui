@@ -24,6 +24,7 @@ import { setupListeners } from './js/listeners.js';
 import { createMetricsUpdater, formatNodeLabel, splitLabelIntoTwoLines } from './js/metrics.js';
 import { addDefaultHatchPatterns } from './js/patterns.js';
 import * as NodeInteraction from './js/nodeInteraction.js';
+import { createOnResize } from './js/viewport.js';
 
 
 window.Datasets = Datasets;   // <-- makes Datasets visible in DevTools
@@ -45,6 +46,7 @@ setupLogger();
 
 // 1) Create the SVG, container
 const { svg, container, nodeLayer, hotspotLayer, linkLayer, windLayerCancel, windLayerStress, windLayerNetForceArrows, width, height, minDim, scaleUnit } = Drawing.createSvgAndContainer();
+const onResize = createOnResize(svg, container, minDim);
 /** Opacity of other nodes' hotspot groups when hovering a node or its metrics row. Lower = more dimmed. */
 const HOTSPOT_OPACITY_OTHERS_ON_HOVER = 0.06;
 
@@ -667,24 +669,3 @@ if (spawnPresetId) {
 }
 
 // Metrics table, tbody, resize, keydown listeners moved to js/listeners.js
-
-function onResize() {
-    // 1) Calculate new width/height
-    const newWidth = window.innerWidth;
-    const newHeight = window.innerHeight;
-    svg.attr("width", newWidth).attr("height", newHeight);
-
-    // 2) Determine scale based on the smaller dimension
-    const scaleFactor = Math.min(newWidth, newHeight) / minDim;
-    // baseDimension is some baseline—eg. the initial smaller dimension or a desired reference size.
-
-    // 3) Translate to center, scale uniformly
-    container.attr("transform",
-    `translate(${newWidth/2}, ${newHeight/2}) scale(${scaleFactor})`
-    );
-
-    // 4) we can redraw axes or call `ticked()` if needed
-    //redrawAxes(); // if we have an axis we want to keep consistent
-}
-
-// Keyboard shortcuts moved to js/listeners.js
