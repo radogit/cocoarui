@@ -1,6 +1,6 @@
 import * as d3 from "d3";
 import * as Datasets from "./js/datasets.js";
-import * as Forces from "./js/forces.js";
+import { createSimulation } from "./js/simulation.js";
 import * as Drawing from "./js/drawing.js";
 import * as Heatmaps from "./js/heatmaps.js";
 import * as AppUI from "./js/ui.js";
@@ -91,25 +91,9 @@ AppUI.setupUI();
 // =============== SIMULATION LOGIC =======================================================================================
 // ================================================================================================================
 
-const forceCollide = d3.forceCollide().radius(d => d.radius + Datasets.collisionMargin).strength(1.2); // unchanged from original
-const forceRepel = d3.forceManyBody().strength(d => d.isFixed ? 0 : -50); // Mild repulsion between nodes
-let collisionEnabled = true;
-
-const simulation = d3.forceSimulation(Datasets.nodes)
-    .force('travel', Forces.forceTravel(Datasets.nodes))
-    .force("repel", forceRepel)
-    .force("collide", forceCollide)
-    .force("gaussian", Forces.forceGaussianPreferredArea(1.5, () => collisionEnabled))
-    .force("customCollision", Forces.forceCustomCollision);
-
-function setCollisionEnabled(enabled) {
-  collisionEnabled = enabled;
-  Forces.nodeNodeCollisionInGaussian = enabled;
-  simulation.force("repel", enabled ? forceRepel : null);
-  simulation.force("collide", enabled ? forceCollide : null);
-  simulation.force("customCollision", enabled ? Forces.forceCustomCollision : null);
-  simulation.alpha(0.3).restart();
-}
+const { simulation, setCollisionEnabled } = createSimulation(Datasets.nodes, {
+  collisionMargin: Datasets.collisionMargin,
+});
 
 // ================================================================================================================
 // =============== Dragging & Toggling =======================================================================================
