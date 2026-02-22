@@ -1,10 +1,10 @@
 /**
  * Builds fav links with configurable URL params. Links with class "fav-link" get their
- * href set from DEFAULT_PARAMS; use data-overrides='{"spawn":"...","collision":"0"}' to override.
+ * href set from defaultParams; use data-overrides='{"spawn":"...","collision":"0"}' to override.
  * Exposes buildFavLinkHref(overrides) for programmatic use.
  */
 (function() {
-  const DEFAULT_PARAMS = {
+  const defaultParams = {
     spawn: "",
     collision: "1",
     sequenceMode: "fixing",
@@ -53,12 +53,12 @@
   };
 
   window.buildFavLinkHref = function(overrides) {
-    const params = { ...DEFAULT_PARAMS, ...overrides };
+    const params = { ...defaultParams, ...overrides };
     return "?" + new URLSearchParams(params).toString();
   };
 
   /** Params to show in brackets when they differ from default. Value -> human-readable label; null = default, skip. */
-  const PARAM_LABELS = {
+  const paramLabels = {
     collision: { "0": "no collision" },
     obs: { "0": "no obs" },
     obsLines: { "1": "obs lines" },
@@ -72,10 +72,10 @@
   };
 
   function buildFavLinkLabel(overrides) {
-    const params = { ...DEFAULT_PARAMS, ...overrides };
+    const params = { ...defaultParams, ...overrides };
     const spawn = params.spawn || "?";
     const mods = [];
-    for (const [key, labels] of Object.entries(PARAM_LABELS)) {
+    for (const [key, labels] of Object.entries(paramLabels)) {
       const val = String(params[key] ?? "");
       if (labels[val]) mods.push(labels[val]);
     }

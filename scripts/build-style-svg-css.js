@@ -27,7 +27,7 @@ const outContent = `/**
  * Regenerate with: npm run build-style-svg-css
  * Used by exporter as fallback when fetch(style-svg.css) fails.
  */
-export const STYLE_SVG_CSS = \`${escaped}\`;
+export const styleSvgCss = \`${escaped}\`;
 `;
 
 fs.writeFileSync(out, outContent, "utf8");

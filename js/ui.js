@@ -30,6 +30,9 @@ export let showSettingsPanel =        { keyboardShortcut: 'KeyT',     keyboardSh
 export let showExportPanel =          { keyboardShortcut: 'KeyX',     keyboardShortcutLetter: 'X',  shownInViewPanel: true, defaultState: true, boolState: true, UILabelString: 'Export Panel', shorthandString: 'export panel', ToggleObjectString: 'toggleExportPanel', DOMObjectString: 'export-panel', URLParamString: 'exportPanel', filenameStringOn: '', filenameStringOff: ''};
 export let showFavouritesPanel =     { keyboardShortcut: 'KeyF',     keyboardShortcutLetter: 'F',  shownInViewPanel: true, defaultState: false, boolState: false, UILabelString: 'Favourites', shorthandString: 'favourites panel', ToggleObjectString: 'toggleFavouritesPanel', DOMObjectString: 'favourites-panel', URLParamString: 'favouritesPanel', filenameStringOn: '', filenameStringOff: ''};
 
+/** Opacity of other nodes' hotspot groups when hovering a node or its metrics row. Lower = more dimmed. */
+export const hotspotOpacityOthersOnHover = 0.06;
+
 /** View-panel toggles in display order for export filename (values only; empty filenameStringOn/Off = skip). */
 export const viewPanelTogglesForFilename = [
   showNodeLabel, showCoordinates, showForceArrows, showForceArrowsLabels,

@@ -4,7 +4,7 @@
  */
 export function runAutoSpawnFromUrl(urlParams, ctx) {
   const {
-    SETTINGS_PARAMS,
+    urlParamKeys,
     spawnPresets,
     getNodesForPreset,
     activeLinks,
@@ -15,7 +15,7 @@ export function runAutoSpawnFromUrl(urlParams, ctx) {
     scaleUnit,
   } = ctx;
 
-  const spawnPresetId = urlParams.get(SETTINGS_PARAMS.spawn);
+  const spawnPresetId = urlParams.get(urlParamKeys.spawn);
   if (!spawnPresetId) return;
 
   const preset = spawnPresets.find((p) => p.id === spawnPresetId);
@@ -31,10 +31,10 @@ export function runAutoSpawnFromUrl(urlParams, ctx) {
 
   nodeOps.dripSpawnSmart(nodes, 1000).then(async () => {
     const currentParams = new URLSearchParams(window.location.search);
-    const autoSvg = currentParams.get(SETTINGS_PARAMS.autoSvg) === "1";
-    const autoPng = currentParams.get(SETTINGS_PARAMS.autoPng) === "1";
-    const autoCsv = currentParams.get(SETTINGS_PARAMS.autoCsv) === "1";
-    const autoJson = currentParams.get(SETTINGS_PARAMS.autoJson) === "1";
+    const autoSvg = currentParams.get(urlParamKeys.autoSvg) === "1";
+    const autoPng = currentParams.get(urlParamKeys.autoPng) === "1";
+    const autoCsv = currentParams.get(urlParamKeys.autoCsv) === "1";
+    const autoJson = currentParams.get(urlParamKeys.autoJson) === "1";
 
     const exportPromises = [];
     if (autoSvg && typeof window.exportSquareSVG === "function") {

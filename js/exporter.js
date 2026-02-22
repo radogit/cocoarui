@@ -2,8 +2,8 @@
 // exportSquarePNG("figure.png");
 // exportSquarePNG("figure-4x.png", 4); // publication-quality
 
-import { STYLE_SVG_CSS } from "./style-svg-css.js";
-import { SETTINGS_PARAMS } from "./settings.js";
+import { styleSvgCss } from "./style-svg-css.js";
+import { urlParamKeys } from "./settings.js";
 import * as AppUI from "./ui.js";
 
 /**
@@ -21,11 +21,11 @@ export function getExportFilenameBase(extension, opts = {}) {
     String(now.getHours()).padStart(2, "0") +
     String(now.getMinutes()).padStart(2, "0");
   const params = new URLSearchParams(window.location.search);
-  const collisionVal = params.get(SETTINGS_PARAMS.collision);
+  const collisionVal = params.get(urlParamKeys.collision);
   const collisionStr = collisionVal === "0" || collisionVal === "false" ? "nocol" : "col";
-  const sequenceStr = params.get(SETTINGS_PARAMS.sequence) || opts.sequenceMode || "fixing";
-  const spawnStr = params.get(SETTINGS_PARAMS.spawn) || "-";
-  const bgStr = params.get(SETTINGS_PARAMS.background) || "-";
+  const sequenceStr = params.get(urlParamKeys.sequence) || opts.sequenceMode || "fixing";
+  const spawnStr = params.get(urlParamKeys.spawn) || "-";
+  const bgStr = params.get(urlParamKeys.background) || "-";
 
   const parts = [datePart, spawnStr, collisionStr, sequenceStr];
   const viewToggles = [
@@ -60,7 +60,7 @@ export function getExportFilenameBase(extension, opts = {}) {
 // =======================================
 //  Embed style-svg.css into cloned SVG so export matches screen (font, .id-label, etc.)
 //  Prefer fetch from the page's stylesheet URL (works with Parcel hashed filenames);
-//  if that returns HTML (SPA fallback) or fails, use bundled STYLE_SVG_CSS.
+//  if that returns HTML (SPA fallback) or fails, use bundled styleSvgCss.
 //  For PNG export at scale > 1, pass { scale } so every px value in the CSS is
 //  multiplied by scale (keeps text-shadow, font-size etc. proportional).
 //  stroke-width and stroke-dasharray are excluded: in SVG they use user coordinates
@@ -77,7 +77,7 @@ function scalePxInCss(css, scale) {
 }
 
 async function embedSvgStyles(svgClone, options = {}) {
-  let css = STYLE_SVG_CSS;
+  let css = styleSvgCss;
   const link = document.querySelector('link[href*="style-svg"]');
   const url = link ? link.getAttribute("href") : "style-svg.css";
   try {
@@ -89,7 +89,7 @@ async function embedSvgStyles(svgClone, options = {}) {
       }
     }
   } catch (_) {
-    /* use bundled STYLE_SVG_CSS */
+    /* use bundled styleSvgCss */
   }
   const scale = options.scale;
   if (scale != null && scale !== 1) {

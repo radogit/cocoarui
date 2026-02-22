@@ -61,7 +61,7 @@ function setupDragAndDropForSpawnButtons() {
  * @param {Object} ctx.nodeOps - { addOneSmart, removeAllNodes, removeNodeById, dripSpawnSmart }
  * @param {Function} ctx.clearSpawnQueue
  * @param {Function} ctx.updateSettingsURLParam
- * @param {Object} ctx.SETTINGS_PARAMS
+ * @param {Object} ctx.urlParamKeys
  * @param {Function} ctx.getExportFilenameBase
  * @param {Object} ctx.Datasets - { nodes }
  * @param {number} ctx.scaleUnit
@@ -77,7 +77,7 @@ export function setupListeners(ctx) {
     nodeOps,
     clearSpawnQueue,
     updateSettingsURLParam,
-    SETTINGS_PARAMS,
+    urlParamKeys,
     getExportFilenameBase,
     Datasets,
     scaleUnit,
@@ -95,7 +95,7 @@ export function setupListeners(ctx) {
     removeAllBtn.addEventListener("click", () => {
       clearSpawnQueue();
       nodeOps.removeAllNodes();
-      updateSettingsURLParam(SETTINGS_PARAMS.spawn, "", "");
+      updateSettingsURLParam(urlParamKeys.spawn, "", "");
     });
   }
 
@@ -199,7 +199,7 @@ export function setupListeners(ctx) {
         ctx.activeLinks.push(...preset.links);
       }
       updateDescriptionPanel(preset.description);
-      updateSettingsURLParam(SETTINGS_PARAMS.spawn, preset.id, "");
+      updateSettingsURLParam(urlParamKeys.spawn, preset.id, "");
       nodeOps.dripSpawnSmart(nodes, 1000);
     });
 

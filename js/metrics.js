@@ -3,7 +3,7 @@
  */
 import * as d3 from "d3";
 
-const METRICS_HEADERS = ["nodeLabel", "fix", "x", "y", "⌀", "Σ|F|", "|ΣF|", "cancel", "vx", "vy"];
+const metricsHeaders = ["nodeLabel", "fix", "x", "y", "⌀", "Σ|F|", "|ΣF|", "cancel", "vx", "vy"];
 
 /**
  * Build the metrics panel table DOM. Call once after the metrics-panel element exists.
@@ -16,7 +16,7 @@ export function createMetricsPanel(selector = "#metrics-panel") {
     .attr("class", "metrics");
 
   metPanel.append("thead").append("tr").selectAll("th")
-    .data(METRICS_HEADERS)
+    .data(metricsHeaders)
     .enter().append("th")
     .text((d) => d);
 

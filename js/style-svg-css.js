@@ -3,7 +3,7 @@
  * Regenerate with: npm run build-style-svg-css
  * Used by exporter as fallback when fetch(style-svg.css) fails.
  */
-export const STYLE_SVG_CSS = `/* SVG-only styles: used in-document and embedded into exported SVG so export matches screen */
+export const styleSvgCss = `/* SVG-only styles: used in-document and embedded into exported SVG so export matches screen */
 
 svg {
   font-family: Arial, sans-serif;

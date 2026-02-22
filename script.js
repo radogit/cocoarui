@@ -9,7 +9,7 @@ import { getExportFilenameBase as getExportFilenameBaseFromExporter } from './js
 import { imagePaths, backgroundPresets, createBackgroundAppliers } from './js/backgrounds.js';
 import { spawnPresets, getNodesForPreset } from './js/spawnPresets.js';
 import { colours } from './js/colours.js';
-import { SETTINGS_PARAMS, updateSettingsURLParam, setupSettingsPanel } from './js/settings.js';
+import { urlParamKeys, updateSettingsURLParam, setupSettingsPanel } from './js/settings.js';
 import { createNodeSpawn, clearSpawnQueue } from './js/nodeSpawn.js';
 import { setupListeners } from './js/listeners.js';
 import { createMetricsUpdater } from './js/metrics.js';
@@ -18,22 +18,11 @@ import { createNodeRendering } from './js/nodeRendering.js';
 import { runAutoSpawnFromUrl } from './js/autoSpawn.js';
 
 
-window.Datasets = Datasets;   // <-- makes Datasets visible in DevTools
+window.Datasets = Datasets;   // makes Datasets visible in DevTools
+let sequenceMode = "fixing"; // Global-ish setting for sequence behaviour in dripSpawnSmart; "fixing" → fix node after it settles; "floating" → leave free.
+let activeLinks = []; // define container for explicit node-to-node links spawned from presets (by label), e.g. 1<-2, 1<-3; Each entry: { fromLabel: string, toLabel: string }
 
-// Global-ish setting for sequence behaviour in dripSpawnSmart
-// "fixing" → fix node after it settles; "floating" → leave free.
-let sequenceMode = "fixing";
-
-// define container for explicit node-to-node links spawned from presets (by label), e.g. 1<-2, 1<-3
-// Each entry: { fromLabel: string, toLabel: string }
-let activeLinks = [];
-
-// Set up the logger
 setupLogger();
-
-// ================================================================================================================
-// =============== ONE TIME =======================================================================================
-// ================================================================================================================
 
 const {
   svg,
@@ -54,8 +43,6 @@ const {
 } = createScene(Datasets, colours);
 
 const onResize = createOnResize(svg, container, minDim);
-/** Opacity of other nodes' hotspot groups when hovering a node or its metrics row. Lower = more dimmed. */
-const HOTSPOT_OPACITY_OTHERS_ON_HOVER = 0.06;
 // addOneSmart moved to js/nodeSpawn.js
 // waitForNodeToSettle, clearSpawnQueue, dripSpawnSmart moved to js/nodeSpawn.js
 // removeNodeById, removeAllNodes moved to js/nodeSpawn.js (use nodeOps)
@@ -71,14 +58,14 @@ const metricsUpdater = createMetricsUpdater({
   tfoot,
   scaleUnit,
   hotspotLayer,
-  hotspotOpacityOthersOnHover: HOTSPOT_OPACITY_OTHERS_ON_HOVER,
+  hotspotOpacityOthersOnHover: AppUI.hotspotOpacityOthersOnHover,
   setNodeFixed,
 });
 
 const { buildOrUpdateNodes, ticked } = createNodeRendering({
   tbody,
   hotspotLayer,
-  hotspotOpacityOthersOnHover: HOTSPOT_OPACITY_OTHERS_ON_HOVER,
+  hotspotOpacityOthersOnHover: AppUI.hotspotOpacityOthersOnHover,
   linkLayer,
   scaleUnit,
   simulation,
@@ -130,7 +117,7 @@ setupListeners({
   nodeOps,
   clearSpawnQueue,
   updateSettingsURLParam,
-  SETTINGS_PARAMS,
+  urlParamKeys,
   getExportFilenameBase,
   Datasets,
   scaleUnit,
@@ -146,7 +133,7 @@ setupListeners({
 // buildSpawnButtonsFromPresets, collapse headers moved to js/listeners.js
 
 runAutoSpawnFromUrl(urlParams, {
-  SETTINGS_PARAMS,
+  urlParamKeys,
   spawnPresets,
   getNodesForPreset,
   activeLinks,

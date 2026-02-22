@@ -2,7 +2,8 @@
  * Settings panel: URL params, update helpers, and panel wiring.
  */
 
-export const SETTINGS_PARAMS = {
+/** Map of setting names to URL query parameter keys (e.g. sequence → "sequenceMode", spawn → "spawn"). */
+export const urlParamKeys = {
   sequence: "sequenceMode",
   background: "bgPreset",
   bgOpacity: "bgOpacity",
@@ -47,7 +48,7 @@ export function setupSettingsPanel(ctx) {
   const seqFix = document.getElementById("sequence-fixing");
   const seqFloat = document.getElementById("sequence-floating");
   if (seqFix && seqFloat) {
-    const seqFromUrl = urlParams.get(SETTINGS_PARAMS.sequence);
+    const seqFromUrl = urlParams.get(urlParamKeys.sequence);
     if (seqFromUrl === "floating") {
       sequenceModeRef.value = "floating";
       seqFloat.checked = true;
@@ -58,13 +59,13 @@ export function setupSettingsPanel(ctx) {
     seqFix.addEventListener("change", () => {
       if (seqFix.checked) {
         sequenceModeRef.value = "fixing";
-        updateSettingsURLParam(SETTINGS_PARAMS.sequence, "fixing", "fixing");
+        updateSettingsURLParam(urlParamKeys.sequence, "fixing", "fixing");
       }
     });
     seqFloat.addEventListener("change", () => {
       if (seqFloat.checked) {
         sequenceModeRef.value = "floating";
-        updateSettingsURLParam(SETTINGS_PARAMS.sequence, "floating", "fixing");
+        updateSettingsURLParam(urlParamKeys.sequence, "floating", "fixing");
       }
     });
   }
@@ -72,7 +73,7 @@ export function setupSettingsPanel(ctx) {
   // Collision (setCollisionEnabled is passed in from script)
   const collisionCheckbox = document.getElementById("setting-collision");
   if (collisionCheckbox && setCollisionEnabled) {
-    const collFromUrl = urlParams.get(SETTINGS_PARAMS.collision);
+    const collFromUrl = urlParams.get(urlParamKeys.collision);
     if (collFromUrl === "0" || collFromUrl === "false") {
       setCollisionEnabled(false);
       collisionCheckbox.checked = false;
@@ -83,14 +84,14 @@ export function setupSettingsPanel(ctx) {
     collisionCheckbox.addEventListener("change", () => {
       const enabled = collisionCheckbox.checked;
       setCollisionEnabled(enabled);
-      updateSettingsURLParam(SETTINGS_PARAMS.collision, enabled ? "1" : "0", "1");
+      updateSettingsURLParam(urlParamKeys.collision, enabled ? "1" : "0", "1");
     });
   }
 
   // Auto-download checkboxes
   ["autoSvg", "autoPng", "autoCsv", "autoJson"].forEach((key) => {
     const checkbox = document.getElementById("setting-" + key);
-    const paramKey = SETTINGS_PARAMS[key];
+    const paramKey = urlParamKeys[key];
     if (!checkbox || !paramKey) return;
     checkbox.checked = urlParams.get(paramKey) === "1";
     checkbox.addEventListener("change", () => {
@@ -108,13 +109,13 @@ export function setupSettingsPanel(ctx) {
       bgSelect.appendChild(opt);
     });
     const defaultPresetId = backgroundPresets[0]?.id ?? "";
-    const bgFromUrl = urlParams.get(SETTINGS_PARAMS.background);
+    const bgFromUrl = urlParams.get(urlParamKeys.background);
     const validPresetId = backgroundPresets.some((p) => p.id === bgFromUrl) ? bgFromUrl : defaultPresetId;
     bgSelect.value = validPresetId;
     applyBackgroundSelection(validPresetId);
     bgSelect.addEventListener("change", () => {
       applyBackgroundSelection(bgSelect.value);
-      updateSettingsURLParam(SETTINGS_PARAMS.background, bgSelect.value, defaultPresetId);
+      updateSettingsURLParam(urlParamKeys.background, bgSelect.value, defaultPresetId);
     });
     const bgToggle = document.getElementById("toggleBackground");
     if (bgToggle) {
@@ -127,19 +128,19 @@ export function setupSettingsPanel(ctx) {
   const bgOpacitySlider = document.getElementById("background-opacity");
   const bgOpacityValue = document.getElementById("background-opacity-value");
   if (bgOpacitySlider && bgOpacityValue && applyBackgroundOpacity && container) {
-    const bgOpacityFromUrl = urlParams.get(SETTINGS_PARAMS.bgOpacity);
+    const bgOpacityFromUrl = urlParams.get(urlParamKeys.bgOpacity);
     const validOpacity = bgOpacityFromUrl != null && !isNaN(Number(bgOpacityFromUrl))
       ? Math.max(0, Math.min(100, Number(bgOpacityFromUrl)))
       : 100;
     bgOpacitySlider.value = validOpacity;
     bgOpacityValue.textContent = validOpacity + "%";
     applyBackgroundOpacity(validOpacity);
-    updateSettingsURLParam(SETTINGS_PARAMS.bgOpacity, String(validOpacity), "100");
+    updateSettingsURLParam(urlParamKeys.bgOpacity, String(validOpacity), "100");
     bgOpacitySlider.addEventListener("input", () => {
       const v = bgOpacitySlider.value;
       bgOpacityValue.textContent = v + "%";
       applyBackgroundOpacity(v);
-      updateSettingsURLParam(SETTINGS_PARAMS.bgOpacity, v, "100");
+      updateSettingsURLParam(urlParamKeys.bgOpacity, v, "100");
     });
     const bgToggleForOpacity = document.getElementById("toggleBackground");
     if (bgToggleForOpacity) {
