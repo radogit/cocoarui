@@ -1,4 +1,4 @@
-// import * as d3 from "d3";
+import * as d3 from "d3";
 
 // Dragging behavior
 
@@ -29,3 +29,32 @@ export function dragEnd(event, d, simulation) {
       simulation.alphaTarget(0);
     }
   }
+
+/**
+ * Create setNodeFixed and toggleFixed handlers bound to a simulation.
+ * @param {d3.Simulation} simulation
+ * @returns {{ setNodeFixed: Function, toggleFixed: Function }}
+ */
+export function createNodeFixedHandlers(simulation) {
+  function setNodeFixed(node, fixed) {
+    node.isFixed = !!fixed;
+    if (node.isFixed) {
+      node.fx = node.x;
+      node.fy = node.y;
+    } else {
+      node.fx = null;
+      node.fy = null;
+    }
+    const sel = d3.select(`#node-group-${node.id}`).select("circle");
+    if (!sel.empty()) {
+      sel.classed("node-fixed", node.isFixed);
+    }
+    simulation.alpha(0.5).restart();
+  }
+
+  function toggleFixed(event, d) {
+    setNodeFixed(d, !d.isFixed);
+  }
+
+  return { setNodeFixed, toggleFixed };
+}

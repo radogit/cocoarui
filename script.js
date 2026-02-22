@@ -1,6 +1,7 @@
 import * as d3 from "d3";
 import * as Datasets from "./js/datasets.js";
 import { createSimulation } from "./js/simulation.js";
+import { createNodeFixedHandlers } from "./js/nodeInteraction.js";
 import * as Drawing from "./js/drawing.js";
 import * as Heatmaps from "./js/heatmaps.js";
 import * as AppUI from "./js/ui.js";
@@ -86,11 +87,6 @@ AppUI.setupUI();
 // waitForNodeToSettle, clearSpawnQueue, dripSpawnSmart moved to js/nodeSpawn.js
 // removeNodeById, removeAllNodes moved to js/nodeSpawn.js (use nodeOps)
 
-
-// ================================================================================================================
-// =============== SIMULATION LOGIC =======================================================================================
-// ================================================================================================================
-
 const { simulation, setCollisionEnabled } = createSimulation(Datasets.nodes, {
   collisionMargin: Datasets.collisionMargin,
 });
@@ -98,27 +94,7 @@ const { simulation, setCollisionEnabled } = createSimulation(Datasets.nodes, {
 // ================================================================================================================
 // =============== Dragging & Toggling =======================================================================================
 // ================================================================================================================
-// dragStart, dragging, dragEnd from js/nodeInteraction.js
-
-function setNodeFixed(node, fixed) {
-  node.isFixed = !!fixed;
-  if (node.isFixed) {
-    node.fx = node.x;
-    node.fy = node.y;
-  } else {
-    node.fx = null;
-    node.fy = null;
-  }
-  const sel = d3.select(`#node-group-${node.id}`).select("circle");
-  if (!sel.empty()) {
-    sel.classed("node-fixed", node.isFixed);
-  }
-  simulation.alpha(0.5).restart();
-}
-
-function toggleFixed(event, d) {
-  setNodeFixed(d, !d.isFixed);
-}
+const { setNodeFixed, toggleFixed } = createNodeFixedHandlers(simulation);
 
 const metricsUpdater = createMetricsUpdater({
   tbody,
