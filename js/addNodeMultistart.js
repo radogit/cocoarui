@@ -85,7 +85,7 @@ export async function addNodeWithMultistartVisual(
 
       nodes.push(cand);
       const mini = d3.forceSimulation(nodes.concat(cand))
-        .force("gauss", Forces.forceGaussianPreferredArea(1.5))
+        .force("gauss", Forces.forceGaussianPreferredArea(1.5, () => Forces.nodeNodeCollisionInGaussian))
         .force("coll", Forces.forceCustomCollision);
       mini.tick();
       const netForceX = cand.vx;

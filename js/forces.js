@@ -53,8 +53,9 @@ export function forceGaussianPreferredArea(strength, getNodeNodeCollisionEnabled
   };
 }
 
-// Weighted collision
+// Weighted collision. No-ops when nodeNodeCollisionInGaussian is false (collision setting off).
 export function forceCustomCollision(alpha) {
+  if (!nodeNodeCollisionInGaussian) return;
   nodes.forEach((d,i) => {
     nodes.forEach((other,j) => {
       if (i===j) return;
