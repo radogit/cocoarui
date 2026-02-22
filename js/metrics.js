@@ -1,7 +1,30 @@
 /**
- * Metrics table: update logic, format helpers, row hover handlers.
+ * Metrics table: DOM creation, update logic, format helpers, row hover handlers.
  */
 import * as d3 from "d3";
+
+const METRICS_HEADERS = ["nodeLabel", "fix", "x", "y", "⌀", "Σ|F|", "|ΣF|", "cancel", "vx", "vy"];
+
+/**
+ * Build the metrics panel table DOM. Call once after the metrics-panel element exists.
+ * @param {string} [selector="#metrics-panel"] - Selector for the panel container
+ * @returns {{ metPanel: d3.Selection, tbody: d3.Selection, tfoot: d3.Selection }}
+ */
+export function createMetricsPanel(selector = "#metrics-panel") {
+  const metPanel = d3.select(selector)
+    .append("table")
+    .attr("class", "metrics");
+
+  metPanel.append("thead").append("tr").selectAll("th")
+    .data(METRICS_HEADERS)
+    .enter().append("th")
+    .text((d) => d);
+
+  const tbody = metPanel.append("tbody").attr("id", "metrics-body");
+  const tfoot = metPanel.append("tfoot");
+
+  return { metPanel, tbody, tfoot };
+}
 
 /** If node label starts with "rado-Simple Interactable(Clone)-", format as VR.{participant}.{firstSegment}; else return as-is. */
 export function formatNodeLabel(label) {

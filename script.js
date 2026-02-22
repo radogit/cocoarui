@@ -13,7 +13,7 @@ import { colours } from './js/colours.js';
 import { SETTINGS_PARAMS, updateSettingsURLParam, setupSettingsPanel } from './js/settings.js';
 import { createNodeSpawn, clearSpawnQueue } from './js/nodeSpawn.js';
 import { setupListeners } from './js/listeners.js';
-import { createMetricsUpdater } from './js/metrics.js';
+import { createMetricsPanel, createMetricsUpdater } from './js/metrics.js';
 import { addDefaultHatchPatterns } from './js/patterns.js';
 import { createOnResize } from './js/viewport.js';
 import { createNodeRendering } from './js/nodeRendering.js';
@@ -43,18 +43,7 @@ const onResize = createOnResize(svg, container, minDim);
 /** Opacity of other nodes' hotspot groups when hovering a node or its metrics row. Lower = more dimmed. */
 const HOTSPOT_OPACITY_OTHERS_ON_HOVER = 0.06;
 
-// build the metrics panel once ──────────────────────────────────────────
-const metPanel = d3.select("#metrics-panel")
-                   .append("table")
-                   .attr("class", "metrics");
-
-metPanel.append("thead").append("tr").selectAll("th")
-        .data(["nodeLabel", "fix", "x", "y", "⌀", "Σ|F|", "|ΣF|", "cancel", "vx", "vy"])
-        .enter().append("th")
-        .text(d => d);
-
-const tbody = metPanel.append("tbody").attr("id","metrics-body");;
-const tfoot = metPanel.append("tfoot");
+const { tbody, tfoot } = createMetricsPanel();
 
 // 2) Draw axes
 const { xScale, yScale, xAxis, yAxis } = Drawing.createAxes(container, width, height, minDim);
@@ -91,9 +80,6 @@ const { simulation, setCollisionEnabled } = createSimulation(Datasets.nodes, {
   collisionMargin: Datasets.collisionMargin,
 });
 
-// ================================================================================================================
-// =============== Dragging & Toggling =======================================================================================
-// ================================================================================================================
 const { setNodeFixed, toggleFixed } = createNodeFixedHandlers(simulation);
 
 const metricsUpdater = createMetricsUpdater({
