@@ -22,7 +22,8 @@
   "dependencies": {
     "d3": "^7.9.0",
     "live-server": "^1.2.0",
-    "parcel": "^2.13.3"
+    "parcel": "^2.13.3",
+    "qrcode": "^1.5.4"
   },
   "devDependencies": {
     "@parcel/transformer-inline-string": "^2.13.3",

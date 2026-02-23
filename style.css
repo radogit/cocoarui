@@ -134,6 +134,10 @@ div {
   font-size: 6px;
   /* min-width: 350px; */
 }
+.bubbles-vr-panel .bubbles-vr-hint { font-size: 10px; margin: 0 0 8px 0; color: #555; }
+.bubbles-vr-qr-container { display: flex; justify-content: center; align-items: center; min-height: 80px; }
+.bubbles-vr-qr-container canvas { display: block; }
+.bubbles-vr-placeholder, .bubbles-vr-error { font-size: 10px; color: #888; margin: 0; }
 .ui-panel input[type="checkbox"]:checked + span { font-weight: bold; }
 span.todo { opacity: 0.5; }
 span.todo::after { content: " (todo)"; }

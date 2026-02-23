@@ -4,6 +4,7 @@
  */
 import * as AppUI from "./ui.js";
 import { spawnPresets, getNodesForPreset } from "./spawnPresets.js";
+import { getVRMarkersString, generateQRCode } from "./bubblesVR.js";
 
 let draggedContainer = null;
 
@@ -136,6 +137,25 @@ export function setupListeners(ctx) {
       if (typeof window.exportLayoutJSON === "function") {
         window.exportLayoutJSON(getExportFilenameBase("json"), Datasets.nodes, scaleUnit);
       }
+    });
+  }
+  const generateVRBtn = document.getElementById("generateVRButton");
+  if (generateVRBtn) {
+    generateVRBtn.addEventListener("click", async () => {
+      const markersStr = getVRMarkersString(Datasets.nodes, scaleUnit);
+      const container = document.getElementById("bubbles-vr-qr-container");
+      await generateQRCode(markersStr, container);
+      // Show BubblesVR panel and ensure it's visible
+      AppUI.showBubblesVRPanel.boolState = true;
+      const toggleCheckbox = document.getElementById(AppUI.showBubblesVRPanel.ToggleObjectString);
+      if (toggleCheckbox) toggleCheckbox.checked = true;
+      AppUI.showOrHideElement(
+        true,
+        "." + AppUI.showBubblesVRPanel.DOMObjectString,
+        AppUI.showBubblesVRPanel.shorthandString,
+        AppUI.showBubblesVRPanel.URLParamString,
+        AppUI.showBubblesVRPanel.defaultState
+      );
     });
   }
 
