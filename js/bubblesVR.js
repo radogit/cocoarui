@@ -23,8 +23,30 @@ function round1(v) {
 }
 
 /**
- * Convert D3 nodes to VR markers JSON string.
- * Format matches CardboardVR parseMarkersFromRawString: [{"yaw", "pitch", "size", "color", "name"}]
+ * Build settings object from current D3 UI state.
+ * @returns {Object} - { bg, bgPreset, bgOpacity, axis, gridV, gridH, nodeCircles, nodeIcon, nodeLabel }
+ */
+function getVRSettings() {
+  const bgEl = document.getElementById("background-select");
+  const bgOpacityEl = document.getElementById("background-opacity");
+  const bgToggle = document.getElementById("toggleBackground");
+  return {
+    bg: bgToggle?.checked ? 1 : 0,
+    bgPreset: bgEl?.value ?? "base-downhill",
+    bgOpacity: Number(bgOpacityEl?.value ?? 100),
+    axis: document.getElementById("toggleAxis")?.checked ? 1 : 0,
+    gridV: document.getElementById("toggleVerticalGrid")?.checked ? 1 : 0,
+    gridH: document.getElementById("toggleHorizontalGrid")?.checked ? 1 : 0,
+    nodeCircles: document.getElementById("toggleNodeCircles")?.checked ? 1 : 0,
+    nodeIcon: document.getElementById("toggleNodeIcon")?.checked ? 1 : 0,
+    nodeLabel: document.getElementById("toggleNodeLabel")?.checked ? 1 : 0,
+  };
+}
+
+/**
+ * Convert D3 nodes to VR payload JSON string.
+ * Format: { nodes: [...], settings: {...} }
+ * Nodes: [{"yaw", "pitch", "size", "color", "name"}]
  * Coordinates in degrees; yaw = x, pitch = -y (D3 y-down → VR y-up).
  * Numerical values rounded to 1 decimal to keep QR code simpler (bigger squares).
  * @param {Array} nodes - Datasets.nodes (simulation coords: pixels, y-down)
@@ -32,9 +54,8 @@ function round1(v) {
  * @returns {string} - JSON string (no URL)
  */
 export function getVRMarkersString(nodes, scaleUnit) {
-  if (!nodes || !nodes.length) return "[]";
   const su = scaleUnit != null && scaleUnit !== 0 ? scaleUnit : 1;
-  const markers = nodes.map((n) => {
+  const nodeList = (nodes || []).map((n) => {
     const r = n.radius ?? 0;
     const yaw = round1(n.x / su);
     const pitch = round1(-n.y / su);
@@ -43,7 +64,8 @@ export function getVRMarkersString(nodes, scaleUnit) {
     const color = colorToHex(n.color);
     return { yaw, pitch, size, color, name };
   });
-  return JSON.stringify(markers);
+  const settings = getVRSettings();
+  return JSON.stringify({ nodes: nodeList, settings });
 }
 
 /**
@@ -54,7 +76,14 @@ export function getVRMarkersString(nodes, scaleUnit) {
 export async function generateQRCode(text, container) {
   if (!container) return;
   container.innerHTML = "";
-  if (!text || text === "[]") {
+  let isEmpty = !text || text === "[]";
+  if (!isEmpty && text.startsWith("{")) {
+    try {
+      const parsed = JSON.parse(text);
+      isEmpty = !parsed?.nodes?.length;
+    } catch {}
+  }
+  if (isEmpty) {
     const p = document.createElement("p");
     p.className = "bubbles-vr-placeholder";
     p.textContent = "Add nodes and press [VR] to generate QR code.";
