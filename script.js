@@ -54,6 +54,7 @@ const { simulation, setCollisionEnabled } = createSimulation(Datasets.nodes, {
 
 const { setNodeFixed, toggleFixed } = createNodeFixedHandlers(simulation);
 
+const buildOrUpdateNodesRef = { current: null };
 const metricsUpdater = createMetricsUpdater({
   tbody,
   tfoot,
@@ -61,6 +62,9 @@ const metricsUpdater = createMetricsUpdater({
   hotspotLayer,
   hotspotOpacityOthersOnHover: AppUI.hotspotOpacityOthersOnHover,
   setNodeFixed,
+  buildOrUpdateNodesRef,
+  nodeLayer,
+  nodes: Datasets.nodes,
 });
 
 const { buildOrUpdateNodes, ticked } = createNodeRendering({
@@ -75,6 +79,7 @@ const { buildOrUpdateNodes, ticked } = createNodeRendering({
   Datasets,
   metricsUpdater,
 });
+buildOrUpdateNodesRef.current = buildOrUpdateNodes;
 simulation.on("tick", ticked);
 
 // setupDragAndDropForSpawnButtons, button listeners moved to js/listeners.js

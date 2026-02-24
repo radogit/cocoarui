@@ -2,8 +2,10 @@
  * Metrics table: DOM creation, update logic, format helpers, row hover handlers.
  */
 import * as d3 from "d3";
+import { colours, colourNameForArrowhead } from "./colours.js";
+import { iconDefs } from "./icons.js";
 
-const metricsHeaders = ["nodeLabel", "fix", "x", "y", "⌀", "Σ|F|", "|ΣF|", "cancel", "vx", "vy"];
+const metricsHeaders = ["name", "colour", "opacity", "fix", "icon", "x", "y", "⌀", "Σ|F|", "|ΣF|", "cancel", "vx", "vy", ""];
 
 /**
  * Build the metrics panel table DOM. Call once after the metrics-panel element exists.
@@ -74,6 +76,9 @@ export function summarise(nodes) {
  * @param {d3.Selection} ctx.hotspotLayer
  * @param {number} ctx.hotspotOpacityOthersOnHover
  * @param {Function} ctx.setNodeFixed
+ * @param {Object} [ctx.buildOrUpdateNodesRef] - { current: Function } ref, set after createNodeRendering
+ * @param {d3.Selection} [ctx.nodeLayer]
+ * @param {Array} [ctx.nodes]
  */
 export function createMetricsUpdater(ctx) {
   const {
@@ -83,7 +88,15 @@ export function createMetricsUpdater(ctx) {
     hotspotLayer,
     hotspotOpacityOthersOnHover = 0.06,
     setNodeFixed,
+    buildOrUpdateNodesRef,
+    nodeLayer,
+    nodes,
   } = ctx;
+
+  function refreshNodeVisuals() {
+    const fn = buildOrUpdateNodesRef?.current;
+    if (fn && nodeLayer && nodes) fn(nodeLayer, nodes);
+  }
 
   function handleEnter() {
     const id = this.dataset.id;
@@ -131,42 +144,136 @@ export function createMetricsUpdater(ctx) {
       n._cancel = sum - net;
     });
 
+    // Name (editable input)
     rows
-      .selectAll("td.rowLabel")
+      .selectAll("td.name-cell")
       .data((d) => [d])
       .join(
         (enter) =>
-          enter.append("td").attr("class", "rowLabel").each(function (d) {
+          enter.append("td").attr("class", "name-cell").each(function (d) {
             const sel = d3.select(this);
-            const raw = d.node.displayLabel != null ? d.node.displayLabel : d.node.id;
-            const label = formatNodeLabel(raw);
             if (d.isQueued) {
-              sel.html(
-                `<span class="name">${label}</span><span class="queued-badge" title="Awaiting introduction">pending</span>`
-              );
+              sel.html(`<span class="queued-badge" title="Awaiting introduction">pending</span>`);
             } else {
-              sel.html(`
-              <span class="name">${label}</span>
-              <button class="remove-btn" title="Delete ${d.node.id}" data-id="${d.node.id}">✕</button>`);
+              const raw = d.node.displayLabel != null ? d.node.displayLabel : d.node.id;
+              const label = formatNodeLabel(raw);
+              sel.append("input")
+                .attr("type", "text")
+                .attr("class", "metrics-name-input")
+                .attr("title", "Node name")
+                .property("value", label)
+                .on("change", function (event, rowD) {
+                  const row = Array.isArray(rowD) ? rowD[0] : rowD;
+                  row.node.displayLabel = this.value.trim() || null;
+                  refreshNodeVisuals();
+                });
             }
           }),
         (update) =>
           update.each(function (d) {
             const sel = d3.select(this);
-            const raw = d.node.displayLabel != null ? d.node.displayLabel : d.node.id;
-            const label = formatNodeLabel(raw);
             if (d.isQueued) {
-              sel.html(
-                `<span class="name">${label}</span><span class="queued-badge" title="Awaiting introduction">pending</span>`
-              );
+              sel.selectAll("input").remove();
+              sel.html(`<span class="queued-badge" title="Awaiting introduction">pending</span>`);
             } else {
-              sel.html(`
-              <span class="name">${label}</span>
-              <button class="remove-btn" title="Delete ${d.node.id}" data-id="${d.node.id}">✕</button>`);
+              sel.selectAll(".queued-badge").remove();
+              const raw = d.node.displayLabel != null ? d.node.displayLabel : d.node.id;
+              const label = formatNodeLabel(raw);
+              let input = sel.select("input");
+              if (input.empty()) input = sel.append("input").attr("type", "text").attr("class", "metrics-name-input").attr("title", "Node name").on("change", function (event, rowD) {
+                const row = Array.isArray(rowD) ? rowD[0] : rowD;
+                row.node.displayLabel = this.value.trim() || null;
+                refreshNodeVisuals();
+              });
+              if (document.activeElement !== input.node()) input.property("value", label);
             }
           })
       );
 
+    // Colour (dropdown)
+    rows
+      .selectAll("td.colour-cell")
+      .data((d) => [d])
+      .join(
+        (enter) =>
+          enter.append("td").attr("class", "colour-cell").each(function (d) {
+            const sel = d3.select(this);
+            if (d.isQueued) {
+              sel.text("—").classed("metric-pending", true);
+            } else {
+              const selSelect = sel.append("select").attr("class", "metrics-colour-select").attr("title", "Node colour").on("change", function (event, rowD) {
+                const row = Array.isArray(rowD) ? rowD[0] : rowD;
+                row.node.color = this.value;
+                refreshNodeVisuals();
+              });
+              ["white", ...colours].forEach((c) => selSelect.append("option").attr("value", c).text(c));
+              const current = colourNameForArrowhead(d.node.color);
+              const opts = ["white", ...colours];
+              selSelect.property("value", opts.includes(current) ? current : colours[0]);
+            }
+          }),
+        (update) =>
+          update.each(function (d) {
+            const sel = d3.select(this);
+            if (d.isQueued) {
+              sel.text("—").classed("metric-pending", true);
+              sel.selectAll("select").remove();
+            } else {
+              sel.classed("metric-pending", false);
+              const select = sel.select("select");
+              if (document.activeElement !== select.node()) {
+                const current = colourNameForArrowhead(d.node.color);
+                const opts = ["white", ...colours];
+                select.property("value", opts.includes(current) ? current : colours[0]);
+              }
+            }
+          })
+      );
+
+    // Opacity (slider)
+    rows
+      .selectAll("td.opacity-cell")
+      .data((d) => [d])
+      .join(
+        (enter) =>
+          enter.append("td").attr("class", "opacity-cell").each(function (d) {
+            const sel = d3.select(this);
+            if (d.isQueued) {
+              sel.text("—").classed("metric-pending", true);
+            } else {
+              const opacity = d.node.circleOpacity != null ? Math.round(d.node.circleOpacity * 100) : 60;
+              sel.append("input")
+                .attr("type", "range")
+                .attr("class", "metrics-opacity-slider")
+                .attr("min", 0)
+                .attr("max", 100)
+                .attr("title", "Node opacity")
+                .property("value", opacity)
+                .on("input", function (event, rowD) {
+                  const row = Array.isArray(rowD) ? rowD[0] : rowD;
+                  row.node.circleOpacity = Number(this.value) / 100;
+                  refreshNodeVisuals();
+                });
+            }
+          }),
+        (update) =>
+          update.each(function (d) {
+            const sel = d3.select(this);
+            if (d.isQueued) {
+              sel.text("—").classed("metric-pending", true);
+              sel.selectAll("input").remove();
+            } else {
+              sel.classed("metric-pending", false);
+              const input = sel.select("input");
+              if (document.activeElement !== input.node()) {
+                const opacity = d.node.circleOpacity != null ? Math.round(d.node.circleOpacity * 100) : 60;
+                input.property("value", opacity);
+              }
+            }
+          })
+      );
+
+    // Fix (checkbox)
     rows
       .selectAll("td.fixed-cell")
       .data((d) => [d])
@@ -204,6 +311,44 @@ export function createMetricsUpdater(ctx) {
           })
       );
 
+    // Representation (icon dropdown)
+    rows
+      .selectAll("td.representation-cell")
+      .data((d) => [d])
+      .join(
+        (enter) =>
+          enter.append("td").attr("class", "representation-cell").each(function (d) {
+            const sel = d3.select(this);
+            if (d.isQueued) {
+              sel.text("—").classed("metric-pending", true);
+            } else {
+              const selSelect = sel.append("select").attr("class", "metrics-representation-select").attr("title", "Node icon").on("change", function (event, rowD) {
+                const row = Array.isArray(rowD) ? rowD[0] : rowD;
+                row.node.representation = this.value;
+                refreshNodeVisuals();
+              });
+              selSelect.append("option").attr("value", "none").text("—");
+              iconDefs.forEach((def) => selSelect.append("option").attr("value", def.key).text(def.key));
+              selSelect.property("value", d.node.representation || "number");
+            }
+          }),
+        (update) =>
+          update.each(function (d) {
+            const sel = d3.select(this);
+            if (d.isQueued) {
+              sel.text("—").classed("metric-pending", true);
+              sel.selectAll("select").remove();
+            } else {
+              sel.classed("metric-pending", false);
+              const select = sel.select("select");
+              if (document.activeElement !== select.node()) {
+                select.property("value", d.node.representation || "number");
+              }
+            }
+          })
+      );
+
+    // Numeric metrics (x, y, ⌀, Σ|F|, |ΣF|, cancel, vx, vy)
     rows
       .selectAll("td.metric")
       .data((d) =>
@@ -225,10 +370,40 @@ export function createMetricsUpdater(ctx) {
         (update) => update.text((t) => t)
       );
 
+    // Remove button (last column)
+    rows
+      .selectAll("td.remove-cell")
+      .data((d) => [d])
+      .join(
+        (enter) =>
+          enter.append("td").attr("class", "remove-cell").each(function (d) {
+            const sel = d3.select(this);
+            if (d.isQueued) {
+              sel.text("");
+            } else {
+              sel.append("button")
+                .attr("class", "remove-btn")
+                .attr("title", "Delete " + d.node.id)
+                .attr("data-id", d.node.id)
+                .text("✕");
+            }
+          }),
+        (update) =>
+          update.each(function (d) {
+            const sel = d3.select(this);
+            if (d.isQueued) {
+              sel.selectAll("button").remove();
+              sel.text("");
+            } else {
+              sel.select("button").attr("data-id", d.node.id);
+            }
+          })
+      );
+
     const { sum, avg } = summarise(nodes);
     const footData = [
-      ["Σ", null, null, null, (2 * sum.radius) / scaleUnit, sum.sumF, sum.netF, sum.cancel, sum.vx, sum.vy],
-      ["μ", null, null, null, (2 * avg.radius) / scaleUnit, avg.sumF, avg.netF, avg.cancel, avg.vx, avg.vy],
+      ["Σ", null, null, null, null, null, sum.x / scaleUnit, -sum.y / scaleUnit, (2 * sum.radius) / scaleUnit, sum.sumF, sum.netF, sum.cancel, sum.vx, sum.vy, null],
+      ["μ", null, null, null, null, null, avg.x / scaleUnit, -avg.y / scaleUnit, (2 * avg.radius) / scaleUnit, avg.sumF, avg.netF, avg.cancel, avg.vx, avg.vy, null],
     ];
 
     const footRows = tfoot.selectAll("tr").data(footData).join("tr");

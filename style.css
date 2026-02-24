@@ -40,7 +40,7 @@ div {
   color:#fff;
   font-weight:bold;
   border-radius:50%;
-  width:1.4em; height:1.4em;
+  width:2.0em; height:2.0em;
   cursor:pointer;
   line-height:1.4em;
   padding:0;
@@ -67,7 +67,21 @@ div {
   min-height: 0;
   transition: opacity 0.25s ease 0s, max-height 0.25s ease 0s, padding 0.25s ease 0.25s, margin 0.25s ease 0.25s, border-width 0.25s ease 0.25s;
 }
-.ui-panel-right { width: 260px;}
+.ui-panel-right { width: 450px; align-items: flex-end; }
+/* All right-column panels except metrics: fixed 220px width */
+#right-panel #settings-panel,
+#right-panel #export-panel,
+#right-panel #bubbles-vr-panel {
+  width: 220px;
+}
+/* Column containers pass clicks through when empty; visible panels capture clicks */
+#debug-panel, #right-panel {
+  pointer-events: none;
+}
+#debug-panel .ui-panel-box:not(.hidden),
+#right-panel .ui-panel-box:not(.hidden) {
+  pointer-events: auto;
+}
 /* Show: padding/margin/border grow first, then max-height (content appears). Need large max-height so content can determine height. */
 .ui-panel-box{
   background: rgba(255, 255, 255, 0.7);
@@ -267,13 +281,15 @@ table.metrics thead {
   background: #ddd;
 }
 
-.metrics th:nth-child(1) {
-  width: 120px;
-}
-
-.metrics th:nth-child(n+2) {
-  width: 30px;
-}
+/* .metrics th:nth-child(1) { width: 150px; } */
+.metrics th:nth-child(2) { width: 30px; }
+.metrics th:nth-child(3) { width: 155px; }
+.metrics th:nth-child(4) { width: 28px; }
+.metrics th:nth-child(5) { width: 40px; }
+.metrics th:nth-child(n+6) { width: 25px; }
+.metrics td.name-cell,
+.metrics td.colour-cell,
+.metrics td.representation-cell { text-align: left; }
 .metrics tr:hover {
   background: #ffffaa !important;
 }
@@ -302,6 +318,11 @@ table.metrics thead {
   border-top: 2px solid;
 }
 .metrics .name { pointer-events: none;}
+.metrics-name-input { width: 100%; max-width: 90px; font-size: 10px; padding: 1px 2px; }
+.metrics-colour-select, .metrics-representation-select { font-size: 9px; max-width: 50px; padding: 0 2px; }
+.metrics-opacity-slider { width: 50px; vertical-align: middle; }
+input.metrics-name-input {width: 70px;}
+input.metrics-opacity-slider {width: 100%;}
 
 image.node-icon {
   filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.4));

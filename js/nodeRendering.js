@@ -159,7 +159,25 @@ export function createNodeRendering(ctx) {
 
           return g;
         },
-        update => update,
+        update => {
+          update.select("." + AppUI.showCircles.DOMObjectString)
+            .attr("fill", d => d.fill != null ? d.fill : d.color)
+            .attr("opacity", d => d.circleOpacity != null ? d.circleOpacity : 0.6)
+            .classed("node-fixed", d => d.isFixed);
+          update.select("rect.icon-bg").attr("class", d => d.representation ? "icon icon-bg node-icon icon-" + d.representation : "icon icon-bg node-icon");
+          update.select("image.node-icon").attr("href", d => d.representation && d.representation !== "none" ? Icons.iconByKey[d.representation] : "");
+          update.each(function (d) {
+            const raw = d.displayLabel != null ? String(d.displayLabel) : (typeof d.id === "string" ? d.id : String(d.id));
+            const label = formatNodeLabel(raw);
+            const split = splitLabelIntoTwoLines(label);
+            const lines = split.length > 1 ? split : [label];
+            const textEl = d3.select(this).select("text." + AppUI.showNodeLabel.DOMObjectString);
+            if (!textEl.empty()) {
+              textEl.selectAll("tspan").data(lines).join("tspan").attr("x", 0).attr("dy", (_, i) => (i === 0 ? "-0.5em" : "1em")).text((l) => l);
+            }
+          });
+          return update;
+        },
         exit => exit.remove()
       );
 
