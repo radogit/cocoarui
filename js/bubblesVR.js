@@ -2,7 +2,12 @@
  * BubblesVR: convert D3 layout to VR markers format and generate QR code.
  * The QR payload is parameters-only (JSON markers array), not a URL, so it works
  * across domains and environments.
+ *
+ * Bridge format version (v): Bump when the JSON structure changes. VRPreview uses
+ * this to select the correct parser, so printed QR codes remain valid across app updates.
  */
+export const BRIDGE_VERSION = 1;
+
 import * as d3 from "d3";
 import { toCanvas } from "qrcode";
 
@@ -37,7 +42,7 @@ function getVRSettings() {
     axis: document.getElementById("toggleAxis")?.checked ? 1 : 0,
     gridV: document.getElementById("toggleVerticalGrid")?.checked ? 1 : 0,
     gridH: document.getElementById("toggleHorizontalGrid")?.checked ? 1 : 0,
-    nodeCircles: document.getElementById("toggleNodeCircles")?.checked ? 1 : 0,
+    nodeCircles: document.getElementById("nodeCircles")?.checked ? 1 : 0,
     nodeIcon: document.getElementById("toggleNodeIcon")?.checked ? 1 : 0,
     nodeLabel: document.getElementById("toggleNodeLabel")?.checked ? 1 : 0,
   };
@@ -45,7 +50,7 @@ function getVRSettings() {
 
 /**
  * Convert D3 nodes to VR payload JSON string.
- * Format: { nodes: [...], settings: {...} }
+ * Format: { v: BRIDGE_VERSION, nodes: [...], settings: {...} }
  * Nodes: [{"yaw", "pitch", "size", "color", "name"}]
  * Coordinates in degrees; yaw = x, pitch = -y (D3 y-down → VR y-up).
  * Numerical values rounded to 1 decimal to keep QR code simpler (bigger squares).
@@ -65,7 +70,7 @@ export function getVRMarkersString(nodes, scaleUnit) {
     return { yaw, pitch, size, color, name };
   });
   const settings = getVRSettings();
-  return JSON.stringify({ nodes: nodeList, settings });
+  return JSON.stringify({ v: BRIDGE_VERSION, nodes: nodeList, settings });
 }
 
 /**
