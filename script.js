@@ -16,6 +16,7 @@ import { createMetricsUpdater } from './js/metrics.js';
 import { createOnResize } from './js/viewport.js';
 import { createNodeRendering } from './js/nodeRendering.js';
 import { runAutoSpawnFromUrl } from './js/autoSpawn.js';
+import { getVRMarkersString, generateQRCode } from './js/bubblesVR.js';
 
 
 window.Datasets = Datasets;   // makes Datasets visible in DevTools
@@ -142,4 +143,7 @@ runAutoSpawnFromUrl(urlParams, {
   getExportFilenameBase,
   Datasets,
   scaleUnit,
+  getVRMarkersString,
+  generateQRCode,
+  AppUI,
 });

@@ -144,7 +144,11 @@ export function setupListeners(ctx) {
     generateVRBtn.addEventListener("click", async () => {
       const markersStr = getVRMarkersString(Datasets.nodes, scaleUnit);
       const container = document.getElementById("bubbles-vr-qr-container");
-      await generateQRCode(markersStr, container);
+      const autoQR = document.getElementById("setting-autoQR")?.checked ?? false;
+      await generateQRCode(markersStr, container, {
+        getExportFilenameBase,
+        autoDownload: autoQR,
+      });
       // Show BubblesVR panel and ensure it's visible
       AppUI.showBubblesVRPanel.boolState = true;
       const toggleCheckbox = document.getElementById(AppUI.showBubblesVRPanel.ToggleObjectString);
@@ -306,9 +310,16 @@ export function setupListeners(ctx) {
         return;
       }
     }
-    const buttons = document.querySelectorAll("#debug-panel button[keyboardShortcut]");
+    const buttons = document.querySelectorAll("#debug-panel button[keyboardShortcut], #debug-panel button[keyboardKey]");
     for (const button of buttons) {
-      if (event.code === button.getAttribute("keyboardShortcut")) {
+      const keyAttr = button.getAttribute("keyboardKey");
+      const codeAttr = button.getAttribute("keyboardShortcut");
+      if (keyAttr && event.key === keyAttr) {
+        button.click();
+        event.preventDefault();
+        return;
+      }
+      if (codeAttr && event.code === codeAttr) {
         button.click();
         event.preventDefault();
         return;

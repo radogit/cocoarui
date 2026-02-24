@@ -13,6 +13,7 @@ export const urlParamKeys = {
   autoPng: "autoPng",
   autoCsv: "autoCsv",
   autoJson: "autoJson",
+  autoQR: "autoQRcode",
 };
 
 export function updateSettingsURLParam(param, value, defaultValue) {
@@ -89,7 +90,7 @@ export function setupSettingsPanel(ctx) {
   }
 
   // Auto-download checkboxes
-  ["autoSvg", "autoPng", "autoCsv", "autoJson"].forEach((key) => {
+  ["autoSvg", "autoPng", "autoCsv", "autoJson", "autoQR"].forEach((key) => {
     const checkbox = document.getElementById("setting-" + key);
     const paramKey = urlParamKeys[key];
     if (!checkbox || !paramKey) return;

@@ -77,8 +77,9 @@ export function getVRMarkersString(nodes, scaleUnit) {
  * Generate a QR code for the given text and display it in the container.
  * @param {string} text - Payload (e.g. markers JSON)
  * @param {HTMLElement} container - Element to render into (canvas or img appended)
+ * @param {Object} [opts] - { getExportFilenameBase, autoDownload }
  */
-export async function generateQRCode(text, container) {
+export async function generateQRCode(text, container, opts = {}) {
   if (!container) return;
   container.innerHTML = "";
   let isEmpty = !text || text === "[]";
@@ -98,12 +99,22 @@ export async function generateQRCode(text, container) {
   try {
     console.log("QR payload (" + text.length + " bytes): " + text);
     const canvas = document.createElement("canvas");
+    const qrSize = 512;
     await toCanvas(canvas, text, {
-      width: 200,
+      width: qrSize,
       margin: 2,
       errorCorrectionLevel: "L",
     });
+    canvas.removeAttribute("style"); // let CSS control display size; qrcode sets inline width/height which breaks max-width
     container.appendChild(canvas);
+
+    if (opts.autoDownload && typeof opts.getExportFilenameBase === "function") {
+      const filename = "QR-" + opts.getExportFilenameBase("png");
+      const link = document.createElement("a");
+      link.download = filename;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    }
   } catch (err) {
     console.error("QR generation failed:", err);
     const p = document.createElement("p");

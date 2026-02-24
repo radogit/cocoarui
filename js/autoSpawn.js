@@ -1,6 +1,7 @@
 /**
  * Auto-start a spawn preset from URL (e.g. ?spawn=power-all).
  * If spawn param is present, spawns the preset and optionally runs auto-downloads.
+ * autoQRcode=1 triggers VR QR generation (same as [VR] button) after spawn.
  */
 export function runAutoSpawnFromUrl(urlParams, ctx) {
   const {
@@ -13,6 +14,9 @@ export function runAutoSpawnFromUrl(urlParams, ctx) {
     getExportFilenameBase,
     Datasets,
     scaleUnit,
+    getVRMarkersString,
+    generateQRCode,
+    AppUI,
   } = ctx;
 
   const spawnPresetId = urlParams.get(urlParamKeys.spawn);
@@ -35,6 +39,7 @@ export function runAutoSpawnFromUrl(urlParams, ctx) {
     const autoPng = currentParams.get(urlParamKeys.autoPng) === "1";
     const autoCsv = currentParams.get(urlParamKeys.autoCsv) === "1";
     const autoJson = currentParams.get(urlParamKeys.autoJson) === "1";
+    const autoQR = currentParams.get(urlParamKeys.autoQR) === "1";
 
     const exportPromises = [];
     if (autoSvg && typeof window.exportSquareSVG === "function") {
@@ -48,6 +53,27 @@ export function runAutoSpawnFromUrl(urlParams, ctx) {
     }
     if (autoJson && typeof window.exportLayoutJSON === "function") {
       exportPromises.push(Promise.resolve().then(() => window.exportLayoutJSON(getExportFilenameBase("json"), Datasets.nodes, scaleUnit)));
+    }
+    if (autoQR && getVRMarkersString && generateQRCode) {
+      const markersStr = getVRMarkersString(Datasets.nodes, scaleUnit);
+      const container = document.getElementById("bubbles-vr-qr-container");
+      exportPromises.push(generateQRCode(markersStr, container, {
+        getExportFilenameBase,
+        autoDownload: true,
+      }).then(() => {
+        if (AppUI?.showBubblesVRPanel) {
+          AppUI.showBubblesVRPanel.boolState = true;
+          const toggleCheckbox = document.getElementById(AppUI.showBubblesVRPanel.ToggleObjectString);
+          if (toggleCheckbox) toggleCheckbox.checked = true;
+          AppUI.showOrHideElement?.(
+            true,
+            "." + AppUI.showBubblesVRPanel.DOMObjectString,
+            AppUI.showBubblesVRPanel.shorthandString,
+            AppUI.showBubblesVRPanel.URLParamString,
+            AppUI.showBubblesVRPanel.defaultState
+          );
+        }
+      }));
     }
     await Promise.all(exportPromises);
 
