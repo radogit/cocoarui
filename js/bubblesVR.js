@@ -6,7 +6,7 @@
  * Bridge format version (v): Bump when the JSON structure changes. VRPreview uses
  * this to select the correct parser, so printed QR codes remain valid across app updates.
  */
-export const BRIDGE_VERSION = 1;
+export const BRIDGE_VERSION = 2;
 
 import * as d3 from "d3";
 import { toCanvas } from "qrcode";
@@ -51,7 +51,7 @@ function getVRSettings() {
 /**
  * Convert D3 nodes to VR payload JSON string.
  * Format: { v: BRIDGE_VERSION, nodes: [...], settings: {...} }
- * Nodes: [{"yaw", "pitch", "size", "color", "name"}]
+ * Nodes: [{"yaw", "pitch", "size", "color", "name", "representation", "opacity"}]
  * Coordinates in degrees; yaw = x, pitch = -y (D3 y-down → VR y-up).
  * Numerical values rounded to 1 decimal to keep QR code simpler (bigger squares).
  * @param {Array} nodes - Datasets.nodes (simulation coords: pixels, y-down)
@@ -67,7 +67,15 @@ export function getVRMarkersString(nodes, scaleUnit) {
     const size = round1((2 * r) / su);
     const name = n.displayLabel ?? n.id ?? "";
     const color = colorToHex(n.color);
-    return { yaw, pitch, size, color, name };
+    const representation = n.representation ?? "number";
+    let opacity = n.circleOpacity != null ? Number(n.circleOpacity) : null;
+    if (opacity == null && typeof document !== "undefined") {
+      const circleEl = document.getElementById("circle-" + n.id);
+      const attr = circleEl?.getAttribute("opacity");
+      if (attr != null) opacity = parseFloat(attr);
+    }
+    opacity = opacity != null && !isNaN(opacity) ? Math.max(0, Math.min(1, opacity)) : 0.6;
+    return { yaw, pitch, size, color, name, representation, opacity };
   });
   const settings = getVRSettings();
   return JSON.stringify({ v: BRIDGE_VERSION, nodes: nodeList, settings });
