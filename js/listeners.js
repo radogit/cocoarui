@@ -301,6 +301,13 @@ export function setupListeners(ctx) {
 
   // --- Keyboard shortcuts ---
   window.addEventListener("keydown", function (event) {
+    const active = document.activeElement;
+    const metricsTable = document.querySelector(".metrics");
+    if (metricsTable && active && metricsTable.contains(active)) {
+      if (active.tagName === "SELECT" || (active.tagName === "INPUT" && (active.type === "text" || active.type === "range"))) {
+        return;
+      }
+    }
     const inputs = document.querySelectorAll("input[keyboardShortcut]");
     for (const input of inputs) {
       if (event.code === input.getAttribute("keyboardShortcut")) {
