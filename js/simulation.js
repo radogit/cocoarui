@@ -26,7 +26,7 @@ export function createSimulation(nodes, { collisionMargin }) {
 
   function setCollisionEnabled(enabled) {
     collisionEnabled = enabled;
-    Forces.nodeNodeCollisionInGaussian = enabled;
+    Forces.setNodeNodeCollisionInGaussian(enabled);
     simulation.force("repel", enabled ? forceRepel : null);
     simulation.force("collide", enabled ? forceCollide : null);
     simulation.force("customCollision", enabled ? Forces.forceCustomCollision : null);

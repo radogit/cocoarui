@@ -3,6 +3,11 @@ import { collisionMargin, nodes } from "./datasets.js";
 /** When false, the node-to-node collision block inside forceGaussianPreferredArea is skipped. Set from script when collision setting is off. */
 export let nodeNodeCollisionInGaussian = true;
 
+/** Setter for collision flag (module namespace exports are read-only). */
+export function setNodeNodeCollisionInGaussian(val) {
+  nodeNodeCollisionInGaussian = val;
+}
+
 /**
  * Gaussian force for hotspots. Optional second arg: getNodeNodeCollisionEnabled() – if provided and returns false, node-to-node push is skipped.
  */

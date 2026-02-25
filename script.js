@@ -24,9 +24,10 @@ window.Datasets = Datasets;   // makes Datasets visible in DevTools
 let sequenceMode = "fixing"; // Global-ish setting for sequence behaviour in dripSpawnSmart; "fixing" → fix node after it settles; "floating" → leave free.
 let activeLinks = []; // define container for explicit node-to-node links spawned from presets (by label), e.g. 1<-2, 1<-3; Each entry: { fromLabel: string, toLabel: string }
 
-setupLogger();
+function init() {
+  setupLogger();
 
-const {
+  const {
   svg,
   container,
   nodeLayer,
@@ -155,3 +156,10 @@ runAutoSpawnFromUrl(urlParams, {
   generateQRCode,
   AppUI,
 });
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", init);
+} else {
+  init();
+}

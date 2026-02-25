@@ -11,7 +11,7 @@
     "clean": "rm -rf .parcel-cache dist",
     "build": "npm run clean && parcel build index.html --dist-dir dist --public-url /cocoarui/",
     "predeploy": "npm run build",
-    "deploy": "npm run build && gh-pages -d dist -b gh-pages -r https://github.com/radogit/cocoarui.git && echo \"deployed to: https://radogit.github.io/cocoarui/\" && echo \"check status on: https://github.com/radogit/cocoarui/deployments\""
+    "deploy": "npm run build && node node_modules/gh-pages/bin/gh-pages.js -d dist -b gh-pages -r https://github.com/radogit/cocoarui.git && echo \"deployed to: https://radogit.github.io/cocoarui/\" && echo \"check status on: https://github.com/radogit/cocoarui/deployments\""
   },
   "keywords": [],
   "author": "",
