@@ -80,6 +80,7 @@ export function summarise(nodes) {
  * @param {d3.Selection} [ctx.nodeLayer]
  * @param {Array} [ctx.nodes]
  * @param {Function} [ctx.markQRStale] - call when node data changes (affects QR payload)
+ * @param {d3.Simulation} [ctx.simulation] - reheat when radius changes so collision uses new size
  */
 export function createMetricsUpdater(ctx) {
   const {
@@ -93,12 +94,17 @@ export function createMetricsUpdater(ctx) {
     nodeLayer,
     nodes,
     markQRStale,
+    simulation,
   } = ctx;
 
   function refreshNodeVisuals() {
     const fn = buildOrUpdateNodesRef?.current;
     if (fn && nodeLayer && nodes) fn(nodeLayer, nodes);
     markQRStale?.();
+  }
+
+  function reheatSimulation() {
+    if (simulation) simulation.alpha(0.3).restart();
   }
 
   function handleEnter() {
@@ -390,6 +396,7 @@ export function createMetricsUpdater(ctx) {
                     if (Number.isFinite(v) && v > 0) {
                       m.row.node.radius = (v / 2) * scaleUnit;
                       refreshNodeVisuals();
+                      reheatSimulation();
                     }
                   });
               } else {

@@ -67,6 +67,7 @@ const metricsUpdater = createMetricsUpdater({
   nodeLayer,
   nodes: Datasets.nodes,
   markQRStale,
+  simulation,
 });
 
 const { buildOrUpdateNodes, ticked } = createNodeRendering({
