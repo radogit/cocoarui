@@ -37,6 +37,7 @@ todo.js
 personal/
 personal/*
 !personal/README.md #allow llacefolder file
+docs/
 
 #docker
 docker-compose.yml
