@@ -81,6 +81,49 @@ export function getVRMarkersString(nodes, scaleUnit) {
   return JSON.stringify({ v: BRIDGE_VERSION, nodes: nodeList, settings });
 }
 
+let qrStale = false;
+const QR_STALE_CONTAINER_ID = "bubbles-vr-qr-container";
+const QR_STALE_OVERLAY_ID = "bubbles-vr-qr-stale-overlay";
+
+/**
+ * Mark the displayed QR code as out of date (layout or view changed).
+ * Call when any change would produce a different QR payload.
+ */
+export function markQRStale() {
+  const container = document.getElementById(QR_STALE_CONTAINER_ID);
+  if (!container || !container.querySelector("canvas")) return;
+  qrStale = true;
+  container.classList.add("qr-stale");
+  let overlay = document.getElementById(QR_STALE_OVERLAY_ID);
+  if (!overlay) {
+    overlay = document.createElement("div");
+    overlay.id = QR_STALE_OVERLAY_ID;
+    overlay.className = "bubbles-vr-qr-stale-overlay";
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "bubbles-vr-qr-refresh-btn";
+    btn.textContent = "Refresh QR code";
+    btn.addEventListener("click", () => {
+      const vrBtn = document.getElementById("generateVRButton");
+      if (vrBtn) vrBtn.click();
+    });
+    overlay.appendChild(btn);
+    container.appendChild(overlay);
+  }
+  overlay.classList.remove("hidden");
+}
+
+/**
+ * Clear stale state when QR is regenerated.
+ */
+export function clearQRStale() {
+  qrStale = false;
+  const container = document.getElementById(QR_STALE_CONTAINER_ID);
+  if (container) container.classList.remove("qr-stale");
+  const overlay = document.getElementById(QR_STALE_OVERLAY_ID);
+  if (overlay) overlay.classList.add("hidden");
+}
+
 /**
  * Generate a QR code for the given text and display it in the container.
  * @param {string} text - Payload (e.g. markers JSON)
@@ -90,6 +133,7 @@ export function getVRMarkersString(nodes, scaleUnit) {
 export async function generateQRCode(text, container, opts = {}) {
   if (!container) return;
   container.innerHTML = "";
+  clearQRStale();
   let isEmpty = !text || text === "[]";
   if (!isEmpty && text.startsWith("{")) {
     try {

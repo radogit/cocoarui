@@ -8,6 +8,7 @@ import * as NodeInteraction from "./nodeInteraction.js";
 import { formatNodeLabel, splitLabelIntoTwoLines } from "./metrics.js";
 import { colourNameForArrowhead, getArrowheadId } from "./colours.js";
 import { getCurrentSpawnQueue } from "./nodeSpawn.js";
+import { markQRStale } from "./bubblesVR.js";
 
 /**
  * Create node rendering functions (buildOrUpdateNodes, ticked).
@@ -60,7 +61,10 @@ export function createNodeRendering(ctx) {
             .call(d3.drag()
               .on("start", (e, d) => NodeInteraction.dragStart(e, d, simulation))
               .on("drag", (e, d) => NodeInteraction.dragging(e, d, simulation))
-              .on("end", (e, d) => NodeInteraction.dragEnd(e, d, simulation))
+              .on("end", (e, d) => {
+                NodeInteraction.dragEnd(e, d, simulation);
+                markQRStale();
+              })
             );
 
           g.append("circle")

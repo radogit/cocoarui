@@ -4,7 +4,7 @@
  */
 import * as AppUI from "./ui.js";
 import { spawnPresets, getNodesForPreset } from "./spawnPresets.js";
-import { getVRMarkersString, generateQRCode } from "./bubblesVR.js";
+import { getVRMarkersString, generateQRCode, markQRStale } from "./bubblesVR.js";
 
 let draggedContainer = null;
 
@@ -97,6 +97,7 @@ export function setupListeners(ctx) {
       clearSpawnQueue();
       nodeOps.removeAllNodes();
       updateSettingsURLParam(urlParamKeys.spawn, "", "");
+      markQRStale();
     });
   }
 
@@ -250,6 +251,7 @@ export function setupListeners(ctx) {
       updateDescriptionPanel(preset.description);
       updateSettingsURLParam(urlParamKeys.spawn, preset.id, "");
       nodeOps.dripSpawnSmart(nodes, 1000);
+      markQRStale();
     });
 
     const handle = document.createElement("span");
@@ -317,6 +319,7 @@ export function setupListeners(ctx) {
     tbody.on("click", function (e) {
       if (e.target.classList.contains("remove-btn")) {
         nodeOps.removeNodeById(e.target.dataset.id);
+        markQRStale();
       }
     });
   }

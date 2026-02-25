@@ -166,8 +166,16 @@ div {
   /* min-width: 350px; */
 }
 .bubbles-vr-panel .bubbles-vr-hint { font-size: 10px; margin: 0 0 8px 0; color: #555; }
-.bubbles-vr-qr-container { display: flex; justify-content: center; align-items: center; min-height: 80px; }
-.bubbles-vr-qr-container canvas { display: block; max-width: 200px; width: auto; height: auto; aspect-ratio: 1/1; }
+.bubbles-vr-qr-container { display: flex; justify-content: center; align-items: center; min-height: 80px; position: relative; }
+.bubbles-vr-qr-container canvas { display: block; max-width: 200px; width: auto; height: auto; aspect-ratio: 1/1; transition: opacity 0.3s ease; }
+.bubbles-vr-qr-container.qr-stale canvas { opacity: 0.4; }
+.bubbles-vr-qr-stale-overlay {
+  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: rgba(255,255,255,0.7); border-radius: 4px;
+}
+.bubbles-vr-qr-stale-overlay.hidden { display: none; }
+.bubbles-vr-qr-refresh-btn { font-size: 11px; padding: 6px 12px; cursor: pointer; border-radius: 4px; background: #4a9; color: #fff; border: none; }
+.bubbles-vr-qr-refresh-btn:hover { background: #3a8; }
 .bubbles-vr-placeholder, .bubbles-vr-error { font-size: 10px; color: #888; margin: 0; }
 .ui-panel input[type="checkbox"]:checked + span { font-weight: bold; }
 span.todo { opacity: 0.5; }

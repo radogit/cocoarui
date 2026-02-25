@@ -9,6 +9,7 @@ import * as AppUI from "./ui.js";
 import { addNodeWithMultistartVisual } from "./addNodeMultistart.js";
 import { colours } from "./colours.js";
 import * as Icons from "./icons.js";
+import { markQRStale } from "./bubblesVR.js";
 
 /**
  * Generate random hotspot objects for a node.
@@ -154,6 +155,7 @@ export function createNodeSpawn(ctx) {
     buildOrUpdateNodes(nodeLayer, nodes);
     simulation.nodes(nodes);
     simulation.alpha(1).restart();
+    markQRStale();
   }
 
   function dripSpawnSmart(nodesQueue, intervalMs = 1000) {
@@ -200,6 +202,7 @@ export function createNodeSpawn(ctx) {
         Heatmaps.buildHeatspotRects(hotspotLayer, nodes, defs);
         buildOrUpdateNodes(nodeLayer, nodes);
         simulation.nodes(nodes).alpha(1).restart();
+        markQRStale();
 
         const spawned = nodes.find((n) => n.id === raw.id);
 
@@ -239,6 +242,7 @@ export function createNodeSpawn(ctx) {
     Heatmaps.buildHeatspotRects(hotspotLayer, nodes, defs);
     buildOrUpdateNodes(nodeLayer, nodes);
     simulation.nodes(nodes).alpha(1).restart();
+    markQRStale();
   }
 
   function removeAllNodes() {

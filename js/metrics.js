@@ -79,6 +79,7 @@ export function summarise(nodes) {
  * @param {Object} [ctx.buildOrUpdateNodesRef] - { current: Function } ref, set after createNodeRendering
  * @param {d3.Selection} [ctx.nodeLayer]
  * @param {Array} [ctx.nodes]
+ * @param {Function} [ctx.markQRStale] - call when node data changes (affects QR payload)
  */
 export function createMetricsUpdater(ctx) {
   const {
@@ -91,11 +92,13 @@ export function createMetricsUpdater(ctx) {
     buildOrUpdateNodesRef,
     nodeLayer,
     nodes,
+    markQRStale,
   } = ctx;
 
   function refreshNodeVisuals() {
     const fn = buildOrUpdateNodesRef?.current;
     if (fn && nodeLayer && nodes) fn(nodeLayer, nodes);
+    markQRStale?.();
   }
 
   function handleEnter() {

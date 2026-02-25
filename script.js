@@ -16,8 +16,9 @@ import { createMetricsUpdater } from './js/metrics.js';
 import { createOnResize } from './js/viewport.js';
 import { createNodeRendering } from './js/nodeRendering.js';
 import { runAutoSpawnFromUrl } from './js/autoSpawn.js';
-import { getVRMarkersString, generateQRCode } from './js/bubblesVR.js';
+import { getVRMarkersString, generateQRCode, markQRStale } from './js/bubblesVR.js';
 
+window.markQRStale = markQRStale;
 
 window.Datasets = Datasets;   // makes Datasets visible in DevTools
 let sequenceMode = "fixing"; // Global-ish setting for sequence behaviour in dripSpawnSmart; "fixing" → fix node after it settles; "floating" → leave free.
@@ -65,6 +66,7 @@ const metricsUpdater = createMetricsUpdater({
   buildOrUpdateNodesRef,
   nodeLayer,
   nodes: Datasets.nodes,
+  markQRStale,
 });
 
 const { buildOrUpdateNodes, ticked } = createNodeRendering({

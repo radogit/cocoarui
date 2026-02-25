@@ -117,6 +117,7 @@ export function setupSettingsPanel(ctx) {
     bgSelect.addEventListener("change", () => {
       applyBackgroundSelection(bgSelect.value);
       updateSettingsURLParam(urlParamKeys.background, bgSelect.value, defaultPresetId);
+      if (typeof window.markQRStale === "function") window.markQRStale();
     });
     const bgToggle = document.getElementById("toggleBackground");
     if (bgToggle) {
@@ -142,6 +143,7 @@ export function setupSettingsPanel(ctx) {
       bgOpacityValue.textContent = v + "%";
       applyBackgroundOpacity(v);
       updateSettingsURLParam(urlParamKeys.bgOpacity, v, "100");
+      if (typeof window.markQRStale === "function") window.markQRStale();
     });
     const bgToggleForOpacity = document.getElementById("toggleBackground");
     if (bgToggleForOpacity) {

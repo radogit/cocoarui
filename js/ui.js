@@ -135,6 +135,7 @@ export function setupUI(/* references if needed: svg, etc. */) {
         toggleInput.addEventListener("change", function() {
             setting.boolState = this.checked;
             showOrHideElement(setting.boolState, "." + setting.DOMObjectString, setting.shorthandString, setting.URLParamString, setting.defaultState);
+            if (typeof window.markQRStale === "function") window.markQRStale();
         });
     }
   });
