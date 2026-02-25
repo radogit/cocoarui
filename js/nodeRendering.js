@@ -114,7 +114,7 @@ export function createNodeRendering(ctx) {
             .attr("height", d => d.radius / Math.SQRT2 * 2);
 
           g.append("svg:image")
-            .attr("href", d => d.representation != 'none' ? Icons.iconByKey[d.representation] : '')
+            .attr("href", d => d.representation !== 'none' ? (Icons.iconByKey[d.representation] ?? Icons.iconByKey["number"]) : '')
             .attr("x", d => -d.radius / Math.SQRT2)
             .attr("y", d => -d.radius / Math.SQRT2)
             .attr("width", d => d.radius / Math.SQRT2 * 2)
@@ -177,7 +177,7 @@ export function createNodeRendering(ctx) {
             .attr("width", d => (d.radius / Math.SQRT2) * 2)
             .attr("height", d => (d.radius / Math.SQRT2) * 2);
           update.select("image.node-icon")
-            .attr("href", d => d.representation && d.representation !== "none" ? Icons.iconByKey[d.representation] : "")
+            .attr("href", d => d.representation !== "none" ? (Icons.iconByKey[d.representation] ?? Icons.iconByKey["number"]) : "")
             .attr("x", d => -d.radius / Math.SQRT2)
             .attr("y", d => -d.radius / Math.SQRT2)
             .attr("width", d => (d.radius / Math.SQRT2) * 2)
