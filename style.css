@@ -102,7 +102,7 @@ div {
 #debug-panel {    height: calc(100vh - 30px);}
 #right-panel {    height: calc(100vh - 30px);}
 .description-content { white-space: pre-wrap; font-size: 11px; }
-#view-panel { height: auto; display: table; }
+#view-panel { height: auto; display: table; max-height: calc(100% - 50px); overflow-y: auto; }
 .view-panel-header,
 .panel-header {
   display: flex;
@@ -149,9 +149,9 @@ div {
 } */
 /* View panel fold: only .UIContainer collapses; header stays. max-height animates (height: auto cannot). */
 .view-panel .UIContainer {
-  padding-top: 10px;
-  overflow: hidden;
-  max-height: 400px;
+  /* padding-top: 10px; */
+  overflow-y: auto;
+  max-height: min(600px, calc(100vh - 150px));
   transition: max-height 0.5s ease-in-out, opacity 0.5s ease-in-out;
 }
 .view-panel .UIContainer.hidden {
