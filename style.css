@@ -237,11 +237,12 @@ button { margin-bottom: 3px;}
 .drag-icon:hover{
   color: #000;
 }
-.dragging { opacity: 0.3; scale: 1.1; padding-left: 15px;}
-.highlight {
-  /* border-top: 2px dashed #0077ff; */
-  padding-top: 10px;
+.dragging { opacity: 0.5; scale: 1.02; pointer-events: none; }
+.drag-insert-indicator {
+  position: fixed; height: 2px; background: #07c; pointer-events: none;
+  opacity: 0; transition: opacity 0.1s; z-index: 10000;
 }
+.drag-insert-indicator.visible { opacity: 1; }
 .drag-icon:active {
   cursor: grabbing;
 }

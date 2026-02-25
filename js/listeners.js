@@ -7,52 +7,66 @@ import { spawnPresets, getNodesForPreset } from "./spawnPresets.js";
 import { getVRMarkersString, generateQRCode, markQRStale } from "./bubblesVR.js";
 
 let draggedContainer = null;
+let insertIndicator = null;
+let pendingInsertBefore = null;
 
 function setupDragAndDropForSpawnButtons() {
-  const buttonContainers = document.querySelectorAll(".button-container");
+  insertIndicator = document.createElement("div");
+  insertIndicator.className = "drag-insert-indicator";
+  insertIndicator.setAttribute("aria-hidden", "true");
+  document.body.appendChild(insertIndicator);
 
-  buttonContainers.forEach((container) => {
+  document.querySelectorAll(".button-container").forEach((container) => {
     const dragIcon = container.querySelector(".drag-icon");
-    if (dragIcon) {
-      dragIcon.addEventListener("dragstart", (e) => {
-        e.stopPropagation();
-        draggedContainer = container;
-        e.dataTransfer.effectAllowed = "move";
-        e.dataTransfer.setData("text/plain", container.innerHTML);
-        container.classList.add("dragging");
-      });
+    if (!dragIcon) return;
 
-      dragIcon.addEventListener("dragend", () => {
-        if (draggedContainer) {
-          draggedContainer.classList.remove("dragging");
+    dragIcon.addEventListener("mousedown", (e) => {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      draggedContainer = container;
+      container.classList.add("dragging");
+
+      const onMove = (moveEvent) => {
+        const el = document.elementFromPoint(moveEvent.clientX, moveEvent.clientY);
+        const over = el?.closest(".button-container");
+        const parent = draggedContainer.parentElement;
+        const siblings = Array.from(parent.querySelectorAll(".button-container")).filter((c) => c !== draggedContainer);
+
+        if (!over || !parent.contains(over) || over === draggedContainer) {
+          insertIndicator.classList.remove("visible");
+          pendingInsertBefore = null;
+          return;
         }
-      });
 
-      container.addEventListener("dragover", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        container.classList.add("highlight");
-      });
+        const rect = over.getBoundingClientRect();
+        const insertAfter = moveEvent.clientY > rect.top + rect.height / 2;
+        const ref = insertAfter ? over.nextElementSibling : over;
+        pendingInsertBefore = ref;
 
-      container.addEventListener("dragleave", () => {
-        container.classList.remove("highlight");
-      });
+        const y = (insertAfter ? rect.bottom : rect.top) - 2.5;
+        insertIndicator.style.top = `${y}px`;
+        insertIndicator.style.left = `${rect.left}px`;
+        insertIndicator.style.width = `${rect.width}px`;
+        insertIndicator.classList.add("visible");
+      };
 
-      container.addEventListener("drop", (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        if (draggedContainer && draggedContainer !== container) {
-          const bounding = container.getBoundingClientRect();
-          const offset = bounding.y + bounding.height / 2;
-          if (e.clientY - offset > 0) {
-            container.after(draggedContainer);
-          } else {
-            container.before(draggedContainer);
-          }
+      const onUp = () => {
+        document.removeEventListener("mousemove", onMove);
+        document.removeEventListener("mouseup", onUp);
+        draggedContainer.classList.remove("dragging");
+        insertIndicator.classList.remove("visible");
+
+        if (pendingInsertBefore && draggedContainer.parentElement) {
+          draggedContainer.parentElement.insertBefore(draggedContainer, pendingInsertBefore);
         }
-        container.classList.remove("highlight");
-      });
-    }
+        pendingInsertBefore = null;
+        draggedContainer = null;
+      };
+
+      document.addEventListener("mousemove", onMove);
+      document.addEventListener("mouseup", onUp);
+      onMove(e);
+    });
   });
 }
 
@@ -256,7 +270,6 @@ export function setupListeners(ctx) {
 
     const handle = document.createElement("span");
     handle.className = "drag-icon";
-    handle.draggable = true;
     handle.textContent = "☰";
     wrapper.append(btn, handle);
     target.append(wrapper);
