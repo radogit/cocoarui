@@ -163,6 +163,31 @@ export function setupListeners(ctx) {
     });
   }
 
+  // --- Panel close buttons [x] ---
+  const panelCloseConfig = [
+    { panelId: "simulation-panel", config: AppUI.showSpawnPanel },
+    { panelId: "favourites-panel", config: AppUI.showFavouritesPanel },
+    { panelId: "metrics-panel", config: AppUI.showMetricsPanel },
+    { panelId: "settings-panel", config: AppUI.showSettingsPanel },
+    { panelId: "export-panel", config: AppUI.showExportPanel },
+    { panelId: "bubbles-vr-panel", config: AppUI.showBubblesVRPanel },
+  ];
+  document.querySelectorAll(".panel-close").forEach((btn) => {
+    const panel = btn.closest(".ui-panel-box");
+    if (!panel) return;
+    const cfg = panelCloseConfig.find((c) => panel.id === c.panelId);
+    if (cfg) {
+      btn.addEventListener("click", () => {
+        cfg.config.boolState = false;
+        AppUI.showOrHideElement(false, "." + cfg.config.DOMObjectString, cfg.config.shorthandString, cfg.config.URLParamString, cfg.config.defaultState);
+        const toggleCheckbox = document.getElementById(cfg.config.ToggleObjectString);
+        if (toggleCheckbox) toggleCheckbox.checked = false;
+      });
+    } else if (panel.id === "description-panel") {
+      btn.addEventListener("click", () => AppUI.updateDescriptionPanel());
+    }
+  });
+
   // --- View panel ---
   const viewPanelCaret = document.getElementById("view-panel-caret");
   const viewPanelCheckbox = document.getElementById("toggleViewPanel");

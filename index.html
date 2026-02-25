@@ -21,7 +21,7 @@
       </div>
     </div>
     <div id="simulation-panel" class="simulation-panel ui-panel-box">
-      <h2>Simulation <kbd>S</kbd></h2>
+      <h2 class="panel-header"><span>Simulation <kbd>S</kbd></span><button type="button" class="panel-close" aria-label="Close panel" title="Close panel">✕</button></h2>
       <div id="spawnButtonContainerDemoSamples" class="spawn-button-group">
         <div class="collapse-header">
           <span class="caret">&#9660;</span>
@@ -88,7 +88,7 @@
       </div>
     </div>
     <div id="favourites-panel" class="favourites-panel ui-panel-box hidden">
-      <h2>Favourites <kbd>F</kbd></h2>
+      <h2 class="panel-header"><span>Favourites <kbd>F</kbd></span><button type="button" class="panel-close" aria-label="Close panel" title="Close panel">✕</button></h2>
       <button type="button" id="run-queue-btn">Run queue</button>
       <p class="favourites-placeholder">
         <!-- <a href="#" class="fav-link" data-overrides='{"spawn":"power-all","collision":"0"}'></a><br>
@@ -134,7 +134,7 @@
       </p>
     </div>
     <div id="description-panel" class="description-panel ui-panel-box hidden">
-      <h2>Description</h2>
+      <h2 class="panel-header"><span>Description</span><button type="button" class="panel-close" aria-label="Close panel" title="Close panel">✕</button></h2>
       <div id="description-content" class="description-content"></div>
     </div>
   </div>
@@ -145,10 +145,10 @@
   <!-- Right-hand column: Metrics, Settings, Export stacked, top-right aligned -->
   <div id="right-panel" class="ui-panel ui-panel-right ui-panel-top">
     <div id="metrics-panel" class="metrics-panel ui-panel-box hidden">
-      <h2>Metrics <kbd>M</kbd></h2>
+      <h2 class="panel-header"><span>Metrics <kbd>M</kbd></span><button type="button" class="panel-close" aria-label="Close panel" title="Close panel">✕</button></h2>
     </div>
     <div id="settings-panel" class="settings-panel ui-panel-box hidden">
-      <h2>Settings <kbd>T</kbd></h2>
+      <h2 class="panel-header"><span>Settings <kbd>T</kbd></span><button type="button" class="panel-close" aria-label="Close panel" title="Close panel">✕</button></h2>
       <!-- Previous idea: weighing panel (kept here for reference) -->
       <!-- <div id="weighing-panel" class="ui-panel-box">      
         <h2 class="todo">Weighing</h2>
@@ -212,7 +212,7 @@
       </div>
     </div>
     <div id="export-panel" class="export-panel ui-panel-box hidden">
-      <h2>Export <kbd>X</kbd></h2>
+      <h2 class="panel-header"><span>Export <kbd>X</kbd></span><button type="button" class="panel-close" aria-label="Close panel" title="Close panel">✕</button></h2>
         <div style="display: inline-block; min-width: 100%;">
           <button id="downloadSVGButton">SVG</button>
           <button id="downloadPNGButton">PNG</button>
@@ -223,7 +223,7 @@
     </div>
 
     <div id="bubbles-vr-panel" class="bubbles-vr-panel ui-panel-box hidden">
-      <h2>BubblesVR</h2>
+      <h2 class="panel-header"><span>BubblesVR <kbd>Q</kbd></span><button type="button" class="panel-close" aria-label="Close panel" title="Close panel">✕</button></h2>
       <p class="bubbles-vr-hint">Scan with CardboardVR to load this layout.</p>
       <div id="bubbles-vr-qr-container" class="bubbles-vr-qr-container">
         <p class="bubbles-vr-placeholder">Add nodes and press [VR] to generate QR code.</p>

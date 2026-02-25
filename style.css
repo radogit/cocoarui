@@ -103,19 +103,36 @@ div {
 #right-panel {    height: calc(100vh - 30px);}
 .description-content { white-space: pre-wrap; font-size: 11px; }
 #view-panel { height: auto; display: table; }
-.view-panel-header {
+.view-panel-header,
+.panel-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin: 0;
   gap: 0.5em;
 }
+.panel-close, .view-panel-caret {
+  border: none;
+  background: initial;
+  color: #999;
+  font-weight: bold;
+  width: 2.4em;
+  height: 2.4em;
+  line-height: 1.4em;
+  margin: -0.35em;
+  font-size: 0.7em;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.panel-close:hover, .view-panel-caret:hover {
+  color: #222;
+}
 .view-panel-header > span {
   flex: 1 1 auto;
   min-width: 0;
   white-space: nowrap;
 }
-.view-panel-caret {
+/* .view-panel-caret {
   font-size: 0.9em;
   line-height: 1;
   padding: 0 0.2em;
@@ -129,7 +146,7 @@ div {
 }
 .view-panel-caret:hover {
   opacity: 0.8;
-}
+} */
 /* View panel fold: only .UIContainer collapses; header stays. max-height animates (height: auto cannot). */
 .view-panel .UIContainer {
   padding-top: 10px;
@@ -186,7 +203,7 @@ button { margin-bottom: 3px;}
   transition: padding-left 0.5s ease-in-out;
   scale: 1;
 }
-#debug-panel button {
+#simulation-panel .spawn-button-group button, #removeAllButton, #addOneSmartButton {
     /* min-width: 80%; */
     width: 100%;
     font-size: 8px;  
@@ -199,10 +216,10 @@ button { margin-bottom: 3px;}
     padding-top: 2px;
     padding-bottom: 2px;
 }
-#debug-panel button:hover {
+#simulation-panel .spawn-button-group button:hover, #removeAllButton:hover, #addOneSmartButton:hover {
   font-weight: bold;
 }
-#debug-panel label { display: block; }
+#view-panel label { display: block; }
 .drag-icon {
   margin-left: 8px;
   color: #aaa;
@@ -247,6 +264,7 @@ button.spawn-btn-hatch {
   font-size: 12px;
   font-weight: normal;
   margin-top: 0;
+  margin-bottom: 10px;
 }
 .node-relation-hover line { stroke-width: 10px !important; }
 .node-relation { transition: all 0.5s ease-in-out; }
@@ -336,6 +354,8 @@ image.node-icon {
 }
 
 .caret {
+    transform: rotate(-90deg);
+    color: #bbb;
     margin-right: 8px; /* Space between caret and text */
     transition: transform 0.6s ease; /* Smooth transition for rotation */
     display: inline-block; /* Necessary for rotation effect */
@@ -343,7 +363,8 @@ image.node-icon {
 
 /* Rotate caret when active */
 .caret.active {
-    transform: rotate(-180deg); /* Rotate 180 degrees */
+    color: #666;
+    transform: rotate(00deg); /* Rotate 180 degrees */
 }
 
 /* Initially hide button containers */
@@ -391,13 +412,6 @@ h4 {
   font-weight: bolder;
 }
 
-
-button#view-panel-caret {
-  min-width: initial;
-  width: initial;
-  padding-left: 10px;
-  padding-right: 10px;
-}
 
 .settings-panel label, .settings-panel select {
   font-size: 9px;
