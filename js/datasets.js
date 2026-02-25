@@ -7,7 +7,9 @@ export const nodes = [];
 export const preppedNodesDemoSamples = [
   {name: 'Fixed + Float', nodes: [
     {
-        id: "D", x: 39, y: 18, color: 'purple', radius: 5, isFixed: true, significance: 1, hotspots: []
+        id: "D", x: 39, y: 18, color: 'purple', radius: 5, isFixed: true, significance: 1, hotspots: [
+          { x: 39, y: 18, intensityFactor: 1, width: 20, height: 30, forceType: "attract" }
+        ]
     },
     {
         id: "A", x: 35, y: 55, color: 'green', radius: 3, isFixed: false, significance: 100, hotspots: [
