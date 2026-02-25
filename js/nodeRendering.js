@@ -177,7 +177,8 @@ export function createNodeRendering(ctx) {
             const lines = split.length > 1 ? split : [label];
             const textEl = d3.select(this).select("text." + AppUI.showNodeLabel.DOMObjectString);
             if (!textEl.empty()) {
-              textEl.selectAll("tspan").data(lines).join("tspan").attr("x", 0).attr("dy", (_, i) => (i === 0 ? "-0.5em" : "1em")).text((l) => l);
+              const dy = lines.length === 1 ? (_, i) => "0" : (_, i) => (i === 0 ? "-0.5em" : "1em");
+              textEl.selectAll("tspan").data(lines).join("tspan").attr("x", 0).attr("dy", dy).text((l) => l);
             }
           });
           return update;
