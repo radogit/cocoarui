@@ -352,25 +352,62 @@ export function createMetricsUpdater(ctx) {
       );
 
     // Numeric metrics (x, y, ⌀, Σ|F|, |ΣF|, cancel, vx, vy)
+    const metricCols = ["x", "y", "d", "sumF", "netF", "cancel", "vx", "vy"];
     rows
       .selectAll("td.metric")
       .data((d) =>
         d.isQueued
-          ? ["—", "—", "—", "—", "—", "—", "—", "—"]
+          ? metricCols.map((col) => ({ col, val: "—", row: d }))
           : [
-              (d.node.x / scaleUnit).toFixed(0),
-              (-d.node.y / scaleUnit).toFixed(0),
-              (2 * (d.node.radius ?? 0) / scaleUnit).toFixed(0),
-              d.node._sumF.toFixed(0),
-              d.node._netF.toFixed(0),
-              d.node._cancel.toFixed(0),
-              d.node.vx.toFixed(0),
-              d.node.vy.toFixed(0),
+              { col: "x", val: (d.node.x / scaleUnit).toFixed(0), row: d },
+              { col: "y", val: (-d.node.y / scaleUnit).toFixed(0), row: d },
+              { col: "d", val: (2 * (d.node.radius ?? 0) / scaleUnit).toFixed(1), row: d },
+              { col: "sumF", val: d.node._sumF.toFixed(0), row: d },
+              { col: "netF", val: d.node._netF.toFixed(0), row: d },
+              { col: "cancel", val: d.node._cancel.toFixed(0), row: d },
+              { col: "vx", val: d.node.vx.toFixed(0), row: d },
+              { col: "vy", val: d.node.vy.toFixed(0), row: d },
             ]
       )
       .join(
-        (enter) => enter.append("td").attr("class", "metric").text((t) => t),
-        (update) => update.text((t) => t)
+        (enter) =>
+          enter
+            .append("td")
+            .attr("class", (m) => "metric" + (m.col === "d" ? " diameter-cell" : ""))
+            .each(function (m) {
+              const sel = d3.select(this);
+              if (m.col === "d" && !m.row.isQueued) {
+                sel
+                  .append("input")
+                  .attr("type", "number")
+                  .attr("class", "metrics-diameter-input")
+                  .attr("title", "Node diameter")
+                  .attr("step", "0.1")
+                  .attr("min", "0.2")
+                  .property("value", m.val)
+                  .on("change", function () {
+                    const v = parseFloat(this.value);
+                    if (Number.isFinite(v) && v > 0) {
+                      m.row.node.radius = (v / 2) * scaleUnit;
+                      refreshNodeVisuals();
+                    }
+                  });
+              } else {
+                sel.text(m.val);
+              }
+            }),
+        (update) =>
+          update.each(function (m) {
+            const sel = d3.select(this);
+            if (m.col === "d" && !m.row.isQueued) {
+              const input = sel.select("input");
+              if (document.activeElement !== input.node()) {
+                input.property("value", m.val);
+              }
+            } else {
+              sel.text(m.val);
+            }
+          })
       );
 
     // Remove button (last column)

@@ -165,20 +165,35 @@ export function createNodeRendering(ctx) {
         },
         update => {
           update.select("." + AppUI.showCircles.DOMObjectString)
+            .attr("r", d => d.radius)
             .attr("fill", d => d.fill != null ? d.fill : d.color)
             .attr("opacity", d => d.circleOpacity != null ? d.circleOpacity : 0.6)
             .classed("node-fixed", d => d.isFixed);
-          update.select("rect.icon-bg").attr("class", d => d.representation ? "icon icon-bg node-icon icon-" + d.representation : "icon icon-bg node-icon");
-          update.select("image.node-icon").attr("href", d => d.representation && d.representation !== "none" ? Icons.iconByKey[d.representation] : "");
+          update.select(".highlight-circle").attr("r", d => d.radius + 10);
+          update.select("rect.icon-bg")
+            .attr("class", d => d.representation ? "icon icon-bg node-icon icon-" + d.representation : "icon icon-bg node-icon")
+            .attr("x", d => -d.radius / Math.SQRT2)
+            .attr("y", d => -d.radius / Math.SQRT2)
+            .attr("width", d => (d.radius / Math.SQRT2) * 2)
+            .attr("height", d => (d.radius / Math.SQRT2) * 2);
+          update.select("image.node-icon")
+            .attr("href", d => d.representation && d.representation !== "none" ? Icons.iconByKey[d.representation] : "")
+            .attr("x", d => -d.radius / Math.SQRT2)
+            .attr("y", d => -d.radius / Math.SQRT2)
+            .attr("width", d => (d.radius / Math.SQRT2) * 2)
+            .attr("height", d => (d.radius / Math.SQRT2) * 2);
           update.each(function (d) {
             const raw = d.displayLabel != null ? String(d.displayLabel) : (typeof d.id === "string" ? d.id : String(d.id));
             const label = formatNodeLabel(raw);
             const split = splitLabelIntoTwoLines(label);
             const lines = split.length > 1 ? split : [label];
+            const charsPerLine = Math.max(1, Math.ceil(label.length / lines.length));
+            const maxWidth = 2 * d.radius * 0.75;
+            const fontSize = Math.min(18, Math.max(4, maxWidth / (charsPerLine * 0.55)));
             const textEl = d3.select(this).select("text." + AppUI.showNodeLabel.DOMObjectString);
             if (!textEl.empty()) {
               const dy = lines.length === 1 ? (_, i) => "0" : (_, i) => (i === 0 ? "-0.5em" : "1em");
-              textEl.selectAll("tspan").data(lines).join("tspan").attr("x", 0).attr("dy", dy).text((l) => l);
+              textEl.style("font-size", fontSize + "px").selectAll("tspan").data(lines).join("tspan").attr("x", 0).attr("dy", dy).text((l) => l);
             }
           });
           return update;

@@ -345,7 +345,7 @@ export function setupListeners(ctx) {
     const active = document.activeElement;
     const metricsTable = document.querySelector(".metrics");
     if (metricsTable && active && metricsTable.contains(active)) {
-      if (active.tagName === "SELECT" || (active.tagName === "INPUT" && (active.type === "text" || active.type === "range"))) {
+      if (active.tagName === "SELECT" || (active.tagName === "INPUT" && (active.type === "text" || active.type === "range" || active.type === "number"))) {
         return;
       }
     }

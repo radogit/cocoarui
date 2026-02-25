@@ -348,6 +348,8 @@ table.metrics thead {
 .metrics-name-input { width: 100%; max-width: 90px; font-size: 10px; padding: 1px 2px; }
 .metrics-colour-select, .metrics-representation-select { font-size: 9px; max-width: 50px; padding: 0 2px; }
 .metrics-opacity-slider { width: 50px; vertical-align: middle; }
+.metrics-diameter-input { width: 36px; font-size: 10px; padding: 1px 2px; }
+.metric.diameter-cell input {width: 40px;}
 input.metrics-name-input {width: 70px;}
 input.metrics-opacity-slider {width: 100%;}
 
