@@ -22,6 +22,9 @@ jobs:
     - name: Install deps
       run: npm ci
 
+    - name: Use personal-stubs for public build
+      run: cp -r personal-stubs personal
+
     - name: Build app
       run: npm run build
 
