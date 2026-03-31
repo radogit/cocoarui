@@ -49,7 +49,8 @@
     autoSvg: "1",
     autoPng: "1",
     autoCsv: "1",
-    autoJson: "0"
+    autoJson: "1",
+    autoQRcode: "1"
   };
 
   window.buildFavLinkHref = function(overrides) {
@@ -68,7 +69,8 @@
     bg: { "1": "bg" },
     nodeLabel: { "0": "no labels" },
     netForceArrows: { "0": "no net force" },
-    axis: { "0": "no axis" }
+    axis: { "0": "no axis" },
+    autoQRcode: { "1": "QR" }
   };
 
   function buildFavLinkLabel(overrides) {
@@ -101,6 +103,7 @@
         params.set("autoPng", "1");
         params.set("autoCsv", "1");
         params.set("autoJson", "1");
+        params.set("autoQRcode", "1");
         return base + "?" + params.toString();
       }).filter(function(u) {
         const params = new URLSearchParams(u.split("?")[1] || "");

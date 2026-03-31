@@ -31,7 +31,7 @@ export function runAutoSpawnFromUrl(urlParams, ctx) {
   if (Array.isArray(preset.links) && preset.links.length) {
     activeLinks.push(...preset.links);
   }
-  updateDescriptionPanel(preset.description);
+  updateDescriptionPanel(preset);
 
   nodeOps.dripSpawnSmart(nodes, 1000).then(async () => {
     const currentParams = new URLSearchParams(window.location.search);

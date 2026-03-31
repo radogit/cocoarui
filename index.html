@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="style-svg.css">
-  <title>CoCoARUI - Dynamic UI Optimizer - 'Bubbles Configurator'</title>
+  <title>BubblesConfigurator</title>
   <style>
   </style>
 </head>
@@ -90,7 +90,7 @@
       <h2 class="panel-header"><span>Favourites <kbd>F</kbd></span><button type="button" class="panel-close" aria-label="Close panel" title="Close panel">✕</button></h2>
       <button type="button" id="run-queue-btn">Run queue</button>
       <p class="favourites-placeholder">
-        <!-- <a href="#" class="fav-link" data-overrides='{"spawn":"power-all","collision":"0"}'></a><br>
+        <a href="#" class="fav-link" data-overrides='{"spawn":"power-all","collision":"0"}'></a><br>
         <a href="#" class="fav-link" data-overrides='{"spawn":"distance-all","collision":"0"}'></a><br>
         <a href="#" class="fav-link" data-overrides='{"spawn":"navigation-all","collision":"0"}'></a><br>
         <a href="#" class="fav-link" data-overrides='{"spawn":"heartrate-all","collision":"0"}'></a><br>
@@ -98,14 +98,16 @@
         <a href="#" class="fav-link" data-overrides='{"spawn":"gradient-all","collision":"0"}'></a><br>
         <a href="#" class="fav-link" data-overrides='{"spawn":"time-all","collision":"0"}'></a><br>
         <br>
-        <a href="#" class="fav-link" data-overrides='{"spawn":"power-all","collision":"0","obs":"0"}'></a><br>
+        <!-- <a href="#" class="fav-link" data-overrides='{"spawn":"power-all","collision":"0","obs":"0"}'></a><br>
         <a href="#" class="fav-link" data-overrides='{"spawn":"distance-all","collision":"0","obs":"0"}'></a><br>
         <a href="#" class="fav-link" data-overrides='{"spawn":"navigation-all","collision":"0","obs":"0"}'></a><br>
         <a href="#" class="fav-link" data-overrides='{"spawn":"heartrate-all","collision":"0","obs":"0"}'></a><br>
         <a href="#" class="fav-link" data-overrides='{"spawn":"speed-all","collision":"0","obs":"0"}'></a><br>
         <a href="#" class="fav-link" data-overrides='{"spawn":"gradient-all","collision":"0","obs":"0"}'></a><br>
         <a href="#" class="fav-link" data-overrides='{"spawn":"time-all","collision":"0","obs":"0"}'></a><br>
-        <br>
+        <br> -->
+        
+        <!-- <br>
         <a href="#" class="fav-link" data-overrides='{"spawn":"layout-PPD"}'></a><br>
         <a href="#" class="fav-link" data-overrides='{"spawn":"layout-PPA"}'></a><br>
         <a href="#" class="fav-link" data-overrides='{"spawn":"layout-VR1"}'></a><br>
@@ -119,21 +121,29 @@
         <a href="#" class="fav-link" data-overrides='{"spawn":"layout-VR2","obs":"0"}'></a><br>
         <a href="#" class="fav-link" data-overrides='{"spawn":"layout-VR3","obs":"0"}'></a><br>
         <a href="#" class="fav-link" data-overrides='{"spawn":"layout-VR4","obs":"0"}'></a><br>
-        <br>
+        <!-- <br>
         <a href="#" class="fav-link" data-overrides='{"spawn":"layout-PPD","obs":"0","collision":"0","sequenceMode":"floating"}'></a><br>
         <a href="#" class="fav-link" data-overrides='{"spawn":"layout-PPA","obs":"0","collision":"0","sequenceMode":"floating"}'></a><br>
         <a href="#" class="fav-link" data-overrides='{"spawn":"layout-VR1","obs":"0","collision":"0","sequenceMode":"floating"}'></a><br>
         <a href="#" class="fav-link" data-overrides='{"spawn":"layout-VR2","obs":"0","collision":"0","sequenceMode":"floating"}'></a><br>
         <a href="#" class="fav-link" data-overrides='{"spawn":"layout-VR3","obs":"0","collision":"0","sequenceMode":"floating"}'></a><br>
-        <a href="#" class="fav-link" data-overrides='{"spawn":"layout-VR4","obs":"0","collision":"0","sequenceMode":"floating"}'></a><br>
-        <br>
+        <a href="#" class="fav-link" data-overrides='{"spawn":"layout-VR4","obs":"0","collision":"0","sequenceMode":"floating"}'></a><br> -->
+        <!-- <br>
         <a href="#" class="fav-link" data-overrides='{"spawn":"layout-descent","obs":"0"}'></a><br>
-        <a href="#" class="fav-link" data-overrides='{"spawn":"layout-ascent","obs":"0"}'></a><br>
+        <a href="#" class="fav-link" data-overrides='{"spawn":"layout-ascent","obs":"0"}'></a><br> -->
+
+        <br>
+        <a href="#" class="fav-link" data-overrides='{"spawn":"layout-PPD","obs":"0", "bg":"1", "bgPreset":"base-downhill", "axis":"0", "autoQRcode":"1", "autoSvg":"0", "autoPng":"0", "autoCsv":"0", "autoJson":"0"}'></a><br>
+        <a href="#" class="fav-link" data-overrides='{"spawn":"layout-PPA","obs":"0", "bg":"1", "bgPreset":"base-uphill", "axis":"0", "autoQRcode":"1", "autoSvg":"0", "autoPng":"0", "autoCsv":"0", "autoJson":"0"}'></a><br>
+        <a href="#" class="fav-link" data-overrides='{"spawn":"layout-VR1","obs":"0", "bg":"1", "bgPreset":"vr-downhill", "axis":"0", "autoQRcode":"1", "autoSvg":"0", "autoPng":"0", "autoCsv":"0", "autoJson":"0"}'></a><br>
+        <a href="#" class="fav-link" data-overrides='{"spawn":"layout-VR2","obs":"0", "bg":"1", "bgPreset":"vr-downhill", "axis":"0", "autoQRcode":"1", "autoSvg":"0", "autoPng":"0", "autoCsv":"0", "autoJson":"0"}'></a><br>
+        <a href="#" class="fav-link" data-overrides='{"spawn":"layout-VR3","obs":"0", "bg":"1", "bgPreset":"vr-uphill", "axis":"0", "autoQRcode":"1", "autoSvg":"0", "autoPng":"0", "autoCsv":"0", "autoJson":"0"}'></a><br>
+        <a href="#" class="fav-link" data-overrides='{"spawn":"layout-VR4","obs":"0", "bg":"1", "bgPreset":"vr-uphill", "axis":"0", "autoQRcode":"1", "autoSvg":"0", "autoPng":"0", "autoCsv":"0", "autoJson":"0"}'></a><br>
         
       </p>
     </div>
     <div id="description-panel" class="description-panel ui-panel-box hidden">
-      <h2 class="panel-header"><span>Description</span><button type="button" class="panel-close" aria-label="Close panel" title="Close panel">✕</button></h2>
+      <h2 class="panel-header"><span>Description <kbd>P</kbd></span><button type="button" class="panel-close" aria-label="Close panel" title="Close panel">✕</button></h2>
       <div id="description-content" class="description-content"></div>
     </div>
   </div>

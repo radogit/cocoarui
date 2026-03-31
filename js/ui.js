@@ -30,6 +30,7 @@ export let showSettingsPanel =        { keyboardShortcut: 'KeyT',     keyboardSh
 export let showExportPanel =          { keyboardShortcut: 'KeyX',     keyboardShortcutLetter: 'X',  shownInViewPanel: true, defaultState: true, boolState: true, UILabelString: 'Export Panel', shorthandString: 'export panel', ToggleObjectString: 'toggleExportPanel', DOMObjectString: 'export-panel', URLParamString: 'exportPanel', filenameStringOn: '', filenameStringOff: ''};
 export let showBubblesVRPanel =       { keyboardShortcut: 'KeyQ',   keyboardShortcutLetter: 'Q',  shownInViewPanel: true, defaultState: false, boolState: false, UILabelString: 'BubblesVR', shorthandString: 'BubblesVR panel', ToggleObjectString: 'toggleBubblesVRPanel', DOMObjectString: 'bubbles-vr-panel', URLParamString: 'bubblesVRPanel', filenameStringOn: '', filenameStringOff: ''};
 export let showFavouritesPanel =     { keyboardShortcut: 'KeyF',     keyboardShortcutLetter: 'F',  shownInViewPanel: true, defaultState: false, boolState: false, UILabelString: 'Favourites', shorthandString: 'favourites panel', ToggleObjectString: 'toggleFavouritesPanel', DOMObjectString: 'favourites-panel', URLParamString: 'favouritesPanel', filenameStringOn: '', filenameStringOff: ''};
+export let showDescriptionPanel =   { keyboardShortcut: 'KeyP',     keyboardShortcutLetter: 'P',  shownInViewPanel: true, defaultState: false, boolState: false, UILabelString: 'Description', shorthandString: 'description panel', ToggleObjectString: 'toggleDescriptionPanel', DOMObjectString: 'description-panel', URLParamString: 'descriptionPanel', filenameStringOn: '', filenameStringOff: ''};
 
 /** Opacity of other nodes' hotspot groups when hovering a node or its metrics row. Lower = more dimmed. */
 export const hotspotOpacityOthersOnHover = 0.06;
@@ -73,6 +74,7 @@ const showSettings = [
   showExportPanel,
   showBubblesVRPanel,
   showFavouritesPanel,
+  showDescriptionPanel,
   showTerminal
 ];
 
@@ -175,19 +177,46 @@ function updateURLParam(param, bool, defaultState) {
 }
 
 /**
- * Show or hide the Description panel based on spawn preset description.
- * Call with a truthy string to show the panel and populate it; call with falsy to hide.
- * @param {string|undefined} description - Optional description text (HTML-safe) from preset.description
+ * Show or hide the Description panel based on spawn preset.
+ * Call with a preset to show the panel; call with no args or falsy to hide.
+ * Uses preset.descriptionTitle (bold, above) and preset.descriptionText (below).
+ * Legacy: preset.description is used as body text when descriptionTitle/descriptionText are absent.
+ * @param {{ descriptionTitle?: string, descriptionText?: string, description?: string }|undefined} preset - Optional preset with description fields
  */
-export function updateDescriptionPanel(description) {
+export function updateDescriptionPanel(preset) {
   const panel = document.getElementById("description-panel");
   const content = document.getElementById("description-content");
   if (!panel || !content) return;
-  if (description && String(description).trim()) {
-    content.innerHTML = String(description).trim();
+
+  const title = preset?.descriptionTitle != null ? String(preset.descriptionTitle).trim() : "";
+  const text = preset?.descriptionText != null ? String(preset.descriptionText).trim() : "";
+  const legacy = preset?.description != null ? String(preset.description).trim() : "";
+
+  const hasContent = title || text || legacy;
+
+  if (hasContent) {
+    const parts = [];
+    if (title) parts.push(`<strong class="description-title">${escapeHtml(title)}</strong>`);
+    if (text) parts.push(`<span class="description-text">${escapeHtml(text)}</span>`);
+    if (legacy && !title && !text) parts.push(`<span class="description-text">${escapeHtml(legacy)}</span>`);
+    content.innerHTML = parts.join("<br>");
     panel.classList.remove("hidden");
+    showDescriptionPanel.boolState = true;
+    const toggleCheckbox = document.getElementById(showDescriptionPanel.ToggleObjectString);
+    if (toggleCheckbox) toggleCheckbox.checked = true;
+    showOrHideElement(true, "." + showDescriptionPanel.DOMObjectString, showDescriptionPanel.shorthandString, showDescriptionPanel.URLParamString, showDescriptionPanel.defaultState);
   } else {
     content.innerHTML = "";
     panel.classList.add("hidden");
+    showDescriptionPanel.boolState = false;
+    const toggleCheckbox = document.getElementById(showDescriptionPanel.ToggleObjectString);
+    if (toggleCheckbox) toggleCheckbox.checked = false;
+    showOrHideElement(false, "." + showDescriptionPanel.DOMObjectString, showDescriptionPanel.shorthandString, showDescriptionPanel.URLParamString, showDescriptionPanel.defaultState);
   }
+}
+
+function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
 }

@@ -186,6 +186,7 @@ export function setupListeners(ctx) {
     { panelId: "settings-panel", config: AppUI.showSettingsPanel },
     { panelId: "export-panel", config: AppUI.showExportPanel },
     { panelId: "bubbles-vr-panel", config: AppUI.showBubblesVRPanel },
+    { panelId: "description-panel", config: AppUI.showDescriptionPanel },
   ];
   document.querySelectorAll(".panel-close").forEach((btn) => {
     const panel = btn.closest(".ui-panel-box");
@@ -198,8 +199,6 @@ export function setupListeners(ctx) {
         const toggleCheckbox = document.getElementById(cfg.config.ToggleObjectString);
         if (toggleCheckbox) toggleCheckbox.checked = false;
       });
-    } else if (panel.id === "description-panel") {
-      btn.addEventListener("click", () => AppUI.updateDescriptionPanel());
     }
   });
 
@@ -262,7 +261,7 @@ export function setupListeners(ctx) {
       if (Array.isArray(preset.links) && preset.links.length) {
         ctx.activeLinks.push(...preset.links);
       }
-      updateDescriptionPanel(preset.description);
+      updateDescriptionPanel(preset);
       updateSettingsURLParam(urlParamKeys.spawn, preset.id, "");
       nodeOps.dripSpawnSmart(nodes, 1000);
       markQRStale();
