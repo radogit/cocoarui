@@ -348,6 +348,30 @@ export function setupListeners(ctx) {
         return;
       }
     }
+
+    // Quick SVG export (same as Export panel → SVG); KeyC is unused elsewhere.
+    if (
+      event.code === "KeyC" &&
+      !event.repeat &&
+      !event.ctrlKey &&
+      !event.metaKey &&
+      !event.altKey
+    ) {
+      const ae = document.activeElement;
+      const typing =
+        ae &&
+        (ae.isContentEditable ||
+          ae.tagName === "TEXTAREA" ||
+          ae.tagName === "SELECT" ||
+          (ae.tagName === "INPUT" &&
+            ["text", "search", "url", "email", "password", "number"].includes(ae.type)));
+      if (!typing && typeof window.exportSquareSVG === "function") {
+        window.exportSquareSVG(getExportFilenameBase("svg"));
+        event.preventDefault();
+      }
+      return;
+    }
+
     const inputs = document.querySelectorAll("input[keyboardShortcut]");
     for (const input of inputs) {
       if (event.code === input.getAttribute("keyboardShortcut")) {
