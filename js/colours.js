@@ -4,7 +4,15 @@
 
 export const colours = [
   'red', 'green', 'blue', 'cyan', 'orange', 'purple', 'magenta',
-  'darkblue', 'darkgreen', 'coral', 'salmon', 'slateblue', 'teal', 'olive', 'brown', 'darkorange'
+  'darkblue', 'darkgreen', 'coral', 'salmon', 'slateblue', 'teal', 'olive', 'brown', 'darkorange', 
+  'black', 
+  'gold', 
+  'crimson',
+  'royalblue',
+  'darkorange',
+  'seagreen',
+  'goldenrod',
+  'mediumvioletred',
 ];
 
 /** Arrowheads are defined by colour name (e.g. arrowhead-blue). Use this so marker-end works when node.color is a name or a hex from presets. */

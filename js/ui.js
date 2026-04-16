@@ -32,8 +32,8 @@ export let showBubblesVRPanel =       { keyboardShortcut: 'KeyQ',   keyboardShor
 export let showFavouritesPanel =     { keyboardShortcut: 'KeyF',     keyboardShortcutLetter: 'F',  shownInViewPanel: true, defaultState: false, boolState: false, UILabelString: 'Favourites', shorthandString: 'favourites panel', ToggleObjectString: 'toggleFavouritesPanel', DOMObjectString: 'favourites-panel', URLParamString: 'favouritesPanel', filenameStringOn: '', filenameStringOff: ''};
 export let showDescriptionPanel =   { keyboardShortcut: 'KeyP',     keyboardShortcutLetter: 'P',  shownInViewPanel: true, defaultState: false, boolState: false, UILabelString: 'Description', shorthandString: 'description panel', ToggleObjectString: 'toggleDescriptionPanel', DOMObjectString: 'description-panel', URLParamString: 'descriptionPanel', filenameStringOn: '', filenameStringOff: ''};
 
-/** Opacity of other nodes' hotspot groups when hovering a node or its metrics row. Lower = more dimmed. */
-export const hotspotOpacityOthersOnHover = 0.06;
+/** Opacity of other nodes' hotspot groups when hovering a node or its metrics row (0 = hide). */
+export const hotspotOpacityOthersOnHover = 0;
 
 /** View-panel toggles in display order for export filename (values only; empty filenameStringOn/Off = skip). */
 export const viewPanelTogglesForFilename = [

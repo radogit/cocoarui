@@ -1,6 +1,9 @@
 import * as d3 from "d3";
 import {showObservations, showObservationName, showObservationImpact} from "./ui.js";
 
+/** Per-rect `opacity` at impact 1 (0.3 × impact); multiplied by `#hotspot-layer` opacity in CSS. */
+const HOTSPOT_RECT_IMPACT_OPACITY_BASE = 0.5;
+
 /**
  * Creates radial gradients for each node in `nodes`.
  * @param {d3.Selection} defs 
@@ -65,6 +68,20 @@ function formatHotspotImpact(intensityFactor, divisor) {
 }
 
 /**
+ * Same numeric impact as the label / formatHotspotImpact, clamped to [0, 1].
+ * Rect `opacity` = HOTSPOT_RECT_IMPACT_OPACITY_BASE × this factor.
+ * @param {object} hotspot - hotspot datum (.intensityFactor, .name)
+ * @param {object} node - parent node (.hotspotForceDivisor)
+ */
+function effectiveHotspotImpactFactor(hotspot, node) {
+  const ifactor = hotspot.intensityFactor ?? 1;
+  const divisor = (node.hotspotForceDivisor && node.hotspotForceDivisor[hotspot.name]) ?? 1;
+  if (divisor === 0) return 0;
+  const impact = divisor === 1 ? ifactor : ifactor / divisor;
+  return Math.min(1, Math.max(0, impact));
+}
+
+/**
  * Builds hotspot rectangles for each node, placing them in a `<g.hotspot-group>` 
  * with `<rect>` elements inside that group.
  * Each rect gets two labels: top-left = observation name, bottom-right = impact (intensityFactor/divisor).
@@ -81,7 +98,7 @@ export function buildHeatspotRects(container, nodes, defs){
         .join("g")
         .attr("class", showObservations.boolState ? showObservations.DOMObjectString : showObservations.DOMObjectString+" hidden")
         .attr("id", d => showObservations.DOMObjectString + "-" + d.id)
-        .attr("opacity",0.3)
+        .attr("opacity", 1)
         ;
     
     hotspotGroups.selectAll(".hotspot")
@@ -120,6 +137,10 @@ export function buildHeatspotRects(container, nodes, defs){
         //.attr("fill", d => `url(#forceGradient-${d.color})`)  // Correctly associate hotspot with node's gradient
         .attr("fill", d => ensureColourGradient(defs, d.color))  // Correctly associate hotspot with node's gradient
         .style("stroke", d=>d.color)        // Stroke colour from node; stroke-width in .hotspot CSS
+        .attr("opacity", function (d) {
+          const node = d3.select(this.parentNode).datum();
+          return HOTSPOT_RECT_IMPACT_OPACITY_BASE * effectiveHotspotImpactFactor(d, node);
+        })
     ;
 
     const labelInset = 2;

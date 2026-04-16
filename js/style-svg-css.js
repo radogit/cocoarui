@@ -58,6 +58,11 @@ svg {
   stroke-width: 1px;
 }
 
+/* Global multiplier for observation rects + labels (see HOTSPOT_RECT_IMPACT_OPACITY_BASE in heatmaps.js). */
+#hotspot-layer {
+  opacity: 0.5;
+}
+
 .node-links {
   opacity: 0.4;
 }

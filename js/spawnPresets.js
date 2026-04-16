@@ -109,9 +109,9 @@ const combinedPresets = [
       entries: [
         { sourceId: "PPD", entryName: "Power-PP-descent", nodeColour: "#00f",    nodeLabel: "PPD" },
         { sourceId: "PPA", entryName: "Power-PP-ascent",  nodeColour: "#f00",    nodeLabel: "PPA" },
-        { sourceId: "VR1", entryName: "type-power",       nodeColour: "#ff8000", nodeLabel: "VR1", nodeFill: "url(#diag-hatch-orange)"},
+        { sourceId: "VR1", entryName: "type-power",       nodeColour: "#ff8000", nodeLabel: "VR1" }, //, nodeFill: "url(#diag-hatch-orange)"},
         { sourceId: "VR2", entryName: "type-power",       nodeColour: "#ff8000", nodeLabel: "VR2" },
-        { sourceId: "VR3", entryName: "type-power",       nodeColour: "#900090", nodeLabel: "VR3", nodeFill: "url(#diag-hatch-purple)"},
+        { sourceId: "VR3", entryName: "type-power",       nodeColour: "#900090", nodeLabel: "VR3" }, //, nodeFill: "url(#diag-hatch-purple)"},
         { sourceId: "VR4", entryName: "type-power",       nodeColour: "#900090", nodeLabel: "VR4" },
       ] 
     },
@@ -127,9 +127,9 @@ const combinedPresets = [
       entries: [
         { sourceId: "PPD", entryName: "Distance-PP-descent", nodeColour: "#00f",    nodeLabel: "PPD" },
         { sourceId: "PPA", entryName: "Distance-PP-ascent",  nodeColour: "#f00",    nodeLabel: "PPA" },
-        { sourceId: "VR1", entryName: "type-distance",       nodeColour: "#ff8000", nodeLabel: "VR1", nodeFill: "url(#diag-hatch-orange)"},
+        { sourceId: "VR1", entryName: "type-distance",       nodeColour: "#ff8000", nodeLabel: "VR1" }, //, nodeFill: "url(#diag-hatch-orange)"},
         { sourceId: "VR2", entryName: "type-distance",       nodeColour: "#ff8000", nodeLabel: "VR2" },
-        { sourceId: "VR3", entryName: "type-distance",       nodeColour: "#900090", nodeLabel: "VR3", nodeFill: "url(#diag-hatch-purple)"},
+        { sourceId: "VR3", entryName: "type-distance",       nodeColour: "#900090", nodeLabel: "VR3" }, //, nodeFill: "url(#diag-hatch-purple)"},
         { sourceId: "VR4", entryName: "type-distance",       nodeColour: "#900090", nodeLabel: "VR4" },
       ] 
     },
@@ -145,9 +145,9 @@ const combinedPresets = [
       entries: [
         { sourceId: "PPD", entryName: "Navigation-PP-descent", nodeColour: "#00f",    nodeLabel: "PPD" },
         { sourceId: "PPA", entryName: "Navigation-PP-ascent",  nodeColour: "#f00",    nodeLabel: "PPA" },
-        { sourceId: "VR1", entryName: "type-navigation",       nodeColour: "#ff8000", nodeLabel: "VR1", nodeFill: "url(#diag-hatch-orange)"},
+        { sourceId: "VR1", entryName: "type-navigation",       nodeColour: "#ff8000", nodeLabel: "VR1" }, //, nodeFill: "url(#diag-hatch-orange)"},
         { sourceId: "VR2", entryName: "type-navigation",       nodeColour: "#ff8000", nodeLabel: "VR2" },
-        { sourceId: "VR3", entryName: "type-navigation",       nodeColour: "#900090", nodeLabel: "VR3", nodeFill: "url(#diag-hatch-purple)"},
+        { sourceId: "VR3", entryName: "type-navigation",       nodeColour: "#900090", nodeLabel: "VR3" }, //, nodeFill: "url(#diag-hatch-purple)"},
         { sourceId: "VR4", entryName: "type-navigation",       nodeColour: "#900090", nodeLabel: "VR4" },
       ] 
     },
@@ -163,9 +163,9 @@ const combinedPresets = [
       entries: [
         { sourceId: "PPD", entryName: "Heartrate-PP-descent", nodeColour: "#00f",    nodeLabel: "PPD" },
         { sourceId: "PPA", entryName: "Heartrate-PP-ascent",  nodeColour: "#f00",    nodeLabel: "PPA" },
-        { sourceId: "VR1", entryName: "type-heartrate",       nodeColour: "#ff8000", nodeLabel: "VR1", nodeFill: "url(#diag-hatch-orange)"},
+        { sourceId: "VR1", entryName: "type-heartrate",       nodeColour: "#ff8000", nodeLabel: "VR1" }, //, nodeFill: "url(#diag-hatch-orange)"},
         { sourceId: "VR2", entryName: "type-heartrate",       nodeColour: "#ff8000", nodeLabel: "VR2" },
-        { sourceId: "VR3", entryName: "type-heartrate",       nodeColour: "#900090", nodeLabel: "VR3", nodeFill: "url(#diag-hatch-purple)"},
+        { sourceId: "VR3", entryName: "type-heartrate",       nodeColour: "#900090", nodeLabel: "VR3" }, //, nodeFill: "url(#diag-hatch-purple)"},
         { sourceId: "VR4", entryName: "type-heartrate",       nodeColour: "#900090", nodeLabel: "VR4" },
       ] 
     },
@@ -181,9 +181,9 @@ const combinedPresets = [
       entries: [
         { sourceId: "PPD", entryName: "Speed-PP-descent", nodeColour: "#00f",    nodeLabel: "PPD" },
         { sourceId: "PPA", entryName: "Speed-PP-ascent",  nodeColour: "#f00",    nodeLabel: "PPA" },
-        { sourceId: "VR1", entryName: "type-speed",       nodeColour: "#ff8000", nodeLabel: "VR1", nodeFill: "url(#diag-hatch-orange)"},
+        { sourceId: "VR1", entryName: "type-speed",       nodeColour: "#ff8000", nodeLabel: "VR1" }, //, nodeFill: "url(#diag-hatch-orange)"},
         { sourceId: "VR2", entryName: "type-speed",       nodeColour: "#ff8000", nodeLabel: "VR2" },
-        { sourceId: "VR3", entryName: "type-speed",       nodeColour: "#900090", nodeLabel: "VR3", nodeFill: "url(#diag-hatch-purple)"},
+        { sourceId: "VR3", entryName: "type-speed",       nodeColour: "#900090", nodeLabel: "VR3" }, //, nodeFill: "url(#diag-hatch-purple)"},
         { sourceId: "VR4", entryName: "type-speed",       nodeColour: "#900090", nodeLabel: "VR4" },
       ] 
     },
@@ -199,9 +199,9 @@ const combinedPresets = [
       entries: [
         { sourceId: "PPD", entryName: "Gradient-PP-descent", nodeColour: "#00f",    nodeLabel: "PPD" },
         { sourceId: "PPA", entryName: "Gradient-PP-ascent",  nodeColour: "#f00",    nodeLabel: "PPA" },
-        { sourceId: "VR1", entryName: "type-gradient",       nodeColour: "#ff8000", nodeLabel: "VR1", nodeFill: "url(#diag-hatch-orange)"},
+        { sourceId: "VR1", entryName: "type-gradient",       nodeColour: "#ff8000", nodeLabel: "VR1" }, //, nodeFill: "url(#diag-hatch-orange)"},
         { sourceId: "VR2", entryName: "type-gradient",       nodeColour: "#ff8000", nodeLabel: "VR2" },
-        { sourceId: "VR3", entryName: "type-gradient",       nodeColour: "#900090", nodeLabel: "VR3", nodeFill: "url(#diag-hatch-purple)"},
+        { sourceId: "VR3", entryName: "type-gradient",       nodeColour: "#900090", nodeLabel: "VR3" }, //, nodeFill: "url(#diag-hatch-purple)"},
         { sourceId: "VR4", entryName: "type-gradient",       nodeColour: "#900090", nodeLabel: "VR4" },
       ] 
     },
@@ -217,9 +217,9 @@ const combinedPresets = [
       entries: [
         { sourceId: "PPD", entryName: "Time-PP-descent", nodeColour: "#00f",    nodeLabel: "PPD"},
         { sourceId: "PPA", entryName: "Time-PP-ascent",  nodeColour: "#f00",    nodeLabel: "PPA"},
-        { sourceId: "VR1", entryName: "type-time",       nodeColour: "#ff8000", nodeLabel: "VR1", nodeFill: "url(#diag-hatch-orange)"},
+        { sourceId: "VR1", entryName: "type-time",       nodeColour: "#ff8000", nodeLabel: "VR1" }, //, nodeFill: "url(#diag-hatch-orange)"},
         { sourceId: "VR2", entryName: "type-time",       nodeColour: "#ff8000", nodeLabel: "VR2" },
-        { sourceId: "VR3", entryName: "type-time",       nodeColour: "#900090", nodeLabel: "VR3", nodeFill: "url(#diag-hatch-purple)"},
+        { sourceId: "VR3", entryName: "type-time",       nodeColour: "#900090", nodeLabel: "VR3" }, //, nodeFill: "url(#diag-hatch-purple)"},
         { sourceId: "VR4", entryName: "type-time",       nodeColour: "#900090", nodeLabel: "VR4" },
       ] 
     },

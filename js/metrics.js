@@ -88,7 +88,7 @@ export function createMetricsUpdater(ctx) {
     tfoot,
     scaleUnit,
     hotspotLayer,
-    hotspotOpacityOthersOnHover = 0.06,
+    hotspotOpacityOthersOnHover = 0,
     setNodeFixed,
     buildOrUpdateNodesRef,
     nodeLayer,
