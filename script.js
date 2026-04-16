@@ -103,6 +103,7 @@ setupSettingsPanel({
   backgroundPresets,
   applyBackgroundSelection,
   applyBackgroundOpacity,
+  onObservationDragChange: () => buildOrUpdateNodes(nodeLayer, Datasets.nodes),
 });
 
 const nodeOps = createNodeSpawn({

@@ -2,12 +2,15 @@
  * Settings panel: URL params, update helpers, and panel wiring.
  */
 
+import { observationDragSettings } from "./ui.js";
+
 /** Map of setting names to URL query parameter keys (e.g. sequence → "sequenceMode", spawn → "spawn"). */
 export const urlParamKeys = {
   sequence: "sequenceMode",
   background: "bgPreset",
   bgOpacity: "bgOpacity",
   collision: "collision",
+  obsDrag: "obsDrag",
   spawn: "spawn",
   autoSvg: "autoSvg",
   autoPng: "autoPng",
@@ -33,6 +36,7 @@ export function updateSettingsURLParam(param, value, defaultValue) {
  * @param {Array} ctx.backgroundPresets
  * @param {Function} ctx.applyBackgroundSelection
  * @param {Function} ctx.applyBackgroundOpacity
+ * @param {Function} [ctx.onObservationDragChange] - Refresh observation layer after toggling drag (e.g. rebuild heatmaps).
  */
 export function setupSettingsPanel(ctx) {
   const {
@@ -43,6 +47,7 @@ export function setupSettingsPanel(ctx) {
     backgroundPresets,
     applyBackgroundSelection,
     applyBackgroundOpacity,
+    onObservationDragChange,
   } = ctx;
 
   // Sequence (fixing vs floating)
@@ -86,6 +91,20 @@ export function setupSettingsPanel(ctx) {
       const enabled = collisionCheckbox.checked;
       setCollisionEnabled(enabled);
       updateSettingsURLParam(urlParamKeys.collision, enabled ? "1" : "0", "1");
+    });
+  }
+
+  // Drag observation rectangles (hotspots)
+  const obsDragCheckbox = document.getElementById("setting-obsDrag");
+  if (obsDragCheckbox) {
+    const dragFromUrl = urlParams.get(urlParamKeys.obsDrag);
+    observationDragSettings.enabled = dragFromUrl === "1";
+    obsDragCheckbox.checked = observationDragSettings.enabled;
+    obsDragCheckbox.addEventListener("change", () => {
+      observationDragSettings.enabled = obsDragCheckbox.checked;
+      updateSettingsURLParam(urlParamKeys.obsDrag, observationDragSettings.enabled ? "1" : "0", "0");
+      if (typeof onObservationDragChange === "function") onObservationDragChange();
+      if (typeof window.markQRStale === "function") window.markQRStale();
     });
   }
 
@@ -151,4 +170,6 @@ export function setupSettingsPanel(ctx) {
       bgToggleForOpacity.addEventListener("change", () => { bgOpacitySlider.disabled = !bgToggleForOpacity.checked; });
     }
   }
+
+  if (typeof onObservationDragChange === "function") onObservationDragChange();
 }

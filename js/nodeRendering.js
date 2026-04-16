@@ -207,7 +207,22 @@ export function createNodeRendering(ctx) {
     nodeGroup.attr("transform", d => `translate(${d.x}, ${d.y})`);
 
     // Keep observation / heatmap rectangles and labels in sync with node.color (e.g. metrics panel).
-    Heatmaps.buildHeatspotRects(hotspotLayer, nodes, defs);
+    Heatmaps.buildHeatspotRects(hotspotLayer, nodes, defs, {
+      onObservationDragMove: () => ticked(),
+      onObservationDragEnd: () => {
+        markQRStale();
+        simulation.alpha(0.2).restart();
+      },
+    });
+
+    // With default SVG order, hotspots sit under the node layer and cannot be dragged; bring layer forward only while drag is enabled.
+    const hl = hotspotLayer.node();
+    const ll = linkLayer.node();
+    if (AppUI.observationDragSettings.enabled) {
+      hotspotLayer.raise();
+    } else if (hl && ll && hl.parentNode === ll.parentNode) {
+      hl.parentNode.insertBefore(hl, ll);
+    }
 
     return nodeGroup;
   }

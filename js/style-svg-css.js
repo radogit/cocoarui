@@ -58,9 +58,18 @@ svg {
   stroke-width: 1px;
 }
 
+.hotspot.hotspot-draggable {
+  cursor: grab;
+  touch-action: none;
+}
+
+.hotspot.hotspot-draggable:active {
+  cursor: grabbing;
+}
+
 /* Global multiplier for observation rects + labels (see HOTSPOT_RECT_IMPACT_OPACITY_BASE in heatmaps.js). */
 #hotspot-layer {
-  opacity: 0.5;
+  /* opacity: 0.5; */
 }
 
 .node-links {

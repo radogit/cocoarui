@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import {showObservations, showObservationName, showObservationImpact} from "./ui.js";
+import { showObservations, showObservationName, showObservationImpact, observationDragSettings } from "./ui.js";
 
 /** Per-rect `opacity` at impact 1 (0.3 × impact); multiplied by `#hotspot-layer` opacity in CSS. */
 const HOTSPOT_RECT_IMPACT_OPACITY_BASE = 0.5;
@@ -81,6 +81,15 @@ function effectiveHotspotImpactFactor(hotspot, node) {
   return Math.min(1, Math.max(0, impact));
 }
 
+/** Scale factor of the viewport `<g>` (parent of `#hotspot-layer`); `d3.drag` deltas are in screen space. */
+function getViewportScale(hotspotLayerSelection) {
+  const el = hotspotLayerSelection.node()?.parentNode;
+  if (!el || typeof el.getAttribute !== "function") return 1;
+  const tr = el.getAttribute("transform") || "";
+  const m = tr.match(/scale\(\s*([^),\s]+)/);
+  return m && !Number.isNaN(parseFloat(m[1])) ? parseFloat(m[1]) : 1;
+}
+
 /**
  * Builds hotspot rectangles for each node, placing them in a `<g.hotspot-group>` 
  * with `<rect>` elements inside that group.
@@ -89,8 +98,11 @@ function effectiveHotspotImpactFactor(hotspot, node) {
  * @param {d3.Selection} container The main <g> container for your simulation.
  * @param {Array} nodes The array of node objects, each with .hotspots array
  * @param {d3.Selection} defs The main <g> container for your simulation.
+ * @param {Object} [opts]
+ * @param {Function} [opts.onObservationDragMove] - Called during hotspot drag (e.g. refresh breadcrumbs).
+ * @param {Function} [opts.onObservationDragEnd] - Called when a hotspot drag ends (e.g. restart simulation, QR stale).
  */
-export function buildHeatspotRects(container, nodes, defs){
+export function buildHeatspotRects(container, nodes, defs, opts = {}) {
 
     // Create hotspot rectangles for each node
     const hotspotGroups = container.selectAll("."+showObservations.DOMObjectString)
@@ -175,6 +187,45 @@ export function buildHeatspotRects(container, nodes, defs){
             const divisor = (node.hotspotForceDivisor && node.hotspotForceDivisor[d.name]) ?? 1;
             return formatHotspotImpact(d.intensityFactor, divisor);
         });
+
+    const rectSel = hotspotGroups.selectAll(".hotspot");
+    rectSel.each(function () {
+      d3.select(this).on(".drag", null);
+    });
+    rectSel.classed("hotspot-draggable", false);
+
+    if (observationDragSettings.enabled) {
+      const scaleFn = () => getViewportScale(container);
+      const dragBehavior = d3.drag()
+        .filter((event) => !event.ctrlKey && !event.metaKey && !event.button)
+        .on("start", function (event) {
+          event.sourceEvent?.stopPropagation();
+          d3.select(this).raise();
+        })
+        .on("drag", function (event, d) {
+          const s = scaleFn();
+          d.x += event.dx / s;
+          d.y += event.dy / s;
+          const node = d3.select(this.parentNode).datum();
+          const el = d3.select(this);
+          el.attr("x", d.x - d.width / 2)
+            .attr("y", d.y - d.height / 2)
+            .attr("opacity", HOTSPOT_RECT_IMPACT_OPACITY_BASE * effectiveHotspotImpactFactor(d, node));
+          const g = d3.select(this.parentNode);
+          g.selectAll("text.hotspot-label-name")
+            .attr("x", h => h.x - h.width / 2 + labelInset)
+            .attr("y", h => h.y - h.height / 2 + labelInset);
+          g.selectAll("text.hotspot-label-impact")
+            .attr("x", h => h.x + h.width / 2 - labelInset)
+            .attr("y", h => h.y + h.height / 2 - labelInset);
+          opts.onObservationDragMove?.();
+        })
+        .on("end", function () {
+          opts.onObservationDragEnd?.();
+        });
+      rectSel.call(dragBehavior);
+      rectSel.classed("hotspot-draggable", true);
+    }
 }
 
 /**

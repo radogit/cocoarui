@@ -35,6 +35,9 @@ export let showDescriptionPanel =   { keyboardShortcut: 'KeyP',     keyboardShor
 /** Opacity of other nodes' hotspot groups when hovering a node or its metrics row (0 = hide). */
 export const hotspotOpacityOthersOnHover = 0;
 
+/** When true, observation rectangles can be dragged to change hotspot positions (see Settings / URL `obsDrag`). */
+export const observationDragSettings = { enabled: false };
+
 /** View-panel toggles in display order for export filename (values only; empty filenameStringOn/Off = skip). */
 export const viewPanelTogglesForFilename = [
   showNodeLabel, showCoordinates, showForceArrows, showForceArrowsLabels,
