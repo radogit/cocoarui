@@ -2,6 +2,7 @@
  * Node DOM creation and per-tick drawing (buildOrUpdateNodes, ticked).
  */
 import * as d3 from "d3";
+import * as Heatmaps from "./heatmaps.js";
 import * as AppUI from "./ui.js";
 import * as Icons from "./icons.js";
 import * as NodeInteraction from "./nodeInteraction.js";
@@ -23,6 +24,7 @@ import { markQRStale } from "./bubblesVR.js";
  * @param {Array} ctx.activeLinks
  * @param {Object} ctx.Datasets
  * @param {Function} ctx.metricsUpdater
+ * @param {d3.Selection} ctx.defs - SVG defs (heatmaps: observation rects + gradients follow node colour)
  */
 export function createNodeRendering(ctx) {
   const {
@@ -36,6 +38,7 @@ export function createNodeRendering(ctx) {
     activeLinks,
     Datasets,
     metricsUpdater,
+    defs,
   } = ctx;
 
   let nodeGroup;
@@ -202,6 +205,10 @@ export function createNodeRendering(ctx) {
       );
 
     nodeGroup.attr("transform", d => `translate(${d.x}, ${d.y})`);
+
+    // Keep observation / heatmap rectangles and labels in sync with node.color (e.g. metrics panel).
+    Heatmaps.buildHeatspotRects(hotspotLayer, nodes, defs);
+
     return nodeGroup;
   }
 

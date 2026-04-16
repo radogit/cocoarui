@@ -4,7 +4,6 @@
  */
 import * as d3 from "d3";
 import * as Datasets from "./datasets.js";
-import * as Heatmaps from "./heatmaps.js";
 import * as AppUI from "./ui.js";
 import { addNodeWithMultistartVisual } from "./addNodeMultistart.js";
 import { colours } from "./colours.js";
@@ -151,7 +150,6 @@ export function createNodeSpawn(ctx) {
       18,
       18
     );
-    Heatmaps.buildHeatspotRects(hotspotLayer, nodes, defs);
     buildOrUpdateNodes(nodeLayer, nodes);
     simulation.nodes(nodes);
     simulation.alpha(1).restart();
@@ -199,7 +197,6 @@ export function createNodeSpawn(ctx) {
           18
         );
 
-        Heatmaps.buildHeatspotRects(hotspotLayer, nodes, defs);
         buildOrUpdateNodes(nodeLayer, nodes);
         simulation.nodes(nodes).alpha(1).restart();
         markQRStale();
@@ -239,7 +236,6 @@ export function createNodeSpawn(ctx) {
     d3.select(`#spawn-cand-cancel-${id}`).remove();
     d3.select(`#spawn-cand-netForceArrow-${id}`).remove();
 
-    Heatmaps.buildHeatspotRects(hotspotLayer, nodes, defs);
     buildOrUpdateNodes(nodeLayer, nodes);
     simulation.nodes(nodes).alpha(1).restart();
     markQRStale();
@@ -256,7 +252,6 @@ export function createNodeSpawn(ctx) {
     document.getElementById(AppUI.showWindNetForceArrows.DOMObjectString).innerHTML = "";
 
     buildOrUpdateNodes(nodeLayer, nodes);
-    Heatmaps.buildHeatspotRects(hotspotLayer, nodes, defs);
     simulation.nodes(nodes);
     simulation.alpha(1).restart();
   }

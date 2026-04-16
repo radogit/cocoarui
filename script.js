@@ -82,6 +82,7 @@ const { buildOrUpdateNodes, ticked } = createNodeRendering({
   activeLinks,
   Datasets,
   metricsUpdater,
+  defs,
 });
 buildOrUpdateNodesRef.current = buildOrUpdateNodes;
 simulation.on("tick", ticked);
