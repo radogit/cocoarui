@@ -11,19 +11,58 @@ import * as Icons from "./icons.js";
 import { markQRStale } from "./bubblesVR.js";
 
 /**
- * Generate random hotspot objects for a node.
- * @param {number} minDim - smaller of width/height (canvas extent)
+ * Half-extent of the placement box in **graph units** (same numbers as the coordinate readout: `x/scaleUnit`, `-y/scaleUnit`).
+ * Full extent is [-85, +85] on both axes when multiplied through {@link scaleUnit} into simulation data space.
+ */
+export const RANDOM_HOTSPOT_BOX_HALF_GRAPH = 85;
+
+/**
+ * How many hotspots +1 Random creates: integer in `[RANDOM_HOTSPOT_COUNT_MIN, RANDOM_HOTSPOT_COUNT_MIN + RANDOM_HOTSPOT_COUNT_RANGE - 1]`.
+ */
+export const RANDOM_HOTSPOT_COUNT_MIN = 3;
+export const RANDOM_HOTSPOT_COUNT_RANGE = 1;
+
+/**
+ * Random width/height in **graph units** before clamping: `RANDOM_HOTSPOT_SIZE_MIN_GRAPH + rand * RANDOM_HOTSPOT_SIZE_SPAN_GRAPH`.
+ * Stored sizes in node data are `value * scaleUnit` (see `drawing.js`: `scaleUnit = minDim / 180`).
+ */
+export const RANDOM_HOTSPOT_SIZE_MIN_GRAPH = 10;
+export const RANDOM_HOTSPOT_SIZE_SPAN_GRAPH = 30;
+
+/**
+ * Generate random hotspot objects for a node (+1 Random). Rectangles lie inside the axis box
+ * [-{@link RANDOM_HOTSPOT_BOX_HALF_GRAPH}, +{@link RANDOM_HOTSPOT_BOX_HALF_GRAPH}] in graph units on both axes.
+ * @param {number} scaleUnit - `min(window width, window height) / 180` — converts graph units ↔ simulation coordinates.
  * @param {number} n - number of hotspots
  */
-export function randomHotspots(minDim, n = 1) {
+export function randomHotspots(scaleUnit, n = 1) {
+  if (!(scaleUnit > 0)) {
+    return [];
+  }
+  const boxData = RANDOM_HOTSPOT_BOX_HALF_GRAPH * scaleUnit;
+  const maxSideGraph = 2 * RANDOM_HOTSPOT_BOX_HALF_GRAPH;
   const arr = [];
   for (let i = 0; i < n; i++) {
+    let wG = RANDOM_HOTSPOT_SIZE_MIN_GRAPH + RANDOM_HOTSPOT_SIZE_SPAN_GRAPH * Math.random();
+    let hG = RANDOM_HOTSPOT_SIZE_MIN_GRAPH + RANDOM_HOTSPOT_SIZE_SPAN_GRAPH * Math.random();
+    wG = Math.min(wG, maxSideGraph);
+    hG = Math.min(hG, maxSideGraph);
+    const width = wG * scaleUnit;
+    const height = hG * scaleUnit;
+    const hw = width / 2;
+    const hh = height / 2;
+    const xMin = -boxData + hw;
+    const xMax = boxData - hw;
+    const yMin = -boxData + hh;
+    const yMax = boxData - hh;
+    const x = xMin + Math.random() * Math.max(0, xMax - xMin);
+    const y = yMin + Math.random() * Math.max(0, yMax - yMin);
     arr.push({
-      x: minDim * (Math.random() - 0.5),
-      y: minDim * (Math.random() - 0.5),
+      x,
+      y,
       intensityFactor: 1.0,
-      width: 40 + 160 * Math.random(),
-      height: 40 + 160 * Math.random(),
+      width,
+      height,
       forceType: "attract",
     });
   }
@@ -130,7 +169,7 @@ export function createNodeSpawn(ctx) {
       representation: Icons.randomRepresentation(),
       isFixed: false,
       significance: 1,
-      hotspots: randomHotspots(minDim, Math.floor(Math.random() * 4) + 2),
+      hotspots: randomHotspots(scaleUnit, Math.floor(Math.random() * RANDOM_HOTSPOT_COUNT_RANGE) + RANDOM_HOTSPOT_COUNT_MIN),
     };
 
     await addNodeWithMultistartVisual(
