@@ -1,0 +1,210 @@
+<!DOCTYPE html><html lang=en><script type=importmap>{"imports":{"1JYGl":"/cocoarui/icon_linear1.93c7ce8e.svg","1NnOo":"/cocoarui/icon_fill.70ffe444.svg","1SAnl":"/cocoarui/icon_sound.cd728603.svg","1Vjxo":"/cocoarui/background-top-downhill.0b8ffaf0.jpg","1wlV5":"/cocoarui/icon_navigation.f1b465d1.svg","27teF":"/cocoarui/icon_linear2.8f6e2ee9.svg","2iIbQ":"/cocoarui/background-top-uphill.158a62de.jpg","3DYQu":"/cocoarui/icon_number.41efdcf4.svg","3LLYo":"/cocoarui/icon_radial.0046d50b.svg","3WgAY":"/cocoarui/icon_count.53af4176.svg","9YsDV":"/cocoarui/icon_04.c3ca6339.svg","IMW4H":"/cocoarui/icon_symbol.58f4f19f.svg","aeEpF":"/cocoarui/background-bottom-base.62d17607.png","bT3E4":"/cocoarui/icon_text.f4d2108b.svg","cmmKr":"/cocoarui/icon_graph.faab306a.svg","dQQEy":"/cocoarui/screenshot_descent1_2to1.1e6e4cea.jpg","h3vIm":"/cocoarui/screenshot_ascent1_2to1.ce6fee27.jpg","hKGDI":"/cocoarui/icon_02.f257e862.svg","iIvjG":"/cocoarui/icon_03.830fd332.svg","j2rfZ":"/cocoarui/icon_map.cd829277.svg","jhR8M":"/cocoarui/icon_01.c1eea898.svg"}}</script><meta charset=UTF-8><meta name=viewport content="width=device-width, initial-scale=1.0, user-scalable=no"><link rel=stylesheet href=/cocoarui/cocoarui.a6eba6c9.css><link rel=stylesheet href=/cocoarui/cocoarui.2cd3592a.css><title>BubblesConfigurator</title><style></style><body>
+  <div id=debug-panel class="ui-panel ui-panel-left ui-panel-top">
+    <div id=view-panel class="ui-panel-box view-panel">
+      <h2 class=view-panel-header>
+        <span>View <kbd>V</kbd></span>
+        <button type=button id=view-panel-caret class=view-panel-caret aria-label="Toggle view panel" title="Toggle view panel (V)"></button>
+      </h2>
+      <div id=UIContainer class=UIContainer>
+      </div>
+    </div>
+    <div id=simulation-panel class="simulation-panel ui-panel-box">
+      <h2 class=panel-header><span>Simulation <kbd>S</kbd></span><button type=button class=panel-close aria-label="Close panel" title="Close panel">✕</button></h2>
+      <div id=spawnButtonContainerDemoSamples class=spawn-button-group>
+        <div class=collapse-header>
+          <span class=caret>▼</span>
+          <span>Demo Samples</span>
+        </div>
+      </div>
+      <div id=spawnButtonContainerPPD class=spawn-button-group>
+        <div class=collapse-header>
+          <span class=caret>▼</span>
+          <span>Paper Pano - descent</span>
+        </div>
+      </div>
+      <div id=spawnButtonContainerPPA class=spawn-button-group>
+        <div class=collapse-header>
+          <span class=caret>▼</span>
+          <span>Paper Pano - ascent</span>
+        </div>
+      </div>
+      <div id=spawnButtonContainerVR1 class=spawn-button-group>
+        <div class=collapse-header>
+          <span class=caret>▼</span>
+          <span>VR - descent - standing</span>
+        </div>
+      </div>
+      <div id=spawnButtonContainerVR2 class=spawn-button-group>
+        <div class=collapse-header>
+          <span class=caret>▼</span>
+          <span>VR - descent - cycling</span>
+        </div>
+      </div>
+      <div id=spawnButtonContainerVR3 class=spawn-button-group>
+        <div class=collapse-header>
+          <span class=caret>▼</span>
+          <span>VR - ascent - standing</span>
+        </div>
+      </div>
+      <div id=spawnButtonContainerVR4 class=spawn-button-group>
+        <div class=collapse-header>
+          <span class=caret>▼</span>
+          <span>VR - ascent - cycling</span>
+        </div>
+      </div>
+      <div id=spawnButtonContainerKeepFreeSamples class=spawn-button-group>
+        <div class=collapse-header>
+          <span class=caret>▼</span>
+          <span>Keep-Free Nodes</span>
+        </div>
+      </div>
+      <div id=spawnButtonContainerLayouts class=spawn-button-group>
+        <div class=collapse-header>
+          <span class=caret>▼</span>
+          <span>Layouts</span>
+        </div>
+      </div>
+      <div id=spawnButtonContainerDynamicGroups class=spawn-button-group>
+        <div class=collapse-header>
+          <span class=caret>▼</span>
+          <span>Dynamic Groups</span>
+        </div>
+      </div>
+      <div style=min-width:100%;display:inline-block>
+        <button id=removeAllButton keyboardshortcut=KeyD style=color:#8b0000>Delete All [D]</button>
+        <button id=addOneSmartButton keyboardkey=? style=color:#006400>+1 Random [?]</button>
+      </div>
+    </div>
+    <div id=favourites-panel class="favourites-panel hidden ui-panel-box">
+      <h2 class=panel-header><span>Favourites <kbd>F</kbd></span><button type=button class=panel-close aria-label="Close panel" title="Close panel">✕</button></h2>
+      <button type=button id=run-queue-btn>Run queue</button>
+      <p class=favourites-placeholder>
+        <a href=# class=fav-link data-overrides="{&quot;spawn&quot;:&quot;power-all&quot;,&quot;collision&quot;:&quot;0&quot;}"></a><br>
+        <a href=# class=fav-link data-overrides="{&quot;spawn&quot;:&quot;distance-all&quot;,&quot;collision&quot;:&quot;0&quot;}"></a><br>
+        <a href=# class=fav-link data-overrides="{&quot;spawn&quot;:&quot;navigation-all&quot;,&quot;collision&quot;:&quot;0&quot;}"></a><br>
+        <a href=# class=fav-link data-overrides="{&quot;spawn&quot;:&quot;heartrate-all&quot;,&quot;collision&quot;:&quot;0&quot;}"></a><br>
+        <a href=# class=fav-link data-overrides="{&quot;spawn&quot;:&quot;speed-all&quot;,&quot;collision&quot;:&quot;0&quot;}"></a><br>
+        <a href=# class=fav-link data-overrides="{&quot;spawn&quot;:&quot;gradient-all&quot;,&quot;collision&quot;:&quot;0&quot;}"></a><br>
+        <a href=# class=fav-link data-overrides="{&quot;spawn&quot;:&quot;time-all&quot;,&quot;collision&quot;:&quot;0&quot;}"></a><br>
+        <br>
+        
+        
+        
+        <br>
+        <a href=# class=fav-link data-overrides="{&quot;spawn&quot;:&quot;layout-PPD&quot;,&quot;obs&quot;:&quot;0&quot;}"></a><br>
+        <a href=# class=fav-link data-overrides="{&quot;spawn&quot;:&quot;layout-PPA&quot;,&quot;obs&quot;:&quot;0&quot;}"></a><br>
+        <a href=# class=fav-link data-overrides="{&quot;spawn&quot;:&quot;layout-VR1&quot;,&quot;obs&quot;:&quot;0&quot;}"></a><br>
+        <a href=# class=fav-link data-overrides="{&quot;spawn&quot;:&quot;layout-VR2&quot;,&quot;obs&quot;:&quot;0&quot;}"></a><br>
+        <a href=# class=fav-link data-overrides="{&quot;spawn&quot;:&quot;layout-VR3&quot;,&quot;obs&quot;:&quot;0&quot;}"></a><br>
+        <a href=# class=fav-link data-overrides="{&quot;spawn&quot;:&quot;layout-VR4&quot;,&quot;obs&quot;:&quot;0&quot;}"></a><br>
+        
+        
+
+        <br>
+        <a href=# class=fav-link data-overrides="{&quot;spawn&quot;:&quot;layout-PPD&quot;,&quot;obs&quot;:&quot;0&quot;, &quot;bg&quot;:&quot;1&quot;, &quot;bgPreset&quot;:&quot;base-downhill&quot;, &quot;axis&quot;:&quot;0&quot;, &quot;autoQRcode&quot;:&quot;1&quot;, &quot;autoSvg&quot;:&quot;0&quot;, &quot;autoPng&quot;:&quot;0&quot;, &quot;autoCsv&quot;:&quot;0&quot;, &quot;autoJson&quot;:&quot;0&quot;}"></a><br>
+        <a href=# class=fav-link data-overrides="{&quot;spawn&quot;:&quot;layout-PPA&quot;,&quot;obs&quot;:&quot;0&quot;, &quot;bg&quot;:&quot;1&quot;, &quot;bgPreset&quot;:&quot;base-uphill&quot;, &quot;axis&quot;:&quot;0&quot;, &quot;autoQRcode&quot;:&quot;1&quot;, &quot;autoSvg&quot;:&quot;0&quot;, &quot;autoPng&quot;:&quot;0&quot;, &quot;autoCsv&quot;:&quot;0&quot;, &quot;autoJson&quot;:&quot;0&quot;}"></a><br>
+        <a href=# class=fav-link data-overrides="{&quot;spawn&quot;:&quot;layout-VR1&quot;,&quot;obs&quot;:&quot;0&quot;, &quot;bg&quot;:&quot;1&quot;, &quot;bgPreset&quot;:&quot;vr-downhill&quot;, &quot;axis&quot;:&quot;0&quot;, &quot;autoQRcode&quot;:&quot;1&quot;, &quot;autoSvg&quot;:&quot;0&quot;, &quot;autoPng&quot;:&quot;0&quot;, &quot;autoCsv&quot;:&quot;0&quot;, &quot;autoJson&quot;:&quot;0&quot;}"></a><br>
+        <a href=# class=fav-link data-overrides="{&quot;spawn&quot;:&quot;layout-VR2&quot;,&quot;obs&quot;:&quot;0&quot;, &quot;bg&quot;:&quot;1&quot;, &quot;bgPreset&quot;:&quot;vr-downhill&quot;, &quot;axis&quot;:&quot;0&quot;, &quot;autoQRcode&quot;:&quot;1&quot;, &quot;autoSvg&quot;:&quot;0&quot;, &quot;autoPng&quot;:&quot;0&quot;, &quot;autoCsv&quot;:&quot;0&quot;, &quot;autoJson&quot;:&quot;0&quot;}"></a><br>
+        <a href=# class=fav-link data-overrides="{&quot;spawn&quot;:&quot;layout-VR3&quot;,&quot;obs&quot;:&quot;0&quot;, &quot;bg&quot;:&quot;1&quot;, &quot;bgPreset&quot;:&quot;vr-uphill&quot;, &quot;axis&quot;:&quot;0&quot;, &quot;autoQRcode&quot;:&quot;1&quot;, &quot;autoSvg&quot;:&quot;0&quot;, &quot;autoPng&quot;:&quot;0&quot;, &quot;autoCsv&quot;:&quot;0&quot;, &quot;autoJson&quot;:&quot;0&quot;}"></a><br>
+        <a href=# class=fav-link data-overrides="{&quot;spawn&quot;:&quot;layout-VR4&quot;,&quot;obs&quot;:&quot;0&quot;, &quot;bg&quot;:&quot;1&quot;, &quot;bgPreset&quot;:&quot;vr-uphill&quot;, &quot;axis&quot;:&quot;0&quot;, &quot;autoQRcode&quot;:&quot;1&quot;, &quot;autoSvg&quot;:&quot;0&quot;, &quot;autoPng&quot;:&quot;0&quot;, &quot;autoCsv&quot;:&quot;0&quot;, &quot;autoJson&quot;:&quot;0&quot;}"></a><br>
+        
+      </p>
+    </div>
+    <div id=description-panel class="description-panel hidden ui-panel-box">
+      <h2 class=panel-header><span>Description <kbd>P</kbd></span><button type=button class=panel-close aria-label="Close panel" title="Close panel">✕</button></h2>
+      <div id=description-content class=description-content></div>
+    </div>
+  </div>
+  
+
+  
+  <div id=right-panel class="ui-panel ui-panel-right ui-panel-top">
+    <div id=metrics-panel class="hidden metrics-panel ui-panel-box">
+      <h2 class=panel-header><span>Metrics <kbd>M</kbd></span><button type=button class=panel-close aria-label="Close panel" title="Close panel">✕</button></h2>
+    </div>
+    <div id=settings-panel class="hidden settings-panel ui-panel-box">
+      <h2 class=panel-header><span>Settings <kbd>T</kbd></span><button type=button class=panel-close aria-label="Close panel" title="Close panel">✕</button></h2>
+      
+      
+
+      <div class=settings-group>
+        <h4>Background</h4>
+        <label for=background-select>Preset</label>
+        <select id=background-select>
+          
+        </select>
+        <div class=background-opacity-row>
+          <label for=background-opacity>Opacity</label>
+          <input type=range id=background-opacity min=0 max=100 value=100 title="Background layer opacity">
+          <span id=background-opacity-value>100%</span>
+        </div>
+      </div>
+      <div class=settings-group>
+        <h4>Simulation</h4>
+        <label>
+          <input type=checkbox id=setting-collision checked>
+          Collision detection
+        </label><br>
+        <label>
+          <input type=checkbox id=setting-obsDrag>
+          Drag observations (move rectangles)
+        </label>
+      </div>
+      <div class=settings-group>
+        <h4>Sequence Spawning</h4>
+        <label>
+          <input type=radio name=sequenceMode id=sequence-fixing value=fixing checked>
+          fixing (lock node after it settles)
+        </label><br>
+        <label>
+          <input type=radio name=sequenceMode id=sequence-floating value=floating>
+          floating (leave node free after it settles)
+        </label>
+      </div>
+      <div class=settings-group>
+        <h4>Auto-download (after spawn)</h4>
+        <label>
+          <input type=checkbox id=setting-autoSvg>
+          SVG
+        </label><br>
+        <label>
+          <input type=checkbox id=setting-autoPng>
+          PNG
+        </label><br>
+        <label>
+          <input type=checkbox id=setting-autoCsv>
+          CSV
+        </label><br>
+        <label>
+          <input type=checkbox id=setting-autoJson>
+          JSON
+        </label><br>
+        <label>
+          <input type=checkbox id=setting-autoQR>
+          VR (QR)
+        </label>
+      </div>
+    </div>
+    <div id=export-panel class="export-panel hidden ui-panel-box">
+      <h2 class=panel-header><span>Export <kbd>X</kbd></span><button type=button class=panel-close aria-label="Close panel" title="Close panel">✕</button></h2>
+        <div style=min-width:100%;display:inline-block>
+          <button type=button id=downloadSVGButton title="Download square SVG (keyboard C)">SVG <kbd>C</kbd></button>
+          <button id=downloadPNGButton>PNG</button>
+          <button id=downloadCSVButton>CSV</button>
+          <button id=downloadJSONButton>JSON</button>
+          <button id=generateVRButton>VR</button>
+        </div>
+    </div>
+
+    <div id=bubbles-vr-panel class="bubbles-vr-panel hidden ui-panel-box">
+      <h2 class=panel-header><span>BubblesVR <kbd>Q</kbd></span><button type=button class=panel-close aria-label="Close panel" title="Close panel">✕</button></h2>
+      <p class=bubbles-vr-hint>Scan with CardboardVR to load this layout.</p>
+      <div id=bubbles-vr-qr-container class=bubbles-vr-qr-container>
+        <p class=bubbles-vr-placeholder>Add nodes and press [VR] to generate QR code.</p>
+      </div>
+    </div>
+  </div>
+  <script type=module src=/cocoarui/cocoarui.6829a6a5.js></script>
+  <script src=/cocoarui/cocoarui.608514b3.js></script>
+
+
